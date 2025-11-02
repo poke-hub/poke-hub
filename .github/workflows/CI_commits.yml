@@ -11,6 +11,7 @@ on:
   push:
   # Trigger the workflow on every pull request (opened, synchronized, or updated)
   pull_request:
+    branches: [main]
 
 jobs:
   check:
@@ -18,7 +19,6 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      
       # Step to validate commit messages following the Conventional Commits standard
       - name: Validate commit messages
         uses: webiny/action-conventional-commits@v1.3.0
