@@ -9,7 +9,7 @@ name: Pytest
 
 on:
   push:
-    branches: [1-poke-hub/trunk]
+    branches: [1-poke-hub/trunk, 2-poke-hub/trunk]
   pull_request:
     branches: [main]
 

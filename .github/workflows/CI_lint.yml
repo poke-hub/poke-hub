@@ -9,7 +9,7 @@ name: Python Lint
 on:
   # Trigger on every push to any branch
   push:
-    branches: [1-poke-hub/trunk]
+    branches: [1-poke-hub/trunk, 2-poke-hub/trunk]
   # Trigger on every pull request (opened, updated, or synchronized)
   pull_request:
     branches: [main]
