@@ -9,7 +9,7 @@ name: Pytest
 
 on:
   push:
-    branches: [main]
+    branches: [1-poke-hub/trunk, 2-poke-hub/trunk]
   pull_request:
     branches: [main]
 
@@ -46,7 +46,6 @@ jobs:
           --health-retries=3
 
     steps:
-      
       # Step 1: Checkout the repository code
       - name: Checkout
         uses: actions/checkout@v5
@@ -55,7 +54,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       # Step 3: Remove local editable mode for rosemary dependency (not CI-friendly)
       - name: Delete rosemary editable mode
