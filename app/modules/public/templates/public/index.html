@@ -4,11 +4,82 @@
 
 {% block content %}
 
-    <h1 class="h2 mb-3">
-
-        <b>Latest</b> datasets
+    <!-- 1. Título cambiado a "Trending" y mantiene los filtros -->
+    <h1 class="h2 mb-3 d-flex flex-wrap justify-content-between align-items-center">
+        <span><b>Trending</b> datasets</span>
+        <div class="btn-group btn-group-sm mt-2 mt-sm-0" role="group">
+            <a href="{{ url_for('public.index', metric='views') }}"
+               class="btn btn-outline-primary{% if selected_metric != 'downloads' %} active{% endif %}">
+                Views (last 30 days)
+            </a>
+            <a href="{{ url_for('public.index', metric='downloads') }}"
+               class="btn btn-outline-primary{% if selected_metric == 'downloads' %} active{% endif %}">
+                Downloads (last 30 days)
+            </a>
+        </div>
     </h1>
 
+    <!-- 2. Esta es la tarjeta "Top 3", que ahora es hija de "Trending" -->
+    <div class="card mb-3">
+        <div class="card-body">
+            {% if selected_metric == 'downloads' %}
+                <h3 class="h5 mb-3">Top 3 this month (downloads)</h3>
+                {% if trending_downloads %}
+                    <ol class="ps-3 mb-0">
+                        {% for ds, count in trending_downloads %}
+                            <li class="mb-2">
+                                <a href="{{ ds.get_uvlhub_doi() }}">{{ ds.ds_meta_data.title }}</a>
+                                &nbsp;–&nbsp;<strong>{{ count }}</strong> downloads
+                                <div class="text-muted small">
+                                    {% if ds.ds_meta_data.authors and ds.ds_meta_data.authors|length > 0 %}
+                                        {{ ds.ds_meta_data.authors[0].name }}
+                                    {% else %}
+                                        {{ ds.user.profile.surname }}, {{ ds.user.profile.name }}
+                                    {% endif %}
+                                    {% if ds.user.profile.affiliation %}
+                                        &nbsp;&middot;&nbsp;{{ ds.user.profile.affiliation }}
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                {% else %}
+                    <p class="mb-0 text-muted">No trending downloads yet.</p>
+                {% endif %}
+            {% else %}
+                <h3 class="h5 mb-3">Top 3 this month (views)</h3>
+                {% if trending_views %}
+                    <ol class="ps-3 mb-0">
+                        {% for ds, count in trending_views %}
+                            <li class="mb-2">
+                                <a href="{{ ds.get_uvlhub_doi() }}">{{ ds.ds_meta_data.title }}</a>
+                                &nbsp;–&nbsp;<strong>{{ count }}</strong> views
+                                <div class="text-muted small">
+                                    {% if ds.ds_meta_data.authors and ds.ds_meta_data.authors|length > 0 %}
+                                        {{ ds.ds_meta_data.authors[0].name }}
+                                    {% else %}
+                                        {{ ds.user.profile.surname }}, {{ ds.user.profile.name }}
+                                    {% endif %}
+                                    {% if ds.user.profile.affiliation %}
+                                        &nbsp;&middot;&nbsp;{{ ds.user.profile.affiliation }}
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                {% else %}
+                    <p class="mb-0 text-muted">No trending datasets yet.</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 3. NUEVO: Título para "Latest datasets" -->
+    <h1 class="h2 mb-3">
+        <span><b>Latest</b> datasets</span>
+    </h1>
+
+    <!-- 4. Esta es la lista de datasets, ahora hija de "Latest" -->
     <div class="row">
 
         <div class="mb-2 col-xl-8 col-lg-12 col-md-12 col-sm-12">
@@ -153,10 +224,6 @@
                         </h1>
                     
                     </div>                    
-
-                </div>
-            </div>
-
                 <div class="col-12">
 
                     <div class="card">
@@ -278,7 +345,7 @@
         </div>
 
     </div>
-
+    
 {% endblock %}
 
 {% block scripts %}

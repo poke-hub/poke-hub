@@ -140,6 +140,18 @@ class DataSetService(BaseService):
         domain = os.getenv("DOMAIN", "localhost")
         return f"http://{domain}/doi/{dataset.ds_meta_data.dataset_doi}"
 
+    def trending_by_views(self, limit: int = 5, days: int = 30):
+        """
+        Returns a list of (DataSet, views_count) limited to the last `days`.
+        """
+        return self.repository.trending_by_views(limit=limit, days=days)
+
+    def trending_by_downloads(self, limit: int = 5, days: int = 30):
+        """
+        Returns a list of (DataSet, downloads_count) limited to the last `days`.
+        """
+        return self.repository.trending_by_downloads(limit=limit, days=days)
+
 
 class AuthorService(BaseService):
     def __init__(self):
