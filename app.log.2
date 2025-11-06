@@ -1,0 +1,128 @@
+2025-11-05 18:59:04,411 - app - ERROR - Exception on /profile/security [GET]
+Traceback (most recent call last):
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask_restful/__init__.py", line 298, in error_router
+    return original_handler(e)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/app/modules/profile/routes.py", line 65, in security_settings
+    return render_template(
+           ^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/app/modules/profile/templates/profile/security.html", line 1, in top-level template code
+    {% extends "base.html" %} {% from "_form_macros.html" import render_form %} {% block content %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: base.html
+2025-11-05 18:59:04,414 - app - ERROR - Internal Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2025-11-05 19:02:37,257 - app - ERROR - Exception on /profile/security [GET]
+Traceback (most recent call last):
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask_restful/__init__.py", line 298, in error_router
+    return original_handler(e)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/app/modules/profile/routes.py", line 65, in security_settings
+    return render_template(
+           ^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/app/modules/profile/templates/profile/security.html", line 1, in top-level template code
+    {% extends "base_template.html" %} {% from "_form_macros.html" import render_form %} {% block content %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: _form_macros.html
+2025-11-05 19:02:37,258 - app - ERROR - Internal Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2025-11-05 19:03:02,936 - app - ERROR - Exception on /profile/security [GET]
+Traceback (most recent call last):
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask_restful/__init__.py", line 298, in error_router
+    return original_handler(e)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/app/modules/profile/routes.py", line 65, in security_settings
+    return render_template(
+           ^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/app/modules/profile/templates/profile/security.html", line 1, in top-level template code
+    {% extends "base_template.html" %} {% from "_form_macros.html" import render_form %} {% block content %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ariel/Prácticas EGC/proyecto/poke-hub/venv/lib/python3.12/site-packages/flask/templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: _form_macros.html

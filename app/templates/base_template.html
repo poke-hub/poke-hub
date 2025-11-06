@@ -121,6 +121,13 @@ chico sundermann">
                         </a>
                     </li>
 
+                    <li class="sidebar-item {{ 'active' if request.endpoint == 'profile.security_settings' else '' }}">
+                        <a class="sidebar-link" href="{{ url_for('profile.security_settings') }}">
+                            <i class="align-middle" data-feather="shield"></i> <span
+                                class="align-middle">Security</span>
+                        </a>
+                    </li>
+
                     <li class="sidebar-item">
                         <a class="sidebar-link" href="{{ url_for('auth.logout') }}">
                             <i class="align-middle" data-feather="log-out"></i> <span
@@ -180,6 +187,8 @@ chico sundermann">
                         <div class="dropdown-menu dropdown-menu-end">
                             <a class="dropdown-item" href="{{ url_for('profile.my_profile') }}">
                                 <i class="align-middle me-1" data-feather="user"></i> My profile</a>
+                            <a class="dropdown-item" href="{{ url_for('profile.security_settings') }}">
+                                <i class="align-middle me-1" data-feather="shield"></i> Security</a>
                             <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                                 <i class="align-middle me-1" data-feather="log-out"></i> Log out</a>
                         </div>

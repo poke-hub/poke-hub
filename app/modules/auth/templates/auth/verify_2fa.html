@@ -1,0 +1,29 @@
+{% extends "base_template.html" %} {% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2 class="text-center">Two-factor verification</h2>
+            <p class="text-center">
+                Enter the 6-digit code from your authenticator app or a recovery code.
+            </p>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('auth.verify_2fa') }}" method="POST">
+                {{ form.csrf_token }}
+                <div class="mb-3">
+                    {{ form.token.label(class="form-label") }}
+                    {{ form.token(class="form-control") }}
+                </div>
+                {{ form.submit(class="btn btn-primary w-100") }}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
