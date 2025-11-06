@@ -11,6 +11,7 @@ from app.modules.featuremodel.models import FeatureModel
 from app.modules.zenodo.repositories import ZenodoRepository
 from core.configuration.configuration import uploads_folder_name
 from core.services.BaseService import BaseService
+from core.configuration.configuration import uploads_folder_name, fakenodo_url
 
 logger = logging.getLogger(__name__)
 
@@ -21,17 +22,18 @@ class ZenodoService(BaseService):
 
     def get_zenodo_url(self):
 
+        fake = os.getenv("FAKENODO_URL")
+        if fake:
+            return fake.rstrip("/")  # e.g. http://localhost:8000/api/deposit/depositions
+
         FLASK_ENV = os.getenv("FLASK_ENV", "development")
-        ZENODO_API_URL = ""
-
         if FLASK_ENV == "development":
-            ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
+            return os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
         elif FLASK_ENV == "production":
-            ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://zenodo.org/api/deposit/depositions")
+            return os.getenv("ZENODO_API_URL", "https://zenodo.org/api/deposit/depositions")
         else:
-            ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
+            return os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
 
-        return ZENODO_API_URL
 
     def get_zenodo_access_token(self):
         return os.getenv("ZENODO_ACCESS_TOKEN")
