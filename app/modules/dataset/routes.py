@@ -51,18 +51,32 @@ def create_dataset():
 
         dataset = None
 
-        if not form.validate_on_submit():
+        # ¿Guardar borrador?
+        save_as_draft = request.form.get("save_as_draft") in ("1", "true", "True")
+        # Si NO es borrador, mantenemos tu validación actual
+        if not save_as_draft and not form.validate_on_submit():
             return jsonify({"message": form.errors}), 400
 
         try:
             logger.info("Creating dataset...")
-            dataset = dataset_service.create_from_form(form=form, current_user=current_user)
+            dataset = dataset_service.create_from_form(
+                form=form,
+                current_user=current_user,
+                draft_mode=True if save_as_draft else False
+            )
             logger.info(f"Created dataset: {dataset}")
             dataset_service.move_feature_models(dataset)
         except Exception as exc:
             logger.exception(f"Exception while create dataset data in local {exc}")
             return jsonify({"Exception while create dataset data in local: ": str(exc)}), 400
 
+        if save_as_draft:
+            return jsonify({
+                "message": "Draft saved",
+                "redirect": f"/dataset/unsynchronized/{dataset.id}/",
+                "dataset_id": dataset.id
+            }), 200
+    
         # send dataset as deposition to Zenodo
         data = {}
         try:
