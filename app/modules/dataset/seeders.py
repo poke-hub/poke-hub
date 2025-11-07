@@ -18,10 +18,6 @@ class DataSetSeeder(BaseSeeder):
     priority = 2  # Lower priority
 
     def _get_or_create(self, model, defaults=None, **filters):
-        """
-        Idempotencia sencilla: busca por filtros; si no existe, crea con defaults.
-        Devuelve instancia y booleano created.
-        """
         instance = model.query.filter_by(**filters).first()
         if instance:
             return instance, False
@@ -34,176 +30,160 @@ class DataSetSeeder(BaseSeeder):
 
     def run(self):
         # 1) Usuarios requeridos
-        user1 = User.query.filter_by(email="user1@example.com").first()
-        user2 = User.query.filter_by(email="user2@example.com").first()
-        if not user1 or not user2:
+        users = User.query.filter(User.email.in_(["user1@example.com", "user2@example.com"])).all()
+        if len(users) < 2:
             raise Exception("Users not found. Please seed users first.")
+        user1, user2 = users
 
-        # 2) Métricas (una sola fila, idempotente por números)
+        # 2) Métricas base
         ds_metrics, _ = self._get_or_create(
             DSMetrics,
-            number_of_models="5",
-            number_of_features="50",
+            number_of_models="3",
+            number_of_features="25",
         )
 
-        # 3) Metadatos de dataset (4 ejemplos)
-        #    0 y 1 -> borradores (dataset_doi=None)
-        #    2 y 3 -> publicados (dataset_doi con valor)
-        ds_meta_specs = []
-        for i in range(4):
-            is_draft = i < 2
-            ds_meta_specs.append(
-                dict(
-                    title=f"Sample dataset {i+1}",
-                    description=f"Description for dataset {i+1}",
+        # ------------------------------------------------------
+        # 3) Crear 3 datasets por usuario: published, unsync, draft
+        # ------------------------------------------------------
+        dataset_specs = []
+        for user in [user1, user2]:
+            dataset_specs.extend([
+                dict(  # Published
+                    owner=user,
+                    title=f"Published dataset ({user.email})",
+                    description="A published dataset example.",
                     publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
-                    publication_doi=(None if is_draft else f"10.1234/dataset_pub_{i+1}"),
-                    dataset_doi=(None if is_draft else f"10.1234/dataset_pub_{i+1}"),
-                    tags="tag1, tag2",
-                    ds_metrics_id=ds_metrics.id,
-                    # deposition_id lo dejamos en None en draft; opcional poner número en publicados
-                    deposition_id=(None if is_draft else (100 + i)),
-                )
-            )
+                    dataset_doi=f"10.1234/{user.id}_published",
+                    publication_doi=f"10.1234/{user.id}_published",
+                    draft_mode=False,
+                    deposition_id=100 + user.id,
+                ),
+                dict(  # Unsynchronized (no DOI, no draft)
+                    owner=user,
+                    title=f"Unsynchronized dataset ({user.email})",
+                    description="A local dataset pending synchronization.",
+                    publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
+                    dataset_doi=None,
+                    publication_doi=None,
+                    draft_mode=False,
+                    deposition_id=None,
+                ),
+                dict(  # Draft (no DOI, draft_mode=True)
+                    owner=user,
+                    title=f"Draft dataset ({user.email})",
+                    description="A dataset saved as draft.",
+                    publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
+                    dataset_doi=None,
+                    publication_doi=None,
+                    draft_mode=True,
+                    deposition_id=None,
+                ),
+            ])
 
-        seeded_ds_meta_data = []
-        for spec in ds_meta_specs:
-            # Idempotencia: usamos title como clave "humana"
+        seeded_datasets = []
+
+        for spec in dataset_specs:
             dsmeta, _ = self._get_or_create(
                 DSMetaData,
-                # defaults:
-                description=spec["description"],
-                publication_type=spec["publication_type"],
-                publication_doi=spec["publication_doi"],
-                dataset_doi=spec["dataset_doi"],
-                tags=spec["tags"],
-                ds_metrics_id=spec["ds_metrics_id"],
-                deposition_id=spec["deposition_id"],
-                # filtro:
                 title=spec["title"],
+                defaults=dict(
+                    description=spec["description"],
+                    publication_type=spec["publication_type"],
+                    dataset_doi=spec["dataset_doi"],
+                    publication_doi=spec["publication_doi"],
+                    tags="tag1, tag2",
+                    ds_metrics_id=ds_metrics.id,
+                    deposition_id=spec["deposition_id"],
+                ),
             )
-            # Si por idempotencia algún campo cambió entre ejecuciones, actualizamos:
-            dsmeta.description = spec["description"]
-            dsmeta.publication_type = spec["publication_type"]
-            dsmeta.publication_doi = spec["publication_doi"]
-            dsmeta.dataset_doi = spec["dataset_doi"]
-            dsmeta.tags = spec["tags"]
-            dsmeta.ds_metrics_id = spec["ds_metrics_id"]
-            dsmeta.deposition_id = spec["deposition_id"]
-            seeded_ds_meta_data.append(dsmeta)
 
-        # 4) Autores (1 autor por cada DSMetaData)
-        for i, dsmeta in enumerate(seeded_ds_meta_data):
-            name = f"Author {i+1}"
-            author, created = self._get_or_create(
+            # autor principal
+            author, _ = self._get_or_create(
                 Author,
-                # defaults:
-                affiliation=f"Affiliation {i+1}",
-                orcid=f"0000-0000-0000-000{i}",
-                # filtro:
-                name=name,
+                name=f"{spec['owner'].profile.surname}, {spec['owner'].profile.name}",
                 ds_meta_data_id=dsmeta.id,
+                defaults=dict(
+                    affiliation=spec['owner'].profile.affiliation,
+                    orcid=spec['owner'].profile.orcid or f"0000-0000-0000-{spec['owner'].id:04d}",
+                ),
             )
-            # idempotencia: refrescamos datos "suaves"
-            author.affiliation = f"Affiliation {i+1}"
-            author.orcid = f"0000-0000-0000-000{i}"
 
-        # 5) DataSet (enlazar a usuarios; marcar draft_mode según el caso)
-        seeded_datasets = []
-        for i, dsmeta in enumerate(seeded_ds_meta_data):
-            is_draft = i < 2
-            owner_id = user1.id if i % 2 == 0 else user2.id
             dataset, _ = self._get_or_create(
                 DataSet,
-                # defaults:
-                created_at=datetime.now(timezone.utc),
-                draft_mode=is_draft,
-                # filtro:
                 ds_meta_data_id=dsmeta.id,
-                user_id=owner_id,
+                user_id=spec["owner"].id,
+                defaults=dict(
+                    created_at=datetime.now(timezone.utc),
+                    draft_mode=spec["draft_mode"],
+                ),
             )
-            # idempotencia: aseguramos el flag correctamente
-            dataset.draft_mode = is_draft
+
+            dataset.draft_mode = spec["draft_mode"]
             seeded_datasets.append(dataset)
 
-        # 6) Feature models (12 en total, 3 por dataset)
+        # ------------------------------------------------------
+        # 4) Crear feature models (3 por dataset, 6 datasets = 18)
+        # ------------------------------------------------------
         fm_meta_data_list = []
-        for i in range(12):
-            filename = f"file{i+1}.uvl"
+        for i in range(18):
+            filename = f"fm_{i+1}.uvl"
             fmmeta, _ = self._get_or_create(
                 FMMetaData,
-                # defaults:
-                title=f"Feature Model {i+1}",
-                description=f"Description for feature model {i+1}",
-                publication_type=PublicationType.SOFTWARE_DOCUMENTATION,
-                publication_doi=f"10.1234/fm{i+1}",
-                tags="tag1, tag2",
-                uvl_version="1.0",
-                # filtro:
                 uvl_filename=filename,
+                defaults=dict(
+                    title=f"Feature Model {i+1}",
+                    description=f"Description for feature model {i+1}",
+                    publication_type=PublicationType.SOFTWARE_DOCUMENTATION,
+                    publication_doi=f"10.1234/fm{i+1}",
+                    tags="tag1, tag2",
+                    uvl_version="1.0",
+                ),
             )
-            # idempotencia: refrescamos algunos campos
-            fmmeta.title = f"Feature Model {i+1}"
-            fmmeta.description = f"Description for feature model {i+1}"
-            fmmeta.publication_type = PublicationType.SOFTWARE_DOCUMENTATION
-            fmmeta.publication_doi = f"10.1234/fm{i+1}"
-            fmmeta.tags = "tag1, tag2"
-            fmmeta.uvl_version = "1.0"
             fm_meta_data_list.append(fmmeta)
 
         seeded_feature_models = []
-        for i in range(12):
-            ds_idx = i // 3  # 0..3
-            fmmeta = fm_meta_data_list[i]
+        for i, fmmeta in enumerate(fm_meta_data_list):
+            ds_idx = i // 3  # 3 FMs por dataset
             dataset = seeded_datasets[ds_idx]
             fm, _ = self._get_or_create(
                 FeatureModel,
-                # no defaults adicionales
                 fm_meta_data_id=fmmeta.id,
                 data_set_id=dataset.id,
             )
             seeded_feature_models.append(fm)
 
-        # Create files, associate them with FeatureModels and copy files
+        # ------------------------------------------------------
+        # 5) Crear Hubfiles asociados y copiar ejemplos UVL
+        # ------------------------------------------------------
         load_dotenv()
         working_dir = os.getenv("WORKING_DIR", "")
         src_folder = os.path.join(working_dir, "app", "modules", "dataset", "uvl_examples")
 
-        for i in range(12):
-            file_name = f"file{i+1}.uvl"
-            feature_model = seeded_feature_models[i]
-            dataset = next(ds for ds in seeded_datasets if ds.id == feature_model.data_set_id)
+        for i, fm in enumerate(seeded_feature_models):
+            file_name = fm.fm_meta_data.uvl_filename
+            dataset = next(ds for ds in seeded_datasets if ds.id == fm.data_set_id)
             user_id = dataset.user_id
 
-            # origen
             src_path = os.path.join(src_folder, file_name)
             if not os.path.exists(src_path):
-                # Si no están los ejemplos, no rompas el seed
                 continue
 
-            # destino
             dest_folder = os.path.join(working_dir, "uploads", f"user_{user_id}", f"dataset_{dataset.id}")
             os.makedirs(dest_folder, exist_ok=True)
             dest_path = os.path.join(dest_folder, file_name)
-
-            # copiar si hace falta
             if not os.path.exists(dest_path):
                 shutil.copy(src_path, dest_path)
-
             size = os.path.getsize(dest_path)
 
-            # Hubfile idempotente por (feature_model_id, name)
             hubfile, _ = self._get_or_create(
                 Hubfile,
-                # defaults:
-                checksum=f"checksum{i+1}",
-                size=size,
-                # filtro:
-                feature_model_id=feature_model.id,
+                feature_model_id=fm.id,
                 name=file_name,
+                defaults=dict(
+                    checksum=f"checksum_{i+1}",
+                    size=size,
+                ),
             )
-            # refrescamos tamaño por si cambió
             hubfile.size = size
 
-        # commit final por si quedaron cambios pendientes de idempotencia
         db.session.commit()
