@@ -23,7 +23,7 @@ class AuthorForm(FlaskForm):
 
 
 class FeatureModelForm(FlaskForm):
-    uvl_filename = StringField("UVL Filename", validators=[DataRequired()])
+    poke_filename = StringField("Poke Filename", validators=[DataRequired()])
     title = StringField("Title", validators=[Optional()])
     desc = TextAreaField("Description", validators=[Optional()])
     publication_type = SelectField(
@@ -33,7 +33,7 @@ class FeatureModelForm(FlaskForm):
     )
     publication_doi = StringField("Publication DOI", validators=[Optional(), URL()])
     tags = StringField("Tags (separated by commas)")
-    version = StringField("UVL Version")
+    version = StringField("Poke Version")
     authors = FieldList(FormField(AuthorForm))
 
     class Meta:
@@ -44,13 +44,13 @@ class FeatureModelForm(FlaskForm):
 
     def get_fmmetadata(self):
         return {
-            "uvl_filename": self.uvl_filename.data,
+            "poke_filename": self.poke_filename.data,
             "title": self.title.data,
             "description": self.desc.data,
             "publication_type": self.publication_type.data,
             "publication_doi": self.publication_doi.data,
             "tags": self.tags.data,
-            "uvl_version": self.version.data,
+            "poke_version": self.version.data,
         }
 
 
