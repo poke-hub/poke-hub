@@ -4,7 +4,14 @@
 
 {% block content %}
 
-    <h1 class="h2 mb-3"><b>Upload</b> dataset</h1>
+    <h1 class="h2 mb-3">
+        {% if editing %}
+        <b>Edit</b> draft dataset
+        {% else %}
+        <b>Upload</b> dataset
+        {% endif %}
+    </h1>
+
 
     <div class="row">
         <div class="col-12 mb-3">
@@ -449,10 +456,17 @@
 
             <input type="hidden" id="save_as_draft" name="save_as_draft" value="0" />
 
-            <button id="save_draft_button"  type="button" class="btn btn-primary mt-2">
-                <i data-feather="save" class="center-button-icon"></i>
-                Guardar borrador
-            </button>
+            <div class="mt-4">
+                {% if editing %}
+                <button id="update_draft_button" type="button" class="btn btn-warning" data-id="{{ dataset.id }}">
+                <i data-feather="save"></i> Update draft
+                </button>
+                {% else %}
+                <button id="save_draft_button" type="button" class="btn btn-warning">
+                <i data-feather="save"></i> Save draft
+                </button>
+                {% endif %}
+            </div>
 
         </div>
 
