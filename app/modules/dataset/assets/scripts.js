@@ -232,65 +232,137 @@ var currentId = 0;
             });
 
             // --- GUARDAR COMO BORRADOR ---
-            document.getElementById('save_draft_button').addEventListener('click', function () {
+            const saveDraftBtn = document.getElementById('save_draft_button');
+            if (saveDraftBtn) {
+            saveDraftBtn.addEventListener('click', function () {
                 clean_upload_errors();
                 show_loading();
 
-                // Recogemos los mismos datos que en el upload normal
                 const formData = {};
                 ["basic_info_form", "uploaded_models_form"].forEach((formId) => {
-                    const form = document.getElementById(formId);
-                    const inputs = form.querySelectorAll('input, select, textarea');
-                    inputs.forEach(input => {
-                        if (input.name) {
-                            formData[input.name] = formData[input.name] || [];
-                            formData[input.name].push(input.value);
-                        }
-                    });
+                const form = document.getElementById(formId);
+                if (!form) return;
+                const inputs = form.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    if (input.name) {
+                    formData[input.name] = formData[input.name] || [];
+                    formData[input.name].push(input.value);
+                    }
+                });
                 });
 
-                // Preparamos el FormData para POST
-                const csrfToken = document.getElementById('csrf_token').value;
+                const csrfToken = document.getElementById('csrf_token')?.value || '';
                 const formUploadData = new FormData();
                 formUploadData.append('csrf_token', csrfToken);
 
                 for (let key in formData) {
-                    if (formData.hasOwnProperty(key)) {
-                        formUploadData.set(key, formData[key]);
-                    }
+                if (Object.prototype.hasOwnProperty.call(formData, key)) {
+                    formUploadData.set(key, formData[key]);
+                }
                 }
 
-                // MUY IMPORTANTE: marcar como borrador
                 formUploadData.set('save_as_draft', '1');
 
-                // Para borrador NO hacemos validaciones cliente (el backend ya permite saltarlas para drafts)
                 fetch('/dataset/upload', {
-                    method: 'POST',
-                    body: formUploadData
+                method: 'POST',
+                body: formUploadData
                 })
-                    .then(response => response.json()
-                        .then(data => ({ ok: response.ok, data })))
-                    .then(({ ok, data }) => {
-                        if (ok) {
-                            // El backend ya devuelve redirect a /dataset/unsynchronized/<id>/
-                            if (data.redirect) {
-                                window.location.href = data.redirect;
-                            } else {
-                                window.location.href = "/dataset/list";
-                            }
-                        } else {
-                            hide_loading();
-                            write_upload_error(data.message || "No se ha podido guardar el borrador");
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error in POST request:', error);
-                        hide_loading();
-                        write_upload_error("Error de red guardando el borrador");
-                    });
+                .then(response => response.json()
+                    .then(data => ({ ok: response.ok, data })))
+                .then(({ ok, data }) => {
+                    if (ok) {
+                    if (data.redirect) window.location.href = data.redirect;
+                    else window.location.href = "/dataset/list";
+                    } else {
+                    hide_loading();
+                    write_upload_error(data.message || "No se ha podido guardar el borrador");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error in POST request:', error);
+                    hide_loading();
+                    write_upload_error("Error de red guardando el borrador");
+                });
             });
+            }
+
 
         };
+
+
+        // === Reemplazo del bloque DOMContentLoaded para guardar/actualizar drafts SIN <form> ===
+        document.addEventListener("DOMContentLoaded", () => {
+        const saveDraftButton   = document.getElementById("save_draft_button");
+        const updateDraftButton = document.getElementById("update_draft_button");
+
+        // Recoge los campos desde los contenedores (divs) basic_info_form y uploaded_models_form
+        const collectFields = () => {
+            const data = {};
+            ["basic_info_form", "uploaded_models_form"].forEach((id) => {
+            const box = document.getElementById(id);
+            if (!box) return;
+            const inputs = box.querySelectorAll("input, select, textarea");
+            inputs.forEach((el) => {
+                if (!el.name) return;
+                if (!data[el.name]) data[el.name] = [];
+                data[el.name].push(el.value);
+            });
+            });
+            return data;
+        };
+
+        // Envía el draft a la URL indicada
+        const sendDraft = (url) => {
+            const fields = collectFields();
+            const fd = new FormData();
+
+            // CSRF (WTForms hidden_tag lo sigue pintando aunque no haya <form>)
+            const csrf = document.getElementById("csrf_token");
+            if (csrf?.value) fd.append("csrf_token", csrf.value);
+
+            // Campos recogidos
+            Object.keys(fields).forEach((k) => fd.set(k, fields[k]));
+
+            // Flag de borrador
+            fd.set("save_as_draft", "1");
+
+            fetch(url, { method: "POST", body: fd })
+            .then((res) => {
+                if (res.redirected) { window.location.href = res.url; return null; }
+                return res.json().then((data) => ({ ok: res.ok, data }));
+            })
+            .then((out) => {
+                if (!out) return;
+                if (out.ok && out.data?.redirect) window.location.href = out.data.redirect;
+                else if (out.data?.message) alert(out.data.message);
+            })
+            .catch((err) => console.error("Error saving draft:", err));
+        };
+
+        // Crear nuevo draft (pantalla de upload)
+        if (saveDraftButton) {
+            saveDraftButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            sendDraft("/dataset/upload");
+            });
+        }
+
+        // Actualizar draft existente (pantalla de edición)
+        if (updateDraftButton) {
+            updateDraftButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            const datasetId = updateDraftButton.dataset.id;
+            if (!datasetId) {
+                console.error("Falta data-id en #update_draft_button");
+                alert("No se puede actualizar: falta el identificador del dataset.");
+                return;
+            }
+            sendDraft(`/dataset/${datasetId}/edit`);
+            });
+        }
+        });
+
+
 
 
         function isValidOrcid(orcid) {
