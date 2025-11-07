@@ -105,10 +105,21 @@ class DataSetService(BaseService):
                 author = self.author_repository.create(commit=False, ds_meta_data_id=dsmetadata.id, **author_data)
                 dsmetadata.authors.append(author)
 
-            dataset = self.create(commit=False, user_id=current_user.id, ds_meta_data_id=dsmetadata.id,draft_mode=draft_mode)
+            dataset = self.create(commit=False, user_id=current_user.id, ds_meta_data_id=dsmetadata.id, draft_mode=draft_mode)
+
+            any_fm_persisted = False
 
             for feature_model in form.feature_models:
                 uvl_filename = feature_model.uvl_filename.data
+
+                # permitir draft sin UVL; exigir UVL en no-draft ---
+                if not uvl_filename:
+                    if draft_mode:
+                        # En borrador, simplemente no persistimos este FM
+                        continue
+                    else:
+                        raise ValueError("At least one feature model file is required.")
+
                 fmmetadata = self.fmmetadata_repository.create(commit=False, **feature_model.get_fmmetadata())
                 for author_data in feature_model.get_authors():
                     author = self.author_repository.create(commit=False, fm_meta_data_id=fmmetadata.id, **author_data)
@@ -126,6 +137,14 @@ class DataSetService(BaseService):
                     commit=False, name=uvl_filename, checksum=checksum, size=size, feature_model_id=fm.id
                 )
                 fm.files.append(file)
+
+                # --- NUEVO: marcamos que hemos persistido al menos un FM ---
+                any_fm_persisted = True
+
+            # --- NUEVO: si no es borrador y no hay ningún FM válido -> error ---
+            if not draft_mode and not any_fm_persisted:
+                raise ValueError("At least one feature model file is required.")
+
             self.repository.session.commit()
         except Exception as exc:
             logger.info(f"Exception creating dataset from form...: {exc}")

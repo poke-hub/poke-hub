@@ -230,6 +230,66 @@ var currentId = 0;
 
 
             });
+
+            // --- GUARDAR COMO BORRADOR ---
+            document.getElementById('save_draft_button').addEventListener('click', function () {
+                clean_upload_errors();
+                show_loading();
+
+                // Recogemos los mismos datos que en el upload normal
+                const formData = {};
+                ["basic_info_form", "uploaded_models_form"].forEach((formId) => {
+                    const form = document.getElementById(formId);
+                    const inputs = form.querySelectorAll('input, select, textarea');
+                    inputs.forEach(input => {
+                        if (input.name) {
+                            formData[input.name] = formData[input.name] || [];
+                            formData[input.name].push(input.value);
+                        }
+                    });
+                });
+
+                // Preparamos el FormData para POST
+                const csrfToken = document.getElementById('csrf_token').value;
+                const formUploadData = new FormData();
+                formUploadData.append('csrf_token', csrfToken);
+
+                for (let key in formData) {
+                    if (formData.hasOwnProperty(key)) {
+                        formUploadData.set(key, formData[key]);
+                    }
+                }
+
+                // MUY IMPORTANTE: marcar como borrador
+                formUploadData.set('save_as_draft', '1');
+
+                // Para borrador NO hacemos validaciones cliente (el backend ya permite saltarlas para drafts)
+                fetch('/dataset/upload', {
+                    method: 'POST',
+                    body: formUploadData
+                })
+                    .then(response => response.json()
+                        .then(data => ({ ok: response.ok, data })))
+                    .then(({ ok, data }) => {
+                        if (ok) {
+                            // El backend ya devuelve redirect a /dataset/unsynchronized/<id>/
+                            if (data.redirect) {
+                                window.location.href = data.redirect;
+                            } else {
+                                window.location.href = "/dataset/list";
+                            }
+                        } else {
+                            hide_loading();
+                            write_upload_error(data.message || "No se ha podido guardar el borrador");
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error in POST request:', error);
+                        hide_loading();
+                        write_upload_error("Error de red guardando el borrador");
+                    });
+            });
+
         };
 
 
