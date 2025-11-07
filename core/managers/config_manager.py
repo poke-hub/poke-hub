@@ -33,6 +33,7 @@ class Config:
     TIMEZONE = "Europe/Madrid"
     TEMPLATES_AUTO_RELOAD = True
     UPLOAD_FOLDER = "uploads"
+    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH_MB", "200")) * 1024 * 1024
 
 
 class DevelopmentConfig(Config):
