@@ -4,8 +4,11 @@ import os
 import shutil
 import tempfile
 import uuid
+import io
+import requests
 from datetime import datetime, timezone
 from zipfile import ZipFile
+from urllib.parse import urlparse
 
 from flask import (
     abort,
@@ -171,6 +174,158 @@ def delete():
 
     return jsonify({"error": "Error: File not found"})
 
+#Upload zip
+@dataset_bp.route("/dataset/zip/upload", methods=["POST"])
+@login_required
+def upload_zip():
+    temp_folder = current_user.temp_folder()
+
+    # Validate file
+    file = request.files.get("file")
+    if not file or not file.filename.lower().endswith(".zip"):
+        return jsonify({"message": "No valid zip"}), 400
+
+    if not os.path.exists(temp_folder):
+        os.makedirs(temp_folder)
+
+    saved, ignored = [], []
+
+    try:
+        with ZipFile(file.stream) as zf:
+            for member in zf.infolist():
+                name = member.filename
+
+                if member.is_dir():
+                    continue
+
+                norm = os.path.normpath(name).replace("\\", "/")
+
+                if norm.startswith("../") or norm.startswith("/"):
+                    ignored.append(name)
+                    continue
+
+                if not norm.lower().endswith(".uvl"):
+                    ignored.append(name)
+                    continue
+
+                base_filename = os.path.basename(norm)
+
+                base, ext = os.path.splitext(base_filename)
+                candidate = base_filename
+                dest_path = os.path.join(temp_folder, candidate)
+                i = 1
+                while os.path.exists(dest_path):
+                    candidate = f"{base} ({i}){ext}"
+                    dest_path = os.path.join(temp_folder, candidate)
+                    i += 1
+
+                with zf.open(member, "r") as src, open(dest_path, "wb") as dst:
+                    shutil.copyfileobj(src, dst)
+
+                saved.append(candidate)
+
+    except Exception as e:
+        logger.exception("Error while processing ZIP")
+        return jsonify({"message": f"Error processing ZIP: {e}"}), 400
+
+    return jsonify({"message": "ZIP processed", "saved": saved, "ignored": ignored}), 200
+
+#Import from GitHub
+@dataset_bp.route("/dataset/github/import", methods=["POST"])
+@login_required
+def import_from_github():
+
+    payload = request.get_json(silent=True) or {}
+    repo_url = (payload.get("repo_url") or "").strip()
+    branch = (payload.get("branch") or "main").strip()
+    subdir = (payload.get("subdir") or "").strip().strip("/")
+
+    if not repo_url:
+        return jsonify({"message": "repo_url is required"}), 400
+
+    try:
+        parsed = urlparse(repo_url)
+        if "github.com" not in parsed.netloc.lower():
+            return jsonify({"message": "Only GitHub URLs are supported"}), 400
+        parts = [p for p in parsed.path.split("/") if p]
+        if len(parts) < 2:
+            return jsonify({"message": "Invalid GitHub repo URL"}), 400
+        owner, repo = parts[0], parts[1]
+        if repo.endswith(".git"):
+            repo = repo[:-4]
+    except Exception:
+        return jsonify({"message": "Invalid GitHub repo URL"}), 400
+
+    archive_url = f"https://codeload.github.com/{owner}/{repo}/zip/refs/heads/{branch}"
+
+    # ZIP Download
+    try:
+        resp = requests.get(archive_url, timeout=60)
+        if resp.status_code != 200:
+            return jsonify({"message": f"GitHub returned {resp.status_code}"}), 400
+        zip_bytes = io.BytesIO(resp.content)
+    except Exception as e:
+        logger.exception("Error downloading GitHub archive")
+        return jsonify({"message": f"Error downloading archive: {e}"}), 400
+
+    temp_folder = current_user.temp_folder()
+    if not os.path.exists(temp_folder):
+        os.makedirs(temp_folder)
+
+    saved, ignored = [], []
+
+    try:
+        with ZipFile(zip_bytes) as zf:
+            prefix = ""
+            try:
+                first = zf.namelist()[0]
+                root = first.split("/")[0] if "/" in first else ""
+                if subdir:
+                    prefix = f"{root}/{subdir}/"
+                else:
+                    prefix = f"{root}/" if root else ""
+            except Exception:
+                prefix = f"{subdir}/" if subdir else ""
+
+            for member in zf.infolist():
+                name = member.filename
+
+                if member.is_dir():
+                    continue
+
+                if prefix and not name.startswith(prefix):
+                    continue
+
+                norm = os.path.normpath(name).replace("\\", "/")
+                if norm.startswith("../") or norm.startswith("/"):
+                    ignored.append(name)
+                    continue
+
+                if not norm.lower().endswith(".uvl"):
+                    ignored.append(name)
+                    continue
+
+                base_filename = os.path.basename(norm)
+
+                base, ext = os.path.splitext(base_filename)
+                candidate = base_filename
+                dest_path = os.path.join(temp_folder, candidate)
+                i = 1
+                while os.path.exists(dest_path):
+                    candidate = f"{base} ({i}){ext}"
+                    dest_path = os.path.join(temp_folder, candidate)
+                    i += 1
+
+                with zf.open(member, "r") as src, open(dest_path, "wb") as dst:
+                    shutil.copyfileobj(src, dst)
+
+                saved.append(candidate)
+
+    except Exception as e:
+        logger.exception("Error processing GitHub ZIP")
+        return jsonify({"message": f"Error processing GitHub ZIP: {e}"}), 400
+
+    return jsonify({"message": "GitHub import completed", "saved": saved, "ignored": ignored}), 200
 
 @dataset_bp.route("/dataset/download/<int:dataset_id>", methods=["GET"])
 def download_dataset(dataset_id):
