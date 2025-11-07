@@ -120,6 +120,81 @@ def create_dataset():
     return render_template("dataset/upload_dataset.html", form=form)
 
 
+@dataset_bp.route("/dataset/<int:dataset_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_dataset(dataset_id):
+    dataset = dataset_service.get_unsynchronized_dataset(current_user.id, dataset_id)
+    if not dataset:
+        abort(404)
+
+    # Solo permitir edición si es draft
+    if not dataset.draft_mode:
+        abort(400, "Only draft datasets can be edited.")
+
+    form = DataSetForm()
+
+    # --- Pre-rellenar datos al entrar ---
+    if request.method == "GET":
+        form.title.data = dataset.ds_meta_data.title
+        form.desc.data = dataset.ds_meta_data.description
+        form.publication_type.data = (
+            dataset.ds_meta_data.publication_type.value
+            if dataset.ds_meta_data.publication_type else None
+        )
+        form.publication_doi.data = dataset.ds_meta_data.publication_doi
+        form.tags.data = dataset.ds_meta_data.tags
+
+    # --- Guardar cambios ---
+    if request.method == "POST":
+        save_as_draft = request.form.get("save_as_draft") in ("1", "true", "True")
+
+        # Validación ligera (no estricta en draft)
+        if not save_as_draft and not form.validate_on_submit():
+            return render_template(
+                "dataset/upload_dataset.html",
+                dataset=dataset,
+                form=form,
+                editing=True,
+                error="Invalid form data"
+            )
+
+        try:
+            # Actualizar los metadatos del dataset
+            dataset_service.update_dsmetadata(
+                dataset.ds_meta_data_id,
+                title=form.title.data,
+                description=form.desc.data,
+                publication_type=form.publication_type.data,
+                publication_doi=form.publication_doi.data,
+                tags=form.tags.data,
+            )
+
+            # Actualizar el dataset (por ejemplo, mantenerlo en modo borrador)
+            dataset_service.update(
+                dataset.id,
+                draft_mode=save_as_draft
+            )
+
+            msg = "Draft updated successfully!"
+            logger.info(msg)
+            return redirect(url_for("dataset.get_unsynchronized_dataset", dataset_id=dataset.id))
+
+        except Exception as exc:
+            logger.exception(f"Error editing draft dataset {dataset.id}: {exc}")
+            return render_template(
+                "dataset/upload_dataset.html",
+                dataset=dataset,
+                form=form,
+                editing=True,
+                error=str(exc)
+            )
+
+    # Renderizar la misma plantilla del upload, pero en modo edición
+    return render_template("dataset/upload_dataset.html", form=form, dataset=dataset, editing=True)
+
+
+
+
 @dataset_bp.route("/dataset/list", methods=["GET", "POST"])
 @login_required
 def list_dataset():
