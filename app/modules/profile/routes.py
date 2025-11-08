@@ -1,10 +1,10 @@
-from flask import redirect, render_template, request, url_for, abort
+from flask import abort, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app import db
+from app.modules.auth.models import User
 from app.modules.auth.services import AuthenticationService
 from app.modules.dataset.models import DataSet
-from app.modules.auth.models import User
 from app.modules.profile import profile_bp
 from app.modules.profile.forms import UserProfileForm
 from app.modules.profile.services import UserProfileService
