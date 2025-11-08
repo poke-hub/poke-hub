@@ -8,17 +8,18 @@ from app.modules.pokemon_check.check_poke import PokemonSetChecker
 
 logger = logging.getLogger(__name__)
 
+
 @pokemon_check_bp.route("/pokemon_check/check_poke/<int:file_id>", methods=["GET"])
 def check_poke(file_id):
     """
-    Valida un archivo .poke 
+    Valida un archivo .poke
     Comprueba si la sintaxis del set de Pokémon es válida.
     """
     try:
         hubfile = HubfileService().get_by_id(file_id)
         if not hubfile:
             return jsonify({"errors": ["El archivo no existe."]}), 404
-        
+
         file_path = hubfile.get_path()
 
         # 2. LEEMOS EL CONTENIDO DEL ARCHIVO
@@ -38,10 +39,7 @@ def check_poke(file_id):
             return jsonify({"errors": parser.get_errors()}), 400
 
         # Si es válido, devolvemos un JSON con los datos parseados
-        return jsonify({
-            "message": "Valid Model",
-            "data": parser.get_parsed_data()
-        }), 200
+        return jsonify({"message": "Valid Model", "data": parser.get_parsed_data()}), 200
 
     except Exception as e:
         logger.error(f"Excepción en check_poke para file_id {file_id}: {e}")
