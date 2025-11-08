@@ -57,6 +57,11 @@ def create_dataset():
         if not save_as_draft and not form.validate_on_submit():
             return jsonify({"message": form.errors}), 400
 
+        if save_as_draft:
+            title = request.form.get("title", "").strip()
+            if not title:
+                return jsonify({"message": "Para guardar como borrador, introduce un título."}), 400
+            
         try:
             logger.info("Creating dataset...")
             dataset = dataset_service.create_from_form(
@@ -130,6 +135,19 @@ def edit_dataset(dataset_id):
     # Solo permitir edición si es draft
     if not dataset.draft_mode:
         abort(400, "Only draft datasets can be edited.")
+
+    save_as_draft = request.form.get("save_as_draft") in ("1", "true", "True")
+    if save_as_draft:
+        title = request.form.get("title", "").strip()
+        if not title:
+            return render_template(
+                "dataset/upload_dataset.html",
+                dataset=dataset,
+                form=form,
+                editing=True,
+                error="Para guardar como borrador, introduce un título."
+            )
+
 
     form = DataSetForm()
 
