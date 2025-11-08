@@ -151,6 +151,44 @@ class DataSetService(BaseService):
             self.repository.session.rollback()
             raise exc
         return dataset
+    
+    def append_feature_models_from_form(self, dataset: DataSet, form, current_user):
+    
+        try:
+            for feature_model in getattr(form, "feature_models", []):
+                # WTForms: FileField/StringField -> usa .data
+                uvl_filename = getattr(feature_model.uvl_filename, "data", None)
+                if not uvl_filename:
+                    continue  # nada que añadir
+
+                # Crear FMMetaData
+                fmmetadata = self.fmmetadata_repository.create(commit=False, **feature_model.get_fmmetadata())
+
+                # Autores del FM 
+                for author_data in feature_model.get_authors():
+                    author = self.author_repository.create(commit=False, fm_meta_data_id=fmmetadata.id, **author_data)
+                    fmmetadata.authors.append(author)
+
+                # Crear FeatureModel asociado al dataset
+                fm = self.feature_model_repository.create(
+                    commit=False, data_set_id=dataset.id, fm_meta_data_id=fmmetadata.id
+                )
+
+                # Archivo asociado
+                file_path = os.path.join(current_user.temp_folder(), uvl_filename)
+                checksum, size = calculate_checksum_and_size(file_path)
+
+                file = self.hubfilerepository.create(
+                    commit=False, name=uvl_filename, checksum=checksum, size=size, feature_model_id=fm.id
+                )
+                fm.files.append(file)
+
+            # persistimos todo lo creado
+            self.repository.session.commit()
+
+        except Exception as exc:
+            self.repository.session.rollback()
+            raise
 
     def update_dsmetadata(self, id, **kwargs):
 

@@ -187,6 +187,8 @@ def edit_dataset(dataset_id):
                 tags=form.tags.data,
             )
 
+            dataset_service.append_feature_models_from_form(dataset, form, current_user)
+
             # Actualizar el dataset (por ejemplo, mantenerlo en modo borrador)
             dataset_service.update(
                 dataset.id,
