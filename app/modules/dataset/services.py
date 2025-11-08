@@ -8,7 +8,7 @@ from typing import Optional
 from flask import request
 
 from app.modules.auth.services import AuthenticationService
-from app.modules.dataset.models import DataSet, DSMetaData, DSViewRecord
+from app.modules.dataset.models import DataSet, DSMetaData, DSViewRecord, PublicationType
 from app.modules.dataset.repositories import (
     AuthorRepository,
     DataSetRepository,
@@ -153,6 +153,35 @@ class DataSetService(BaseService):
         return dataset
 
     def update_dsmetadata(self, id, **kwargs):
+
+        if "publication_type" in kwargs and kwargs["publication_type"] is not None:
+            raw = str(kwargs["publication_type"]).strip()
+            if raw == "":
+                kwargs["publication_type"] = None
+            else:
+                # 1) match directo por name o value
+                for pt in PublicationType:
+                    if raw == pt.name or raw == pt.value:
+                        kwargs["publication_type"] = pt.name
+                        break
+                else:
+                    # 2) normaliza separadores a '_' y mayúsculas
+                    norm = raw.upper().replace(" ", "_").replace("-", "_").replace("/", "_")
+                    for pt in PublicationType:
+                        if norm == pt.name:
+                            kwargs["publication_type"] = pt.name
+                            break
+                    else:
+                        # 3) comparación colapsada (sin espacios/guiones), por name o value
+                        collapsed = "".join(raw.split()).lower()
+                        matched = None
+                        for pt in PublicationType:
+                            if "".join(pt.name.split("_")).lower() == collapsed or \
+                            "".join(pt.value.split()).lower() == collapsed:
+                                matched = pt.name
+                                break
+                        kwargs["publication_type"] = matched
+
         return self.dsmetadata_repository.update(id, **kwargs)
 
     def get_uvlhub_doi(self, dataset: DataSet) -> str:
@@ -175,6 +204,39 @@ class DSMetaDataService(BaseService):
         super().__init__(DSMetaDataRepository())
 
     def update(self, id, **kwargs):
+
+        if "publication_type" in kwargs and kwargs["publication_type"] is not None:
+            raw = str(kwargs["publication_type"]).strip()
+            if raw == "":
+                kwargs["publication_type"] = None
+            else:
+                # 1) match directo por name o value
+                for pt in PublicationType:
+                    if raw == pt.name or raw == pt.value:
+                        kwargs["publication_type"] = pt.name
+                        break
+                else:
+                    # 2) normalizamos espacios/guiones => _
+                    norm = raw.upper().replace(" ", "_").replace("-", "_").replace("/", "_")
+                    for pt in PublicationType:
+                        if norm == pt.name:
+                            kwargs["publication_type"] = pt.name
+                            break
+                    else:
+                        # 3) comparación "colapsada" por name/value
+                        collapsed = "".join(raw.split()).lower()
+                        matched = None
+                        for pt in PublicationType:
+                            if "".join(pt.name.split("_")).lower() == collapsed or \
+                               "".join(pt.value.split()).lower() == collapsed:
+                                matched = pt.name
+                                break
+                        if matched:
+                            kwargs["publication_type"] = matched
+                        else:
+                            # último recurso: deja None o lanza; mejor None para no romper
+                            kwargs["publication_type"] = None
+
         return self.repository.update(id, **kwargs)
 
     def filter_by_doi(self, doi: str) -> Optional[DSMetaData]:
