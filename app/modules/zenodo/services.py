@@ -217,7 +217,7 @@ class ZenodoService(BaseService):
         """
         publish_url = f"{self.ZENODO_API_URL}/{deposition_id}/actions/publish"
         response = requests.post(publish_url, params=self.params, headers=self.headers)
-        if response.status_code != 202:
+        if response.status_code not in  [202, 200]:
             raise Exception("Failed to publish deposition")
         return response.json()
 
