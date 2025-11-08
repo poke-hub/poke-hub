@@ -101,11 +101,10 @@
                         <h1 class="h3 mb-3 mt-4">
                           Authors
                         <a href="#" data-bs-toggle="modal" data-bs-target="#infoModal">
-                            <i data-feather="info"></i> <!-- Usamos "info" porque Feather no tiene un ícono específico llamado "feather" para más info -->
+                            <i data-feather="info"></i>
                           </a>
                         </h1>
 
-                        <!-- Modal -->
                         <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true" style="display: none">
                           <div class="modal-dialog" role="document">
                             <div class="modal-content">
@@ -212,6 +211,8 @@
             </div>
         </div>
 
+        <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
+
             <h1 class="h3 mb-3 mt-2">UVL models</h1>
 
             <div id="uploaded_models_form" style="padding-left: 2rem">
@@ -230,14 +231,12 @@
 
                 <div class="tab-content pt-3" id="sourceTabsContent">
 
-                    <!-- 1: individual .uvl -->
                     <div class="tab-pane fade show active" id="pane-file" role="tabpanel" aria-labelledby="tab-file">
                         <form action="{{ url_for('dataset.upload') }}" class="dropzone" id="myDropzone">
                             <div id="dropzone-text"></div>
                         </form>
                     </div>
 
-                    <!--2: ZIP -->
                     <div class="tab-pane fade" id="pane-zip" role="tabpanel" aria-labelledby="tab-zip">
                         <div class="form-inline">
                             <input type="file" id="zipFile" class="form-control mr-2" accept=".zip">
@@ -256,7 +255,6 @@
                         </div>
                     </div>
 
-                    <!-- 3: GitHub -->
                     <div class="tab-pane fade" id="pane-github" role="tabpanel" aria-labelledby="tab-github">
                         <div class="row">
                             <div class="col-lg-7 mb-2">
@@ -292,6 +290,7 @@
                 <ul class="mt-2" id="file-list"></ul>
 
                 <script>
+                    // Función reutilizable para añadir un modelo a la lista
                     function appendUploadedModel(filename) {
                         show_upload_dataset();
 
@@ -495,7 +494,7 @@
 
                                 (body.saved || []).forEach(fn => {
                                     const li = document.createElement('li'); li.textContent = fn; savedList.appendChild(li);
-                                    appendUploadedModel(fn);
+                                    appendUploadedModel(fn); // Llama a la función reutilizable
                                 });
                                 (body.ignored || []).forEach(fn => {
                                     const li = document.createElement('li'); li.textContent = fn; ignoredList.appendChild(li);
@@ -547,7 +546,7 @@
 
                             (body.saved || []).forEach(fn => {
                                 const li = document.createElement('li'); li.textContent = fn; savedList.appendChild(li);
-                                appendUploadedModel(fn);
+                                appendUploadedModel(fn); // Llama a la función reutilizable
                             });
                             (body.ignored || []).forEach(fn => {
                                 const li = document.createElement('li'); li.textContent = fn; ignoredList.appendChild(li);
@@ -564,12 +563,9 @@
                 </script>
 
             </div>
-            </div> 
-        </div>
-
-    </div>
-
-    <div class="row" id="upload_dataset" style="display: none">
+        </div> 
+        
+    </div> <div class="row" id="upload_dataset" style="display: none">
 
         <div class="col-12">
 
