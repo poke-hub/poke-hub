@@ -6,7 +6,7 @@ import json
 VALID_TERA_TYPES = {
     "normal", "fire", "water", "grass", "electric", "ice", "fighting",
     "poison", "ground", "flying", "psychic", "bug", "rock", "ghost",
-    "dragon", "dark", "steel", "fairy",
+    "dragon", "dark", "steel", "fairy", "stellar"
 }
 VALID_STATS = {"hp", "atk", "def", "spa", "spd", "spe"}
 
