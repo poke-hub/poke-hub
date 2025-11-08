@@ -19,7 +19,7 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <h2>
 
-                                <a href="{{ dataset.get_uvlhub_doi() }}">
+                                <a href="{{ dataset.get_pokehub_doi() }}">
                                     {{ dataset.ds_meta_data.title }}
                                 </a>
 
@@ -60,14 +60,14 @@
                         <div class="row mb-2">
 
                             <div class="col-12">
-                                <a href="{{ dataset.get_uvlhub_doi() }}">{{ dataset.get_uvlhub_doi() }}</a>
-                                 <div id="dataset_doi_uvlhub_{{ dataset.id }}" style="display: none">
-                                {{ dataset.get_uvlhub_doi() }}
+                                <a href="{{ dataset.get_pokehub_doi() }}">{{ dataset.get_pokehub_doi() }}</a>
+                                 <div id="dataset_doi_pokehub_{{ dataset.id }}" style="display: none">
+                                {{ dataset.get_pokehub_doi() }}
                             </div>
 
                             <i data-feather="clipboard" class="center-button-icon"
                                style="cursor: pointer"
-                               onclick="copyText('dataset_doi_uvlhub_{{ dataset.id }}')"></i>
+                               onclick="copyText('dataset_doi_pokehub_{{ dataset.id }}')"></i>
                             </div>
 
 
@@ -86,7 +86,7 @@
 
                         <div class="row  mt-4">
                             <div class="col-12">
-                                <a href="{{ dataset.get_uvlhub_doi() }}" class="btn btn-outline-primary btn-sm"
+                                <a href="{{ dataset.get_pokehub_doi() }}" class="btn btn-outline-primary btn-sm"
                                    style="border-radius: 5px;">
                                     <i data-feather="eye" class="center-button-icon"></i>
                                     View dataset
@@ -168,7 +168,7 @@
                             <h2> <b>Related publication</b> </h2>
                             
                             David Romero-Organvidez, José A. Galindo, Chico Sundermann, Jose-Miguel Horcas, David Benavides. 
-                            <i>UVLHub: A feature model data repository using UVL and open science principles</i>,
+                            <i>PokeHub: A feature model data repository using Poke and open science principles</i>,
                             Journal of Systems and Software,
                             2024,
                             112150,
@@ -207,7 +207,7 @@
 
                             <div class="card-body card-body-slim">
 
-                                What are you waiting for to upload your fantastic feature models in UVL format?
+                                What are you waiting for to upload your fantastic feature models in Poke format?
 
                                 <div class="row mt-2">
 
@@ -243,12 +243,12 @@
                     <div class="card card-dark">
 
                         <h2 class="card-title card-title-light">
-                            What is <b>uvlhub.io</b>?
+                            What is <b>pokehub.io</b>?
                         </h2>
 
                         <div class="card-body card-body-slim">
 
-                            <strong>uvlhub.io</strong> is a repository of feature models in UVL format integrated with
+                            <strong>pokehub.io</strong> is a repository of feature models in Poke format integrated with
                             Zenodo and FlamaPy developed by DiversoLab
 
                         </div>
@@ -264,7 +264,7 @@
 
                             <br><br>
 
-                            <a href="https://github.com/diverso-lab/uvlhub" target="_blank" class="btn btn-primary">
+                            <a href="https://github.com/diverso-lab/pokehub" target="_blank" class="btn btn-primary">
                                 Go to GitHub</a>
 
                         </div>

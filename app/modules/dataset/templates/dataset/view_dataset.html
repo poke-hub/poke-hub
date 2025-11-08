@@ -161,22 +161,22 @@
             {% if dataset.ds_meta_data.dataset_doi %}
             <div class="card-body" style="padding-top: 0px">
 
-                <div id="dataset_doi_uvlhub" style="display: none">
-                    {{ dataset.get_uvlhub_doi() }}
+                <div id="dataset_doi_pokehub" style="display: none">
+                    {{ dataset.get_pokehub_doi() }}
                 </div>
 
-                <button type="button" class="btn doi_button btn-sm" onclick="copyText('dataset_doi_uvlhub')">
+                <button type="button" class="btn doi_button btn-sm" onclick="copyText('dataset_doi_pokehub')">
                     <span class="button_doi_id">
                         <i data-feather="clipboard" class="center-button-icon" style="cursor: pointer"></i>
                         <b>DOI</b>
                     </span>
                     <span class="doi_text">
-                        {{ dataset.get_uvlhub_doi() }}
+                        {{ dataset.get_pokehub_doi() }}
                     </span>
                 </button>
                 
-                <div id="dataset_doi_uvlhub" style="display: none">
-                    {{ dataset.get_uvlhub_doi() }}
+                <div id="dataset_doi_pokehub" style="display: none">
+                    {{ dataset.get_pokehub_doi() }}
                 </div>
                 
             </div>
@@ -191,7 +191,7 @@
                 <h3> Related publication </h3>
                 
                 David Romero-Organvidez, José A. Galindo, Chico Sundermann, Jose-Miguel Horcas, David Benavides,
-                <i>UVLHub: A feature model data repository using UVL and open science principles</i>,
+                <i>PokeHub: A feature model data repository using Poke and open science principles</i>,
                 Journal of Systems and Software,
                 2024,
                 112150,
@@ -237,7 +237,7 @@
 
                 <div class="row">
                     <div class="col-12 d-flex justify-content-between align-items-center">
-                        <h4 style="margin-bottom: 0px">UVL models</h4>
+                        <h4 style="margin-bottom: 0px">Poke models</h4>
                         <h4 style="margin-bottom: 0px;"><span class="badge bg-dark">{{ dataset.get_files_count() }}</span></h4>
                     </div>
                 </div>
@@ -279,7 +279,7 @@
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="btnGroupDrop{{ file.id }}">
                                         <li>
-                                            <a class="dropdown-item" href="javascript:void(0);" onclick="checkUVL('{{ file.id }}')">Syntax check</a>
+                                            <a class="dropdown-item" href="javascript:void(0);" onclick="checkPoke('{{ file.id }}')">Syntax check</a>
                                         </li>
                                         <!--
                                         <li>
@@ -296,9 +296,9 @@
                                     <ul class="dropdown-menu" aria-labelledby="btnGroupDropExport{{ file.id }}">
                                         <li>
                                             <a class="dropdown-item" href="{{ url_for('hubfile.download_file', file_id=file.id) }}">
-                                                UVL
+                                                Poke
                                             </a>
-                                            <a class="dropdown-item" href="{{ url_for('flamapy.to_glencoe', file_id=file.id) }}">
+                                            <!-- <a class="dropdown-item" href="{{ url_for('flamapy.to_glencoe', file_id=file.id) }}">
                                                 Glencoe
                                             </a>
                                         </li>
@@ -311,7 +311,7 @@
                                             <a class="dropdown-item" href="{{ url_for('flamapy.to_splot', file_id=file.id) }}">
                                                 SPLOT
                                             </a>
-                                        </li>
+                                        </li> -->
                                     </ul>
                                 </div>
                                 
@@ -392,11 +392,11 @@
         document.getElementById("loading").style.display = "none";
     }
 
-    function checkUVL(file_id) {
+    function checkPoke(file_id) {
     const outputDiv = document.getElementById('check_' + file_id);
     outputDiv.innerHTML = ''; // Clear previous output
 
-    fetch(`/flamapy/check_uvl/${file_id}`)
+    fetch(`/pokemon_check/check_poke/${file_id}`)
         .then(response => {
             return response.json().then(data => ({
                 status: response.status,

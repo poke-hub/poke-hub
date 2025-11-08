@@ -1,10 +1,10 @@
 <div style="text-align: center;">
-  <img src="https://www.uvlhub.io/static/img/logos/logo-light.svg" alt="Logo">
+  <img src="./app/static/img/logos/logo_pokehub.png" alt="Logo">
 </div>
 
-# uvlhub.io
+# Pokehub.io
 
-Repository of feature models in UVL format integrated with Zenodo and flamapy following Open Science principles - Developed by DiversoLab
+Repository of feature models in Poke format integrated with Zenodo and flamapy following Open Science principles - Developed by DiversoLab
 
 ## Official documentation
 
