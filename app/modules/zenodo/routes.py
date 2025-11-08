@@ -1,12 +1,15 @@
 import os
 from flask import render_template
 from flask_login import current_user
+from app import db
 
 from app.modules.zenodo import zenodo_bp
 from app.modules.zenodo.services import ZenodoService
 from app.modules.dataset.models import DataSet
 from app.modules.featuremodel.models import FeatureModel
 from core.configuration.configuration import uploads_folder_name
+from flask import redirect, url_for, flash
+from app.modules.dataset.models import DataSet
 
 
 @zenodo_bp.route("/zenodo", methods=["GET"])
@@ -19,82 +22,48 @@ def zenodo_test() -> dict:
     service = ZenodoService()
     return service.test_full_connection()
 
-
-@zenodo_bp.route("/zenodo/test-publish", methods=["GET"])
-def zenodo_test_publish():
+@zenodo_bp.route("/zenodo/publish/<int:dataset_id>", methods=["POST"])
+def publish_dataset(dataset_id):
     """
-    Un endpoint de prueba de integración que prueba el flujo de publicación completo.
+    Esta es la ruta que llama el botón "Publish to Zenodo" de la interfaz.
     """
     service = ZenodoService()
+    dataset = DataSet.query.get(dataset_id)
 
-    # --- Simular datos (Mock data) ---
-    class MockAuthor:
-        name = "Test Author"
-        affiliation = "Test Affiliation"
-        orcid = "0000-0000-0000-0001"
+    # Bloque IF 1
+    if not dataset:
+        flash("Dataset no encontrado.", "danger")
+        return redirect('/dataset/list')
 
-    # ESTA ES LA PARTE QUE CAMBIA:
-    class MockPublicationType:
-        """Un objeto falso que simula tener un atributo .value"""
-        value = "dataset"
+    # Bloque IF 2
+    if not dataset.feature_models:
+         flash("No se puede publicar un dataset sin modelos de características.", "warning")
+         return redirect('/dataset/list')
 
-    class MockMetaData:
-        title = "Mi Publicación de Prueba"
-        publication_type = MockPublicationType() # <-- Ahora usamos el objeto falso
-        description = "Descripción de prueba"
-        authors = [MockAuthor()]
-        tags = "test, fakenodo"
-        uvl_filename = "test_file.txt" # Usaremos este nombre
-
-    class MockDataSet:
-        id = 999 
-        ds_meta_data = MockMetaData()
-
-    class MockFeatureModel:
-        fm_meta_data = MockMetaData()
-
-    class MockUser:
-        id = 1 # Usamos 1 para no depender de si has iniciado sesión
-
-    dataset = MockDataSet()
-    fm = MockFeatureModel()
-    user = MockUser()
-
-    # --- Crear el fichero de prueba (como en test_full_connection) ---
-    user_folder = os.path.join(uploads_folder_name(), f"user_{str(user.id)}")
-    dataset_folder = os.path.join(user_folder, f"dataset_{dataset.id}")
-    os.makedirs(dataset_folder, exist_ok=True)
-    file_path = os.path.join(dataset_folder, fm.fm_meta_data.uvl_filename)
-
-    with open(file_path, "w") as f:
-        f.write("Este es el fichero UVL de prueba.")
-
+    # El bloque TRY empieza aquí, al mismo nivel que los IF
     try:
         # --- 1. Crear Deposición ---
         deposition_data = service.create_new_deposition(dataset)
         dep_id = deposition_data["id"]
 
-        # --- 2. Subir Fichero ---
-        service.upload_file(dataset, dep_id, fm, user=user)
+        # --- 2. Subir Ficheros ---
+        first_fm = dataset.feature_models[0]
+        service.upload_file(dataset, dep_id, first_fm, user=dataset.user)
 
-        # --- 3. Publicar (La prueba real) ---
+        # --- 3. Publicar ---
         publish_data = service.publish_deposition(dep_id)
 
-        # --- 4. Publicar de nuevo (Prueba de lógica de 'no-cambios') ---
-        publish_data_again = service.publish_deposition(dep_id)
+        # --- 4. (¡IMPORTANTE!) Guardar el DOI en la BBDD de uvlhub ---
+        dataset.ds_meta_data.dataset_doi = publish_data.get("doi")
+        dataset.ds_meta_data.deposition_id = dep_id
+        db.session.add(dataset)
+        db.session.commit()
 
-        # Limpieza
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        flash(f"¡Publicado con éxito en Zenodo! DOI: {publish_data.get('doi')}", "success")
 
-        return {
-            "success": True,
-            "primera_publicacion (ficheros nuevos)": publish_data,
-            "segunda_publicacion (mismos ficheros)": publish_data_again
-        }
-
+    # El bloque EXCEPT al mismo nivel
     except Exception as e:
-        # Limpieza en caso de error
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        return {"success": False, "error": str(e)}, 500
+        flash(f"Error al publicar en Zenodo: {str(e)}", "danger")
+
+    # El RETURN final al mismo nivel
+    return redirect('/dataset/list')
