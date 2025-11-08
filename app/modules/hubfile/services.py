@@ -2,6 +2,7 @@ import os
 
 from app.modules.auth.models import User
 from app.modules.dataset.models import DataSet
+from app.modules.dataset.services import DataSetService
 from app.modules.hubfile.models import Hubfile
 from app.modules.hubfile.repositories import (
     HubfileDownloadRecordRepository,
@@ -41,6 +42,10 @@ class HubfileService(BaseService):
     def total_hubfile_downloads(self) -> int:
         hubfile_download_record_repository = HubfileDownloadRecordRepository()
         return hubfile_download_record_repository.total_hubfile_downloads()
+
+    def increment_download_count(self, file):
+        dataset = self.get_dataset_by_hubfile(file)
+        DataSetService().increment_download_count(dataset.id)
 
 
 class HubfileDownloadRecordService(BaseService):

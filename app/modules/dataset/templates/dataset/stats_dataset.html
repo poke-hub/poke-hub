@@ -1,0 +1,156 @@
+{% extends "base_template.html" %}
+
+{% block title %}Statistics - {{ dataset.ds_meta_data.title }}{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="{{ url_for('dataset.subdomain_index', doi=dataset.ds_meta_data.dataset_doi) }}" class="btn btn-outline-secondary btn-sm" style="border-radius: 5px;">
+            <i data-feather="arrow-left"></i>
+            Back to dataset
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h1><b>📊 Dataset Statistics</b></h1>
+                <h3 class="text-secondary">{{ dataset.ds_meta_data.title }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Views Card -->
+    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="eye" style="width: 48px; height: 48px; color: #0d6efd;"></i>
+                <h2 class="mt-2"><b>{{ view_count }}</b></h2>
+                <p class="text-secondary mb-0">Total Views</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Downloads Card -->
+    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="download" style="width: 48px; height: 48px; color: #198754;"></i>
+                <h2 class="mt-2"><b>{{ download_count }}</b></h2>
+                <p class="text-secondary mb-0">Total Downloads</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Files Card -->
+    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="file" style="width: 48px; height: 48px; color: #6c757d;"></i>
+                <h2 class="mt-2"><b>{{ total_files }}</b></h2>
+                <p class="text-secondary mb-0">Total Files</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Size Card -->
+    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="hard-drive" style="width: 48px; height: 48px; color: #dc3545;"></i>
+                <h2 class="mt-2"><b>{{ total_size_human }}</b></h2>
+                <p class="text-secondary mb-0">Dataset Size</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4><b>Dataset Information</b></h4>
+                <hr>
+                <div class="row mb-3">
+                    <div class="col-md-3 col-12">
+                        <span class="text-secondary">Created on</span>
+                    </div>
+                    <div class="col-md-9 col-12">
+                        <b>{{ created_at.strftime('%B %d, %Y at %I:%M %p') }}</b>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-3 col-12">
+                        <span class="text-secondary">Uploaded by</span>
+                    </div>
+                    <div class="col-md-9 col-12">
+                        <a href="{{ url_for('profile.view_profile', user_id=dataset.user.id) }}">
+                            {{ dataset.user.profile.surname }}, {{ dataset.user.profile.name }}
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-3 col-12">
+                        <span class="text-secondary">Feature Models</span>
+                    </div>
+                    <div class="col-md-9 col-12">
+                        <b>{{ dataset.feature_models|length }}</b>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-3 col-12">
+                        <span class="text-secondary">Authors</span>
+                    </div>
+                    <div class="col-md-9 col-12">
+                        <b>{{ dataset.ds_meta_data.authors|length }}</b>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-3 col-12">
+                        <span class="text-secondary">Publication Type</span>
+                    </div>
+                    <div class="col-md-9 col-12">
+                        <span class="badge bg-secondary">{{ dataset.get_cleaned_publication_type() }}</span>
+                    </div>
+                </div>
+
+                {% if dataset.ds_meta_data.dataset_doi %}
+                <div class="row mb-3">
+                    <div class="col-md-3 col-12">
+                        <span class="text-secondary">Zenodo Record</span>
+                    </div>
+                    <div class="col-md-9 col-12">
+                        <span class="badge bg-success">✓ Synchronized</span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="row mb-3">
+                    <div class="col-md-3 col-12">
+                        <span class="text-secondary">Zenodo Record</span>
+                    </div>
+                    <div class="col-md-9 col-12">
+                        <span class="badge bg-warning">✗ Not synchronized</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        feather.replace();
+    });
+</script>
+
+{% endblock %}

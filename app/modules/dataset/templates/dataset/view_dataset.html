@@ -154,7 +154,24 @@
 
                 </div>
 
-                
+                <div class="row mb-2">
+                    <div class="col-md-4 col-12">
+                        <span class="text-secondary">
+                            Downloads
+                        </span>
+                    </div>
+                    <div class="col-md-8 col-12">
+                        <span class="badge bg-primary">{{ dataset.download_count }}</span>
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                    <div class="col-md-12 col-12">
+                        <a href="{{ url_for('dataset.dataset_stats', dataset_id=dataset.id) }}" class="btn btn-outline-primary btn-sm" style="border-radius: 5px;">
+                            <i data-feather="bar-chart-2"></i> View Statistics
+                        </a>
+                    </div>
+                </div>
 
             </div>
 

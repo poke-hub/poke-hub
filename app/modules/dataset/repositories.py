@@ -55,6 +55,9 @@ class DSViewRecordRepository(BaseRepository):
             view_date=datetime.now(timezone.utc),
             view_cookie=user_cookie,
         )
+        
+    def get_view_count(self, dataset_id: int) -> int:
+        return self.model.query.filter_by(dataset_id=dataset_id).count()
 
 
 class DataSetRepository(BaseRepository):
