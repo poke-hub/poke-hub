@@ -1,17 +1,34 @@
 import re
 
 VALID_TERA_TYPES = {
-    "normal", "fire", "water", "grass", "electric", "ice", "fighting",
-    "poison", "ground", "flying", "psychic", "bug", "rock", "ghost",
-    "dragon", "dark", "steel", "fairy", "stellar"
+    "normal",
+    "fire",
+    "water",
+    "grass",
+    "electric",
+    "ice",
+    "fighting",
+    "poison",
+    "ground",
+    "flying",
+    "psychic",
+    "bug",
+    "rock",
+    "ghost",
+    "dragon",
+    "dark",
+    "steel",
+    "fairy",
+    "stellar",
 }
 VALID_STATS = {"hp", "atk", "def", "spa", "spd", "spe"}
 
+
 class PokemonSetChecker:
-    
+
     MAX_EVS = 510
     MAX_MOVES = 4
-    
+
     def __init__(self, text_content: str):
         self.text = text_content
         self.parsed_data = {
@@ -35,29 +52,29 @@ class PokemonSetChecker:
             return
 
         # --- Parsear Cabecera (Pokémon @ Item) ---
-        header_match = re.match(r'^\s*(.*?)(?:\s+@\s+(.*))?$', lines[0].strip(), re.IGNORECASE)
+        header_match = re.match(r"^\s*(.*?)(?:\s+@\s+(.*))?$", lines[0].strip(), re.IGNORECASE)
         if header_match:
             self.parsed_data["pokemon"] = header_match.group(1).strip()
             if header_match.group(2):
                 self.parsed_data["item"] = header_match.group(2).strip()
         else:
             self.errors.append(f"Formato de cabecera inválido: {lines[0]}")
-            return 
+            return
 
         # --- Parsear el resto de líneas ---
         for line in lines[1:]:
             line = line.strip()
             if not line:
-                continue # Ignorar líneas vacías
+                continue  # Ignorar líneas vacías
 
             # Regex para líneas de Movimientos
-            move_match = re.match(r'^\s*-\s+(.*)$', line)
+            move_match = re.match(r"^\s*-\s+(.*)$", line)
             if move_match:
                 self.parsed_data["moves"].append(move_match.group(1).strip())
                 continue
 
             # Regex para líneas de clave-valor
-            kv_match = re.match(r'^\s*([^:]+):\s*(.*)$', line, re.IGNORECASE)
+            kv_match = re.match(r"^\s*([^:]+):\s*(.*)$", line, re.IGNORECASE)
             if kv_match:
                 key = kv_match.group(1).strip().lower()
                 value = kv_match.group(2).strip()
@@ -76,8 +93,8 @@ class PokemonSetChecker:
     def _parse_stats(self, stat_string: str) -> dict:
         """Parsea un string de stats."""
         stats_dict = {}
-        stat_regex = re.compile(r'(\d+)\s+([a-zA-Z]{2,3})', re.IGNORECASE)
-        
+        stat_regex = re.compile(r"(\d+)\s+([a-zA-Z]{2,3})", re.IGNORECASE)
+
         matches = stat_regex.findall(stat_string)
         for val, stat_name in matches:
             stat_key = stat_name.lower()

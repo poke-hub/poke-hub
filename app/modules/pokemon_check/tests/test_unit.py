@@ -1,8 +1,6 @@
 import json
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from app.modules.pokemon_check.check_poke import PokemonSetChecker
 
 # --- Tests para PokemonSetChecker ---
