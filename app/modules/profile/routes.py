@@ -150,7 +150,6 @@ def disable_2fa():
 
     if form.validate_on_submit():
         if auth_service.check_user_password(current_user, form.password.data):
-            auth_service.set_user_2fa_enabled(current_user, False)
             auth_service.clear_user_2fa_data(current_user)
             flash('2FA has been disabled.', 'success')
         else:

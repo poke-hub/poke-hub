@@ -19,6 +19,27 @@ from app import db
 import secrets
 import string
 
+from cryptography.fernet import Fernet
+from flask import current_app
+
+def get_fernet():
+    key = current_app.config['ENCRYPTION_KEY']
+    return Fernet(key.encode())
+
+def encrypt_data(data):
+    if data is None:
+        return None
+    fernet = get_fernet()
+    return fernet.encrypt(data.encode()).decode()
+
+def decrypt_data(encrypted_data):
+    if encrypted_data is None:
+        return None
+    fernet = get_fernet()
+    try:
+        return fernet.decrypt(encrypted_data.encode()).decode()
+    except Exception:
+        return None
 
 class AuthenticationService(BaseService):
     def __init__(self):
@@ -120,7 +141,11 @@ class AuthenticationService(BaseService):
 
     def verify_2fa_token(self, user: User, token: str) -> bool:
         """Verifica un token TOTP de 6 dígitos."""
-        totp = pyotp.TOTP(user.two_factor_secret)
+        secret = decrypt_data(user.two_factor_secret)
+        if secret is None:
+            return False
+
+        totp = pyotp.TOTP(secret)
         return totp.verify(token)
 
     def generate_recovery_codes(self):
@@ -159,7 +184,7 @@ class AuthenticationService(BaseService):
 
     def set_user_2fa_secret(self, user: User, secret: str):
         """Guarda el secreto del usuario."""
-        user.two_factor_secret = secret
+        user.two_factor_secret = encrypt_data(secret)
         db.session.commit()
 
     def set_user_2fa_recovery_codes(self, user: User, hashed_codes_json: str):
