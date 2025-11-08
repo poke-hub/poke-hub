@@ -1,7 +1,4 @@
-
 import re
-import json
-
 
 VALID_TERA_TYPES = {
     "normal", "fire", "water", "grass", "electric", "ice", "fighting",
@@ -10,12 +7,11 @@ VALID_TERA_TYPES = {
 }
 VALID_STATS = {"hp", "atk", "def", "spa", "spd", "spe"}
 
-
 class PokemonSetChecker:
     
     MAX_EVS = 510
     MAX_MOVES = 4
-
+    
     def __init__(self, text_content: str):
         self.text = text_content
         self.parsed_data = {
