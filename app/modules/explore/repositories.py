@@ -2,6 +2,7 @@ import re
 
 import unidecode
 from sqlalchemy import any_, or_, func
+from sqlalchemy.orm import aliased
 from collections import defaultdict
 
 from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType, Author
@@ -45,31 +46,40 @@ class ExploreRepository(BaseRepository):
         return [{"name": tag, "count": count} for tag, count in tags_dict.items()]
 
     def filter(self, query="", sorting="newest", publication_type="any", authors_filter="any", tags_filter="any", **kwargs):
-        # Normalize and remove unwanted characters
         normalized_query = unidecode.unidecode(query).lower()
         cleaned_query = re.sub(r'[,.":\'()\[\]^;!¡¿?]', "", normalized_query)
 
+        DsAuthor = aliased(Author)
+        FmAuthor = aliased(Author)
+
         filters = []
         for word in cleaned_query.split():
-            filters.append(DSMetaData.title.ilike(f"%{word}%"))
-            filters.append(DSMetaData.description.ilike(f"%{word}%"))
-            filters.append(Author.name.ilike(f"%{word}%"))
-            filters.append(Author.affiliation.ilike(f"%{word}%"))
-            filters.append(Author.orcid.ilike(f"%{word}%"))
-            filters.append(FMMetaData.uvl_filename.ilike(f"%{word}%"))
-            filters.append(FMMetaData.title.ilike(f"%{word}%"))
-            filters.append(FMMetaData.description.ilike(f"%{word}%"))
-            filters.append(FMMetaData.publication_doi.ilike(f"%{word}%"))
-            filters.append(FMMetaData.tags.ilike(f"%{word}%"))
-            filters.append(DSMetaData.tags.ilike(f"%{word}%"))
+            like = f"%{word}%"
+            filters.extend([
+                DSMetaData.title.ilike(like),
+                DSMetaData.description.ilike(like),
+                # buscar en autores de DS y FM usando alias
+                or_(DsAuthor.name.ilike(like), FmAuthor.name.ilike(like)),
+                or_(DsAuthor.affiliation.ilike(like), FmAuthor.affiliation.ilike(like)),
+                or_(DsAuthor.orcid.ilike(like), FmAuthor.orcid.ilike(like)),
+                # FM metadata
+                FMMetaData.uvl_filename.ilike(like),
+                FMMetaData.title.ilike(like),
+                FMMetaData.description.ilike(like),
+                FMMetaData.publication_doi.ilike(like),
+                # tags en DS y FM
+                or_(FMMetaData.tags.ilike(like), DSMetaData.tags.ilike(like)),
+            ])
 
         datasets = (
-            self.model.query.join(DataSet.ds_meta_data)
-            .join(DSMetaData.authors)
+            self.model.query
+            .join(DataSet.ds_meta_data)
+            .outerjoin(DsAuthor, DsAuthor.ds_meta_data_id == DSMetaData.id)
             .join(DataSet.feature_models)
             .join(FeatureModel.fm_meta_data)
-            .filter(or_(*filters))
-            .filter(DSMetaData.dataset_doi.isnot(None))  # Exclude datasets with empty dataset_doi
+            .outerjoin(FmAuthor, FmAuthor.fm_meta_data_id == FMMetaData.id)
+            .filter(True if not filters else or_(*filters))
+            .filter(DSMetaData.dataset_doi.isnot(None))
         )
 
         if publication_type != "any":
@@ -78,29 +88,20 @@ class ExploreRepository(BaseRepository):
                 if member.value.lower() == publication_type:
                     matching_type = member
                     break
-
             if matching_type is not None:
-                datasets = datasets.filter(DSMetaData.publication_type == matching_type.name)
+                # comparar con el enum, no con .name
+                datasets = datasets.filter(DSMetaData.publication_type == matching_type)
 
-        if authors_filter != "any" and authors_filter is not None:
-            author_id = int(authors_filter) if authors_filter.isdigit() else None
-            if author_id:
-                filtered_datasets = []
-                for dataset in datasets:
-                    if data_set.has_author(author_id):
-                        filtered_datasets.append(dataset)
-                datasets = filtered_datasets
+        if authors_filter not in ("any", None, "") and authors_filter.isdigit():
+            author_id = int(authors_filter)
+            datasets = datasets.filter(or_(DsAuthor.id == author_id, FmAuthor.id == author_id))
 
-        if tags_filter != "any" and tags_filter is not None:
+        if tags_filter not in ("any", None, ""):
             tag_name = tags_filter.strip()
             if tag_name:
-                filtered_datasets = []
-                for dataset in datasets:
-                    if dataset.ds_meta_data.has_tag(tag_name):
-                        filtered_datasets.append(dataset)
-                datasets = filtered_datasets
-
-        # Order by created_at
+                like_tag = f"%{tag_name}%"
+                datasets = datasets.filter(or_(DSMetaData.tags.ilike(like_tag), FMMetaData.tags.ilike(like_tag)))
+        
         if sorting == "oldest":
             datasets = datasets.order_by(self.model.created_at.asc())
         else:
