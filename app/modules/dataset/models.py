@@ -73,6 +73,14 @@ class DSMetaData(db.Model):
         res.update(aux)
         return res
 
+    def has_tag(self, tag_name):
+        all_tags = self.get_all_tags()
+        return tag_name in all_tags
+
+    def has_author(self, author_id):
+        author_ids = [author.id for author in self.authors]
+        return author_id in author_ids
+
 
 class DataSet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
