@@ -63,6 +63,9 @@ class DSMetaData(db.Model):
     ds_metrics = db.relationship("DSMetrics", uselist=False, backref="ds_meta_data", cascade="all, delete")
     authors = db.relationship("Author", backref="ds_meta_data", lazy=True, cascade="all, delete")
 
+    def get_all_tags(self):
+        return self.tags.split(",") if self.tags else []
+
 
 class DataSet(db.Model):
     id = db.Column(db.Integer, primary_key=True)

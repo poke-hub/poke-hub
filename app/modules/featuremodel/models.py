@@ -33,6 +33,9 @@ class FMMetaData(db.Model):
     def __repr__(self):
         return f"FMMetaData<{self.title}"
 
+    def get_all_tags(self):
+        return self.tags.split(",") if self.tags else []
+
 
 class FMMetrics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
