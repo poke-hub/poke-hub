@@ -229,7 +229,7 @@ def download_dataset(dataset_id):
             download_date=datetime.now(timezone.utc),
             download_cookie=user_cookie,
         )
-    
+
     dataset_service.increment_download_count(dataset_id)
 
     return resp
@@ -273,6 +273,7 @@ def get_unsynchronized_dataset(dataset_id):
 
     return render_template("dataset/view_dataset.html", dataset=dataset)
 
+
 @dataset_bp.route("/dataset/<int:dataset_id>/stats", methods=["GET"])
 def dataset_stats(dataset_id):
     dataset = dataset_service.get_or_404(dataset_id)
@@ -290,5 +291,5 @@ def dataset_stats(dataset_id):
         total_size_human=total_size_human,
         view_count=view_count,
         download_count=download_count,
-        created_at=created_at
+        created_at=created_at,
     )

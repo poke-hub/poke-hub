@@ -18,6 +18,7 @@ class DatasetBehavior(TaskSet):
         dataset_id = 8
         self.client.get(f"/dataset/download/{dataset_id}")
 
+
 class DatasetUser(HttpUser):
     tasks = [DatasetBehavior]
     min_wait = 5000
