@@ -58,18 +58,7 @@ class ExploreRepository(BaseRepository):
             like = f"%{word}%"
             filters.extend([
                 DSMetaData.title.ilike(like),
-                DSMetaData.description.ilike(like),
-                # buscar en autores de DS y FM usando alias
-                or_(DsAuthor.name.ilike(like), FmAuthor.name.ilike(like)),
-                or_(DsAuthor.affiliation.ilike(like), FmAuthor.affiliation.ilike(like)),
-                or_(DsAuthor.orcid.ilike(like), FmAuthor.orcid.ilike(like)),
-                # FM metadata
-                FMMetaData.uvl_filename.ilike(like),
-                FMMetaData.title.ilike(like),
-                FMMetaData.description.ilike(like),
-                FMMetaData.publication_doi.ilike(like),
-                # tags en DS y FM
-                or_(FMMetaData.tags.ilike(like), DSMetaData.tags.ilike(like)),
+                DSMetaData.description.ilike(like)
             ])
 
         datasets = (
