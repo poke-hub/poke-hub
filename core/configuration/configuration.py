@@ -24,3 +24,6 @@ def is_develop():
 
 def is_production():
     return os.getenv("FLASK_ENV") == "production"
+
+def fakenodo_url():
+    return os.getenv("FAKENODO_URL")

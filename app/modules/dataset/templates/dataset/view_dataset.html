@@ -139,6 +139,27 @@
 
                 </div>
                 {% endif %}
+                {% if dataset.ds_meta_data.dataset_doi %}
+
+                    {% else %}
+
+                    <div class="row mb-2">
+                        <div class="col-md-4 col-12">
+                            <span class="text-secondary">
+                                Publicar
+                            </span>
+                        </div>
+                        <div class="col-md-8 col-12">
+                            <form action="{{ url_for('zenodo.publish_dataset', dataset_id=dataset.id) }}" method="POST">
+                                <button type.submit" class="btn btn-primary btn-sm">
+                                    <i data-feather="upload-cloud"></i>
+                                    Publish to FakeNodo
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                {% endif %}
                 <div class="row mb-2">
 
                     <div class="col-md-4 col-12">
