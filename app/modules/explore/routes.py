@@ -8,9 +8,15 @@ from app.modules.explore.services import ExploreService
 @explore_bp.route("/explore", methods=["GET", "POST"])
 def index():
     if request.method == "GET":
+        service = ExploreService()
+        # Resultados de búsqueda
         query = request.args.get("query", "")
         form = ExploreForm()
-        return render_template("explore/index.html", form=form, query=query)
+        # Cargar autores y etiquetas para los filtros
+        authors = service.get_all_authors()
+        tags = service.get_all_tags()
+
+        return render_template("explore/index.html", form=form, query=query, authors=authors, tags=tags)
 
     if request.method == "POST":
         criteria = request.get_json()
