@@ -64,3 +64,4 @@ jobs:
           MARIADB_USER: pokehub_user
           MARIADB_PASSWORD: pokehub_password
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}

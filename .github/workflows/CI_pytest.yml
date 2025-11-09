@@ -27,6 +27,7 @@ jobs:
       MARIADB_HOSTNAME: 127.0.0.1
       MARIADB_PORT: 3306
       FLASK_ENV: testing
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
 
     services:
       # MariaDB service container for integration tests
