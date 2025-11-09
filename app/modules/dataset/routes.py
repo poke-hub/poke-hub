@@ -176,9 +176,7 @@ def edit_dataset(dataset_id):
                 error="Invalid form data"
             )
         
-        pub_type = form.publication_type.data
-        if not pub_type or pub_type == "none":
-            pub_type = None
+        pub_type = form.publication_type.data or "none"
 
         try:
             # Actualizar los metadatos del dataset
@@ -198,6 +196,9 @@ def edit_dataset(dataset_id):
                 dataset.id,
                 draft_mode=save_as_draft
             )
+
+            if not save_as_draft:
+                dataset_service.move_feature_models(dataset)
 
             msg = "Draft updated successfully!"
             logger.info(msg)
