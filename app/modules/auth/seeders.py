@@ -1,5 +1,6 @@
 from app.modules.auth.models import User
 from app.modules.profile.models import UserProfile
+from app.modules.shopping_cart.models import ShoppingCart
 from core.seeders.BaseSeeder import BaseSeeder
 
 
@@ -35,3 +36,11 @@ class AuthSeeder(BaseSeeder):
 
         # Seeding user profiles
         self.seed(user_profiles)
+
+        shopping_carts = []
+
+        for user in seeded_users:
+            # Create a shopping cart for each user
+            shopping_cart = ShoppingCart(user_id=user.id)
+            shopping_carts.append(shopping_cart)
+        self.seed(shopping_carts)
