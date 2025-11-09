@@ -1,8 +1,10 @@
+from flask import current_app
+
 from app.modules.auth.models import User
 from app.modules.auth.services import AuthenticationService, encrypt_data
 from app.modules.profile.models import UserProfile
 from core.seeders.BaseSeeder import BaseSeeder
-from flask import current_app
+
 
 class AuthSeeder(BaseSeeder):
 
@@ -37,27 +39,26 @@ class AuthSeeder(BaseSeeder):
         # Seeding user profiles
         self.seed(user_profiles)
 
-
         # Usuario para tests de 2FA
-        KNOWN_2FA_SECRET = "5JEIF3ANYS7UJKZEN7PZJFG5RHTNRPR2" # Clave conocida para tests
+        KNOWN_2FA_SECRET = "5JEIF3ANYS7UJKZEN7PZJFG5RHTNRPR2"  # Clave conocida para tests
 
         encrypted_secret = None
         hashed_codes = None
 
         with current_app.app_context():
             encrypted_secret = encrypt_data(KNOWN_2FA_SECRET)
-            
+
             auth_service = AuthenticationService()
             _, hashed_codes = auth_service.generate_recovery_codes()
 
         user_2fa = User(
             email="test@example.com",
-            password="test1234", 
+            password="test1234",
             is_two_factor_enabled=True,
-            two_factor_secret=encrypted_secret, 
-            two_factor_recovery_codes=hashed_codes
+            two_factor_secret=encrypted_secret,
+            two_factor_recovery_codes=hashed_codes,
         )
-        
+
         seeded_2fa_user = self.seed([user_2fa])
 
         profile_data_2fa = {

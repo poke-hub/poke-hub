@@ -1,24 +1,24 @@
 import pyotp
+
 from app import db
 from app.modules.auth.models import User
-from app.modules.auth.services import encrypt_data, AuthenticationService
+from app.modules.auth.services import AuthenticationService
+
 
 def login(test_client, email, password):
     """Autentica al usuario."""
-    response = test_client.post(
-        "/login", 
-        data={"email": email, "password": password}, 
-        follow_redirects=True
-    )
+    response = test_client.post("/login", data={"email": email, "password": password}, follow_redirects=True)
     return response
+
 
 def logout(test_client):
     """Cierra la sesión del usuario."""
     return test_client.get("/logout", follow_redirects=True)
 
+
 def clean_user_state(test_client):
     """
-    Garantiza que el usuario de prueba esté en un estado limpio (sin 2FA) 
+    Garantiza que el usuario de prueba esté en un estado limpio (sin 2FA)
     antes de cada prueba para evitar la "contaminación" del test.
     """
     try:
@@ -43,8 +43,8 @@ def test_full_2fa_activation_flow(test_client):
     Test de integración para el flujo completo de activación de 2FA.
     """
     clean_user_state(test_client)
-    
-    login(test_client, "test@example.com", "test1234") 
+
+    login(test_client, "test@example.com", "test1234")
 
     response = test_client.get("/profile/security")
     assert response.status_code == 200
@@ -55,7 +55,7 @@ def test_full_2fa_activation_flow(test_client):
     data = response.get_json()
     assert "qr_base64" in data
     assert "secret" in data
-    secret = data['secret']
+    secret = data["secret"]
 
     with test_client.application.app_context():
         db.session.remove()
@@ -63,14 +63,10 @@ def test_full_2fa_activation_flow(test_client):
     totp = pyotp.TOTP(secret)
     valid_token = totp.now()
 
-    response = test_client.post(
-        "/profile/2fa/enable",
-        data={'token': valid_token},
-        follow_redirects=True
-    )
-    
+    response = test_client.post("/profile/2fa/enable", data={"token": valid_token}, follow_redirects=True)
+
     assert response.status_code == 200
-    assert b"Copy all codes" in response.data 
+    assert b"Copy all codes" in response.data
 
     logout(test_client)
 
@@ -80,34 +76,28 @@ def test_login_with_2fa_enabled(test_client):
     Verificar que el login redirige a /verify-2fa si 2FA está activado.
     """
     clean_user_state(test_client)
-    
+
     secret = "5JEIF3ANYS7UJKZEN7PZJFG5RHTNRPR2"
     with test_client.application.app_context():
         auth_service = AuthenticationService()
         user = User.query.filter_by(email="test@example.com").first()
-        
+
         auth_service.set_user_2fa_secret(user, secret)
         _, hashed_codes = auth_service.generate_recovery_codes()
         auth_service.set_user_2fa_recovery_codes(user, hashed_codes)
         auth_service.set_user_2fa_enabled(user, True)
-        
+
         db.session.remove()
 
     response = test_client.post(
-        "/login",
-        data={"email": "test@example.com", "password": "test1234"},
-        follow_redirects=False
+        "/login", data={"email": "test@example.com", "password": "test1234"}, follow_redirects=False
     )
 
     assert response.status_code == 302
-    assert response.location == "/login/verify-2fa" # ¡Esto ya debe funcionar!
+    assert response.location == "/login/verify-2fa"  # ¡Esto ya debe funcionar!
 
     # Intento de Login (Token 2FA incorrecto) ---
-    response = test_client.post(
-        "/login/verify-2fa",
-        data={"token": "000000"},
-        follow_redirects=True
-    )
+    response = test_client.post("/login/verify-2fa", data={"token": "000000"}, follow_redirects=True)
     assert response.status_code == 200
     assert b"Invalid code. Please try again." in response.data
 
