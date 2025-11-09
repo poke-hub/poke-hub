@@ -42,8 +42,9 @@ class ExploreRepository(BaseRepository):
             for tag in metadata.get_all_tags():
                 tags_dict[tag] += 1
 
-        # Lo devolvemos como JSON
-        return [{"name": tag, "count": count} for tag, count in tags_dict.items()]
+        # Lo devolvemos como JSON, ordenado por count desc
+        sorted_tags = sorted(tags_dict.items(), key=lambda kv: kv[1], reverse=True)
+        return [{"name": tag, "count": int(count)} for tag, count in sorted_tags]
 
     def filter(self, query="", sorting="newest", publication_type="any", authors_filter="any", tags_filter="any", **kwargs):
         normalized_query = unidecode.unidecode(query).lower()
