@@ -32,6 +32,9 @@ from app.modules.dataset.services import (
 )
 from app.modules.zenodo.services import ZenodoService
 
+from app.modules.featuremodel.models import FeatureModel
+from app.modules.featuremodel.repositories import FeatureModelRepository
+
 logger = logging.getLogger(__name__)
 
 
@@ -221,7 +224,50 @@ def edit_dataset(dataset_id):
     # Renderizar la misma plantilla del upload, pero en modo edición
     return render_template("dataset/upload_dataset.html", form=form, dataset=dataset, editing=True)
 
+@dataset_bp.route("/dataset/<int:dataset_id>/featuremodel/<int:fm_id>/delete", methods=["POST"])
+@login_required
+def delete_existing_feature_model(dataset_id, fm_id):
+   # 1) Cargar dataset y comprobar que es del usuario + está en draft
+   dataset = dataset_service.get_unsynchronized_dataset(current_user.id, dataset_id)
+   if not dataset:
+       abort(404, description="Dataset not found or not owned by current user")
+   if not dataset.draft_mode:
+       abort(400, description="Only draft datasets can be edited")
 
+
+   # 2) Cargar FeatureModel y verificar que pertenece al dataset
+   fm_repo = FeatureModelRepository()
+   fm: FeatureModel = fm_repo.get_or_404(fm_id)
+   if fm.data_set_id != dataset.id:
+       abort(403, description="FeatureModel does not belong to this dataset")
+
+
+   # 3) Borrar ficheros físicos en uploads/user_{uid}/dataset_{did}/
+
+
+   working_dir = os.getenv("WORKING_DIR", "")
+   uploads_dir = os.path.join(
+       working_dir,
+       "uploads",
+       f"user_{dataset.user_id}",
+       f"dataset_{dataset.id}",
+   )
+   try:
+       for file in list(fm.files):  # Hubfile
+           file_path = os.path.join(uploads_dir, file.name)
+           if os.path.exists(file_path):
+               try:
+                   os.remove(file_path)
+               except Exception:
+                   # si falla el remove físico, seguimos (el cascade borrará en DB)
+                   pass
+
+
+       fm_repo.delete(fm_id)
+       return jsonify({"ok": True, "message": "Feature model deleted"}), 200
+   except Exception as exc:
+       logger.exception(f"Error deleting feature model {fm_id} from dataset {dataset_id}: {exc}")
+       return jsonify({"ok": False, "message": "Error deleting feature model"}), 500
 
 
 @dataset_bp.route("/dataset/list", methods=["GET", "POST"])

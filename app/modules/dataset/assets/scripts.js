@@ -318,6 +318,38 @@ var currentId = 0;
             sendDraft(`/dataset/${datasetId}/edit`);
             });
         }
+
+        document.querySelectorAll(".delete-existing-fm").forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            const datasetId = btn.dataset.datasetId || btn.getAttribute("data-dataset-id");
+            const fmId = btn.dataset.fmId || btn.getAttribute("data-fm-id");
+
+            if (!datasetId || !fmId) {
+                alert("Missing dataset/fm id");
+                return;
+            }
+
+            if (!confirm("¿Seguro que quieres borrar este UVL del dataset?")) return;
+
+            try {
+                const res = await fetch(`/dataset/${datasetId}/featuremodel/${fmId}/delete`, {
+                    method: "POST",
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                });
+                const out = await res.json();
+                if (res.ok && out.ok) {
+                    const row = document.getElementById(`fm-row-${fmId}`);
+                    if (row) row.remove();
+                } else {
+                    alert(out?.message || "Error deleting feature model");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error deleting feature model");
+            }
+        });
+        });
         });
 
 
