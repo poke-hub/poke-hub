@@ -140,6 +140,13 @@ class DataSetService(BaseService):
         domain = os.getenv("DOMAIN", "localhost")
         return f"http://{domain}/doi/{dataset.ds_meta_data.dataset_doi}"
 
+    def get_view_count(self, dataset_id: int) -> int:
+        return self.dsviewrecord_repostory.get_view_count(dataset_id)
+
+    def increment_download_count(self, dataset_id):
+        dataset = self.repository.get_or_404(dataset_id)
+        self.repository.update(dataset_id, download_count=dataset.download_count + 1)
+
 
 class AuthorService(BaseService):
     def __init__(self):
