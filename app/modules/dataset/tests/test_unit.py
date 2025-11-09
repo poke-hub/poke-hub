@@ -1,16 +1,20 @@
 import io
+from unittest.mock import patch
 from zipfile import ZipFile
+
 import pytest
-from unittest.mock import patch, MagicMock
-from app.modules.dataset.services import DataSetService, AuthorService, DOIMappingService, DSViewRecordService, DSMetaDataService
+
+from app.modules.dataset.services import DataSetService
+
 
 @pytest.fixture
 def dataset_service():
     return DataSetService()
 
+
 def test_extract_uvls_from_zip(dataset_service, tmp_path):
     buf = io.BytesIO()
-    with ZipFile(buf, 'w') as zf:
+    with ZipFile(buf, "w") as zf:
         zf.writestr("file1.uvl", "content1")
         zf.writestr("file2.txt", "should be ignored")
     buf.seek(0)
@@ -20,9 +24,10 @@ def test_extract_uvls_from_zip(dataset_service, tmp_path):
     assert not any(f.endswith(".txt") for f in saved)
     assert (tmp_path / "file1.uvl").exists()
 
+
 def test_import_uvls_from_github(dataset_service, tmp_path):
     fake_zip = io.BytesIO()
-    with ZipFile(fake_zip, 'w') as zf:
+    with ZipFile(fake_zip, "w") as zf:
         zf.writestr("repo-branch/file1.uvl", "content")
     fake_zip.seek(0)
 

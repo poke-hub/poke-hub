@@ -1,6 +1,8 @@
-from core.environment.host import get_host_for_locust_testing
-from locust import HttpUser, TaskSet, task, between
 from bs4 import BeautifulSoup
+from locust import HttpUser, TaskSet, between, task
+
+from core.environment.host import get_host_for_locust_testing
+
 
 class DatasetBehavior(TaskSet):
     def on_start(self):
@@ -47,6 +49,7 @@ class DatasetBehavior(TaskSet):
             "tags": "test, locust",
         }
         self.client.post("/dataset/file/upload", data=data, name="/dataset/file/upload")
+
 
 class DatasetUser(HttpUser):
     tasks = [DatasetBehavior]

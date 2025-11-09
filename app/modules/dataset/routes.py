@@ -1,15 +1,15 @@
+import io
 import json
 import logging
 import os
 import shutil
 import tempfile
 import uuid
-import io
-import requests
 from datetime import datetime, timezone
-from zipfile import ZipFile
 from urllib.parse import urlparse
+from zipfile import ZipFile
 
+import requests
 from flask import (
     abort,
     jsonify,
@@ -174,7 +174,8 @@ def delete():
 
     return jsonify({"error": "Error: File not found"})
 
-#Upload zip
+
+# Upload zip
 @dataset_bp.route("/dataset/zip/upload", methods=["POST"])
 @login_required
 def upload_zip():
@@ -230,7 +231,8 @@ def upload_zip():
 
     return jsonify({"message": "ZIP processed", "saved": saved, "ignored": ignored}), 200
 
-#Import from GitHub
+
+# Import from GitHub
 @dataset_bp.route("/dataset/github/import", methods=["POST"])
 @login_required
 def import_from_github():
@@ -326,6 +328,7 @@ def import_from_github():
         return jsonify({"message": f"Error processing GitHub ZIP: {e}"}), 400
 
     return jsonify({"message": "GitHub import completed", "saved": saved, "ignored": ignored}), 200
+
 
 @dataset_bp.route("/dataset/download/<int:dataset_id>", methods=["GET"])
 def download_dataset(dataset_id):

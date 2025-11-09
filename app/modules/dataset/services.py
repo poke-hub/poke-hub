@@ -1,13 +1,14 @@
 import hashlib
+import io
 import logging
 import os
 import shutil
 import uuid
-import io
-import requests
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
 from urllib.parse import urlparse
-from zipfile import ZipFile, BadZipFile
+from zipfile import BadZipFile, ZipFile
+
+import requests
 from flask import request
 
 from app.modules.auth.services import AuthenticationService
@@ -37,7 +38,8 @@ def calculate_checksum_and_size(file_path):
         content = file.read()
         hash_md5 = hashlib.md5(content).hexdigest()
         return hash_md5, file_size
-    
+
+
 def _ensure_unique_filename(dest_dir: str, filename: str) -> str:
     base, ext = os.path.splitext(filename)
     candidate = filename
@@ -48,6 +50,7 @@ def _ensure_unique_filename(dest_dir: str, filename: str) -> str:
         dest_path = os.path.join(dest_dir, candidate)
         i += 1
     return candidate
+
 
 def _safe_norm(path: str) -> str:
     norm = os.path.normpath(path).replace("\\", "/")
@@ -157,7 +160,7 @@ class DataSetService(BaseService):
     def get_uvlhub_doi(self, dataset: DataSet) -> str:
         domain = os.getenv("DOMAIN", "localhost")
         return f"http://{domain}/doi/{dataset.ds_meta_data.dataset_doi}"
-    
+
     def extract_uvls_from_zip(self, file_stream, dest_dir: str) -> List[str]:
         """
         Extrae SOLO .uvl del stream ZIP (file-like), guarda en dest_dir
@@ -195,8 +198,13 @@ class DataSetService(BaseService):
             logger.exception("Error downloading GitHub archive")
             raise e
 
-    def import_uvls_from_github(self,repo_url: str,branch: str = "main",
-        subdir: str | None = None,dest_dir: str = "",) -> List[str]:
+    def import_uvls_from_github(
+        self,
+        repo_url: str,
+        branch: str = "main",
+        subdir: str | None = None,
+        dest_dir: str = "",
+    ) -> List[str]:
         if not dest_dir:
             raise ValueError("dest_dir is required")
 

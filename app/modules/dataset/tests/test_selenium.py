@@ -1,17 +1,22 @@
 import os
 import time
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
 from core.environment.host import get_host_for_selenium_testing
-from core.selenium.common import initialize_driver, close_driver
+from core.selenium.common import close_driver, initialize_driver
+
 
 def wait_for_page_to_load(driver, timeout=6):
     WebDriverWait(driver, timeout).until(lambda d: d.execute_script("return document.readyState") == "complete")
 
+
 def find(driver, by, value, timeout=6):
     return WebDriverWait(driver, timeout).until(EC.presence_of_element_located((by, value)))
+
 
 def count_datasets(driver, host):
     driver.get(f"{host}/dataset/list")
@@ -21,6 +26,7 @@ def count_datasets(driver, host):
     except Exception:
         return 0
 
+
 def login(driver, host):
     driver.get(f"{host}/login")
     wait_for_page_to_load(driver)
@@ -28,6 +34,7 @@ def login(driver, host):
     find(driver, By.NAME, "password").send_keys("1234" + Keys.RETURN)
     time.sleep(2)
     wait_for_page_to_load(driver)
+
 
 def test_upload_dataset():
     driver = initialize_driver()
@@ -52,6 +59,7 @@ def test_upload_dataset():
         print("Test upload basic passed!")
     finally:
         close_driver(driver)
+
 
 def test_upload_dataset_from_zip():
     driver = initialize_driver()
@@ -87,9 +95,7 @@ def test_upload_dataset_from_github():
         tab.click()
         time.sleep(1)
         wait_for_page_to_load(driver)
-        repo_input = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "ghUrl"))
-        )
+        repo_input = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ghUrl")))
         repo_input.send_keys("https://github.com/example/repo")
         find(driver, By.ID, "importGithubBtn").click()
         time.sleep(2)
