@@ -64,7 +64,14 @@ class DSMetaData(db.Model):
     authors = db.relationship("Author", backref="ds_meta_data", lazy=True, cascade="all, delete")
 
     def get_all_tags(self):
-        return self.tags.split(",") if self.tags else []
+        res, aux = set(), set()
+        for fm in self.data_set.feature_models:
+            if fm.fm_meta_data.tags:
+                res.update(fm.fm_meta_data.get_all_tags())
+        if self.tags:
+            aux.update(self.tags.split(","))
+        res.update(aux)
+        return res
 
 
 class DataSet(db.Model):

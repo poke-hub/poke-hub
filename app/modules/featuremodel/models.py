@@ -34,7 +34,10 @@ class FMMetaData(db.Model):
         return f"FMMetaData<{self.title}"
 
     def get_all_tags(self):
-        return self.tags.split(",") if self.tags else []
+        res = set()
+        if self.tags:
+            res.update(self.tags.split(","))
+        return res
 
 
 class FMMetrics(db.Model):
