@@ -175,6 +175,10 @@ def edit_dataset(dataset_id):
                 editing=True,
                 error="Invalid form data"
             )
+        
+        pub_type = form.publication_type.data
+        if not pub_type or pub_type == "none":
+            pub_type = None
 
         try:
             # Actualizar los metadatos del dataset
@@ -182,7 +186,7 @@ def edit_dataset(dataset_id):
                 dataset.ds_meta_data_id,
                 title=form.title.data,
                 description=form.desc.data,
-                publication_type=form.publication_type.data,
+                publication_type=pub_type,
                 publication_doi=form.publication_doi.data,
                 tags=form.tags.data,
             )
@@ -197,6 +201,10 @@ def edit_dataset(dataset_id):
 
             msg = "Draft updated successfully!"
             logger.info(msg)
+
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return jsonify({"message": msg, "id": dataset.id}), 200
+
             return redirect(url_for("dataset.get_unsynchronized_dataset", dataset_id=dataset.id))
 
         except Exception as exc:

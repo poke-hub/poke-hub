@@ -490,9 +490,21 @@
                             </span>
                 </label>
 
-                <button id="upload_button" class="btn btn-primary mt-2" disabled>
+                {% if editing %}
+                    <button id="upload_button"
+                            type="button"
+                            class="btn btn-primary mt-2" disabled
+                            data-id="{{ dataset.id }}"
+                            name="save_as_draft"
+                            value="false">
+                        <i data-feather="upload" class="center-button-icon"></i>
+                        Upload dataset
+                    </button>
+                    {% else %}
+                    <button id="upload_button" class="btn btn-primary mt-2" disabled>
                     <i data-feather="upload" class="center-button-icon"></i>
                     Upload dataset</button>
+                {% endif %}
 
                 <div id="loading" style="display: none">
                     <img width="40px" src="{{ url_for("static", filename="gifs/loading.svg") }}"/>

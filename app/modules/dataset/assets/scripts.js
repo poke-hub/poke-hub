@@ -197,9 +197,22 @@ var currentId = 0;
 
 
                     if (checked_orcid && checked_name) {
-                        fetch('/dataset/upload', {
+                        const btn = document.getElementById('upload_button');
+                        const datasetId = btn?.dataset?.id;
+                        const saveAsDraft = btn?.value || "false";
+
+                        // Si tiene id → estás en modo edición, usa /dataset/<id>/edit
+                        const url = datasetId ? `/dataset/${datasetId}/edit` : '/dataset/upload';
+
+                        // Añadimos save_as_draft al formData para que el backend lo recoja
+                        formUploadData.append('save_as_draft', saveAsDraft);
+
+                        fetch(url, {
                             method: 'POST',
-                            body: formUploadData
+                            body: formUploadData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
                         })
                             .then(response => {
                                 if (response.ok) {
