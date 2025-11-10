@@ -1,4 +1,3 @@
-
 from flask import flash, redirect, render_template
 
 from app import db
