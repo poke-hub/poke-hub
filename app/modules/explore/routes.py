@@ -21,4 +21,5 @@ def index():
     if request.method == "POST":
         criteria = request.get_json()
         datasets = ExploreService().filter(**criteria)
-        return jsonify([{"ds_meta_data": dataset.to_dict()} for dataset in datasets])
+        # Return a list of dataset dicts (frontend expects dataset fields at top-level)
+        return jsonify([dataset.to_dict() for dataset in datasets])

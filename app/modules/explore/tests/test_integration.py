@@ -194,4 +194,4 @@ def test_post_explore_filter(test_client, database_seed, post_data, expected_sta
     assert len(response_data) == expected_len
 
     if expected_title:
-        assert response_data[0]["ds_meta_data"]["title"] == expected_title
+        assert response_data[0]["title"] == expected_title
