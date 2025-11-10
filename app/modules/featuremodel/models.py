@@ -17,13 +17,13 @@ class FeatureModel(db.Model):
 
 class FMMetaData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    uvl_filename = db.Column(db.String(120), nullable=False)
+    poke_filename = db.Column(db.String(120), nullable=False)
     title = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text, nullable=False)
     publication_type = db.Column(SQLAlchemyEnum(PublicationType), nullable=False)
     publication_doi = db.Column(db.String(120))
     tags = db.Column(db.String(120))
-    uvl_version = db.Column(db.String(120))
+    poke_version = db.Column(db.String(120))
     fm_metrics_id = db.Column(db.Integer, db.ForeignKey("fm_metrics.id"))
     fm_metrics = db.relationship("FMMetrics", uselist=False, backref="fm_meta_data")
     authors = db.relationship(

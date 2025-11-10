@@ -4,6 +4,7 @@ from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db
+from app.modules.shopping_cart.models import ShoppingCart
 
 
 class User(db.Model, UserMixin):
@@ -15,6 +16,11 @@ class User(db.Model, UserMixin):
 
     data_sets = db.relationship("DataSet", backref="user", lazy=True)
     profile = db.relationship("UserProfile", backref="user", uselist=False)
+    shopping_cart = db.relationship(ShoppingCart, backref="user", uselist=False)
+
+    is_two_factor_enabled = db.Column(db.Boolean, nullable=False, default=False)
+    two_factor_secret = db.Column(db.String(255), nullable=True)
+    two_factor_recovery_codes = db.Column(db.Text, nullable=True)
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)

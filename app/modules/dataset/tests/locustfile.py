@@ -13,6 +13,11 @@ class DatasetBehavior(TaskSet):
         response = self.client.get("/dataset/upload")
         get_csrf_token(response)
 
+    @task
+    def download_dataset(self):
+        dataset_id = 8
+        self.client.get(f"/dataset/download/{dataset_id}")
+
 
 class DatasetUser(HttpUser):
     tasks = [DatasetBehavior]

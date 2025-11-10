@@ -1,0 +1,179 @@
+{% extends "base_template.html" %} {% block title %}View shopping_cart{%
+endblock %} {% block content %}
+
+<h1 class="h3 mb-3">Shopping Cart</h1>
+
+<div class="row">
+  <div class="col-12">
+    {% if shopping_cart and shopping_cart.items %}
+    <div class="card">
+      <div class="card-header">
+        <a
+          href="{{ url_for('shopping_cart.clear_cart') }}"
+          class="btn btn-danger float-end"
+        >
+          <i data-feather="trash"></i> Vaciar Carrito
+        </a>
+      </div>
+      <div class="card-body">
+        <div class="list-group">
+          {% for item in shopping_cart.items %}
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col-md-5 col-12">
+                <i data-feather="file"></i> {{ item.file.name }}
+                <br />
+                <small class="text-muted"
+                  >({{ item.file.get_formatted_size() }})</small
+                >
+              </div>
+              <div class="col-md-7 col-12 text-md-end mt-2 mt-md-0">
+                <button
+                  onclick="viewFile('{{ item.file.id }}')"
+                  class="btn btn-outline-secondary btn-sm"
+                  style="border-radius: 5px"
+                >
+                  <i data-feather="eye"></i> View
+                </button>
+
+                <div class="btn-group" role="group">
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary btn-sm dropdown-toggle"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    style="border-radius: 5px"
+                  >
+                    <i data-feather="check"></i> Check
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        href="javascript:void(0);"
+                        onclick="checkPoke('{{ item.file.id }}')"
+                        >Syntax check</a
+                      >
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="btn-group" role="group">
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-sm dropdown-toggle"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    style="border-radius: 5px"
+                  >
+                    <i data-feather="download"></i> Export
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        href="{{ url_for('hubfile.download_file', file_id=item.file.id) }}"
+                        >Poke</a
+                      >
+                    </li>
+                  </ul>
+                </div>
+
+                <a
+                  href="{{ url_for('shopping_cart.remove_from_cart', hubfile_id=item.file.id) }}"
+                  class="btn btn-outline-danger btn-sm"
+                  style="border-radius: 5px"
+                >
+                  <i data-feather="trash-2"></i> Remove
+                </a>
+              </div>
+              <div class="col-12">
+                <div id="check_{{ item.file.id }}" class="mt-2"></div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="card">
+      <div class="card-body text-center">
+        <p class="card-text">Your shopping cart is empty.</p>
+        <a href="{{ url_for('explore.index') }}" class="btn btn-primary"
+          >Explore datasets</a
+        >
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Modal para ver archivo -->
+<div
+  class="modal fade"
+  id="fileViewerModal"
+  tabindex="-1"
+  aria-labelledby="fileViewerModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="fileViewerModalLabel">File Content</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <pre id="fileContent"></pre>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script src="{{ url_for('shopping_cart.scripts') }}"></script>
+<script>
+  function viewFile(fileId) {
+    fetch(`/file/view/${fileId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        document.getElementById("fileContent").textContent = data.content;
+        var modal = new bootstrap.Modal(
+          document.getElementById("fileViewerModal")
+        );
+        modal.show();
+      })
+      .catch((error) => console.error("Error:", error));
+  }
+
+  function checkPoke(fileId) {
+    const outputDiv = document.getElementById("check_" + fileId);
+    outputDiv.innerHTML = "Checking...";
+    fetch(`/pokemon_check/check_poke/${fileId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.errors) {
+          outputDiv.innerHTML = `<span class="badge bg-danger">Errors: ${data.errors.join(
+            ", "
+          )}</span>`;
+        } else {
+          outputDiv.innerHTML = `<span class="badge bg-success">Valid Model</span>`;
+        }
+      })
+      .catch((error) => {
+        outputDiv.innerHTML = `<span class="badge bg-danger">Error checking file.</span>`;
+        console.error("Error:", error);
+      });
+  }
+</script>
+{% endblock %}
