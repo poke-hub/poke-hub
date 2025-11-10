@@ -1,5 +1,5 @@
 import pytest
-from app.modules.feature_model.models import FeatureModel
+from app.modules.feature_model.models import FeatureModel, FMMetaData
 from app.modules.dataset.models import DSMetaData, Dataset
 
 
@@ -31,9 +31,11 @@ def test_ds_meta_data_get_all_tags():
     tags = metadata.get_all_tags()
     assert tags == ["tag1", "tag2", "tag3"], "The tags extracted do not match the expected list."
 
-    fm1 = FeatureModel(tags="tag3,tag5")
-    fm2 = FeatureModel(tags="tag4")
-    metadata_complex = DSMetaData(tags=" tag1 , tag2 ")
+    fm_meta_data = FMMetaData(tags="tag3,tag5")
+    fm_meta_data2 = FMMetaData(tags="tag4")
+    fm1 = FeatureModel(fm_meta_data=fm_meta_data)
+    fm2 = FeatureModel(fm_meta_data=fm_meta_data2)
+    metadata_complex = DSMetaData(tags=" tag1 , tag2")
     Dataset = Dataset(feature_models=[fm1, fm2], ds_meta_data=metadata)
     tags_complex = metadata_complex.get_all_tags()
     assert tags_complex == ["tag1", "tag2", "tag3", "tag4", "tag5"], "The tags extracted with spaces do not match the expected list."
@@ -48,9 +50,10 @@ def test_ds_meta_data_get_all_authors():
     authors = metadata.get_all_authors()
     assert authors == ["author1", "author2"], "The authors extracted do not match the expected list."
 
-    
-    fm1 = FeatureModel(authors="author1,author2")
-    fm2 = FeatureModel(authors="author3")
+    fm_meta_data = FMMetaData(authors="author1,author2")
+    fm_meta_data2 = FMMetaData(authors="author3")
+    fm1 = FeatureModel(fm_meta_data=fm_meta_data)
+    fm2 = FeatureModel(fm_meta_data=fm_meta_data2)
     metadata_complex = DSMetaData(authors=" author1 , author4 ")
     Dataset = Dataset(feature_models=[fm1, fm2], ds_meta_data=metadata)
     authors_complex = metadata_complex.get_all_authors()
@@ -63,7 +66,8 @@ def test_ds_meta_data_get_all_authors():
 def test_ds_meta_data_has_tag():
 
     metadata = DSMetaData(tags="tag1,tag3")
-    fm = FeatureModel(tags="tag2,tag3")
+    fm_meta_data = FMMetaData(tags="tag2,tag3")
+    fm = FeatureModel(fm_meta_data=fm_meta_data)
     Dataset = Dataset(feature_models=[fm], ds_meta_data=metadata)
 
     assert metadata.has_tag("tag1") is True, "The tag 'tag1' should be found."
@@ -73,7 +77,8 @@ def test_ds_meta_data_has_tag():
 def test_ds_meta_data_has_author():
 
     metadata = DSMetaData(authors="author1,author3")
-    fm = FeatureModel(authors="author2,author3")
+    fm_meta_data = FMMetaData(authors="author2,author3")
+    fm = FeatureModel(fm_meta_data=fm_meta_data)
     Dataset = Dataset(feature_models=[fm], ds_meta_data=metadata)
 
     assert metadata.has_author("author1") is True, "The author 'author1' should be found."
