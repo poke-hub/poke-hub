@@ -1,15 +1,16 @@
 import os
-import time
 import re
-import pytest
+import time
 
+import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from core.environment.host import get_host_for_selenium_testing
 from core.selenium.common import close_driver, initialize_driver
+
 
 @pytest.fixture
 def driver():
@@ -40,9 +41,7 @@ def login_user(driver, host, email="user1@example.com", password="1234"):
     driver.get(f"{host}/login")
     wait_for_page_to_load(driver)
 
-    email_field = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.NAME, "email"))
-    )
+    email_field = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "email")))
     password_field = driver.find_element(By.NAME, "password")
 
     email_field.send_keys(email)
@@ -161,7 +160,7 @@ def test_upload_dataset():
 def test_trending_views_and_downloads_buttons(driver):
     """Test that clicking Views/Downloads buttons changes the header and keeps the correct button active"""
     host = get_host_for_selenium_testing()
-    
+
     # Login
     login_user(driver, host)
 
@@ -216,7 +215,7 @@ def test_trending_views_and_downloads_buttons(driver):
 def test_top3_list_shows_counts(driver):
     """Test that Top 3 list items show proper count format (number + 'views' or 'downloads')"""
     host = get_host_for_selenium_testing()
-    
+
     # Login
     login_user(driver, host)
 
@@ -226,20 +225,17 @@ def test_top3_list_shows_counts(driver):
 
     # Check if there are trending views or empty state
     try:
-        ol = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".card .card-body ol"))
-        )
+        ol = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".card .card-body ol")))
         items = ol.find_elements(By.TAG_NAME, "li")
-        
+
         assert len(items) > 0, "Should have at least one item in Top 3 views"
-        
+
         for li in items:
             text = li.text
             # Verify format: should contain "– NUMBER views"
             # Example: "Dataset Title – 150 views"
-            assert re.search(r'–\s+\d+\s+views', text), \
-                f"Item should contain '– NUMBER views' format, got: {text}"
-    
+            assert re.search(r"–\s+\d+\s+views", text), f"Item should contain '– NUMBER views' format, got: {text}"
+
     except Exception:
         # Check for empty state message
         empty_message = driver.find_element(By.XPATH, "//p[contains(., 'No trending datasets yet')]")
@@ -250,20 +246,19 @@ def test_top3_list_shows_counts(driver):
     wait_for_page_to_load(driver)
 
     try:
-        ol = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".card .card-body ol"))
-        )
+        ol = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".card .card-body ol")))
         items = ol.find_elements(By.TAG_NAME, "li")
-        
+
         assert len(items) > 0, "Should have at least one item in Top 3 downloads"
-        
+
         for li in items:
             text = li.text
             # Verify format: should contain "– NUMBER downloads"
             # Example: "Dataset Title – 42 downloads"
-            assert re.search(r'–\s+\d+\s+downloads', text), \
-                f"Item should contain '– NUMBER downloads' format, got: {text}"
-    
+            assert re.search(
+                r"–\s+\d+\s+downloads", text
+            ), f"Item should contain '– NUMBER downloads' format, got: {text}"
+
     except Exception:
         # Check for empty state message
         empty_message = driver.find_element(By.XPATH, "//p[contains(., 'No trending downloads yet')]")
@@ -273,7 +268,7 @@ def test_top3_list_shows_counts(driver):
 def test_top3_list_structure(driver):
     """Test the complete structure of Top 3 list items"""
     host = get_host_for_selenium_testing()
-    
+
     # Login
     login_user(driver, host)
 
@@ -281,20 +276,18 @@ def test_top3_list_structure(driver):
     wait_for_page_to_load(driver)
 
     try:
-        ol = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".card .card-body ol"))
-        )
+        ol = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".card .card-body ol")))
         items = ol.find_elements(By.TAG_NAME, "li")
-        
+
         for li in items:
             # Each item should have a link to the dataset
             link = li.find_element(By.TAG_NAME, "a")
             assert link.get_attribute("href"), "Each item should have a link to dataset"
-            
+
             # Should have author info in a div with class 'text-muted small'
             author_div = li.find_element(By.CSS_SELECTOR, "div.text-muted.small")
             assert author_div.text, "Each item should show author information"
-            
+
     except Exception:
         # Empty state is acceptable
         pass

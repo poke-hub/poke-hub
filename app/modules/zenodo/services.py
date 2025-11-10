@@ -11,7 +11,6 @@ from app.modules.featuremodel.models import FeatureModel
 from app.modules.zenodo.repositories import ZenodoRepository
 from core.configuration.configuration import uploads_folder_name
 from core.services.BaseService import BaseService
-from core.configuration.configuration import uploads_folder_name, fakenodo_url
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +32,6 @@ class ZenodoService(BaseService):
             return os.getenv("ZENODO_API_URL", "https://zenodo.org/api/deposit/depositions")
         else:
             return os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
-
 
     def get_zenodo_access_token(self):
         return os.getenv("ZENODO_ACCESS_TOKEN")
@@ -217,7 +215,7 @@ class ZenodoService(BaseService):
         """
         publish_url = f"{self.ZENODO_API_URL}/{deposition_id}/actions/publish"
         response = requests.post(publish_url, params=self.params, headers=self.headers)
-        if response.status_code not in  [202, 200]:
+        if response.status_code not in [202, 200]:
             raise Exception("Failed to publish deposition")
         return response.json()
 

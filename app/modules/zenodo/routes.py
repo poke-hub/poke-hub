@@ -1,15 +1,10 @@
-import os
-from flask import render_template
-from flask_login import current_user
-from app import db
 
+from flask import flash, redirect, render_template
+
+from app import db
+from app.modules.dataset.models import DataSet
 from app.modules.zenodo import zenodo_bp
 from app.modules.zenodo.services import ZenodoService
-from app.modules.dataset.models import DataSet
-from app.modules.featuremodel.models import FeatureModel
-from core.configuration.configuration import uploads_folder_name
-from flask import redirect, url_for, flash
-from app.modules.dataset.models import DataSet
 
 
 @zenodo_bp.route("/zenodo", methods=["GET"])
@@ -22,6 +17,7 @@ def zenodo_test() -> dict:
     service = ZenodoService()
     return service.test_full_connection()
 
+
 @zenodo_bp.route("/zenodo/publish/<int:dataset_id>", methods=["POST"])
 def publish_dataset(dataset_id):
     """
@@ -33,12 +29,12 @@ def publish_dataset(dataset_id):
     # Bloque IF 1
     if not dataset:
         flash("Dataset no encontrado.", "danger")
-        return redirect('/dataset/list')
+        return redirect("/dataset/list")
 
     # Bloque IF 2
     if not dataset.feature_models:
-         flash("No se puede publicar un dataset sin modelos de características.", "warning")
-         return redirect('/dataset/list')
+        flash("No se puede publicar un dataset sin modelos de características.", "warning")
+        return redirect("/dataset/list")
 
     # El bloque TRY empieza aquí, al mismo nivel que los IF
     try:
@@ -66,4 +62,4 @@ def publish_dataset(dataset_id):
         flash(f"Error al publicar en Zenodo: {str(e)}", "danger")
 
     # El RETURN final al mismo nivel
-    return redirect('/dataset/list')
+    return redirect("/dataset/list")

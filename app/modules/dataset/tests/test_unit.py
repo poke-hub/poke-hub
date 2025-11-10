@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import Mock
+
+import pytest
 
 from app.modules.dataset.services import DataSetService, SizeService
 
@@ -7,12 +8,17 @@ from app.modules.dataset.services import DataSetService, SizeService
 class DummyDS:
     def __init__(self, id, title, user):
         self.id = id
-        class Meta: pass
+
+        class Meta:
+            pass
+
         self.ds_meta_data = Mock()
         self.ds_meta_data.title = title
         self.user = user
+
     def get_uvlhub_doi(self):
         return f"http://localhost/doi/10.1234/ds.{self.id}"
+
     def get_file_total_size_for_human(self):
         return "1.00 MB"
 
@@ -42,14 +48,17 @@ def test_trending_by_downloads_delegates_to_repository():
     assert res == expected
 
 
-@pytest.mark.parametrize("size,expected", [
-    (10, "10 bytes"),
-    (1024, "1.0 KB"),
-    (1536, "1.5 KB"),
-    (1024**2, "1.0 MB"),
-    (3 * 1024**2 + 512, f"{round((3*1024**2 + 512)/(1024**2), 2)} MB"),
-    (5 * 1024**3, "5.0 GB"),
-])
+@pytest.mark.parametrize(
+    "size,expected",
+    [
+        (10, "10 bytes"),
+        (1024, "1.0 KB"),
+        (1536, "1.5 KB"),
+        (1024**2, "1.0 MB"),
+        (3 * 1024**2 + 512, f"{round((3*1024**2 + 512)/(1024**2), 2)} MB"),
+        (5 * 1024**3, "5.0 GB"),
+    ],
+)
 def test_size_service_human_readable(size, expected):
     s = SizeService()
     res = s.get_human_readable_size(size)
