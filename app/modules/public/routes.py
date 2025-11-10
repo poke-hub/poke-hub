@@ -1,6 +1,6 @@
 import logging
 
-from flask import render_template
+from flask import render_template, request
 
 from app.modules.dataset.services import DataSetService
 from app.modules.featuremodel.services import FeatureModelService
@@ -27,6 +27,11 @@ def index():
     total_dataset_views = dataset_service.total_dataset_views()
     total_feature_model_views = feature_model_service.total_feature_model_views()
 
+    metric = request.args.get("metric", "views")
+    trending_views = dataset_service.trending_by_views(limit=3, days=30)
+    trending_downloads = dataset_service.trending_by_downloads(limit=3, days=30)
+    selected_metric = "downloads" if metric == "downloads" else "views"
+
     return render_template(
         "public/index.html",
         datasets=dataset_service.latest_synchronized(),
@@ -36,4 +41,7 @@ def index():
         total_feature_model_downloads=total_feature_model_downloads,
         total_dataset_views=total_dataset_views,
         total_feature_model_views=total_feature_model_views,
+        trending_views=trending_views,
+        trending_downloads=trending_downloads,
+        selected_metric=selected_metric,
     )
