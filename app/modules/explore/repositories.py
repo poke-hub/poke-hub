@@ -1,14 +1,13 @@
 import re
-
-import unidecode
-from sqlalchemy import any_, or_, func
-from sqlalchemy.orm import aliased
 from collections import defaultdict
 
-from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType, Author
+import unidecode
+from sqlalchemy import func, or_
+from sqlalchemy.orm import aliased
+
+from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
 from app.modules.featuremodel.models import FeatureModel, FMMetaData
 from core.repositories.BaseRepository import BaseRepository
-
 
 
 class ExploreRepository(BaseRepository):
@@ -28,10 +27,7 @@ class ExploreRepository(BaseRepository):
             .all()
         )
         # Lo devolvemos como JSON
-        return [
-            {"id": r.id, "name": r.name, "count": int(r.count)}
-            for r in results
-        ]
+        return [{"id": r.id, "name": r.name, "count": int(r.count)} for r in results]
 
     def get_all_tags(self):
         # Obtenemos las tags en un diccionario con su count
@@ -46,7 +42,9 @@ class ExploreRepository(BaseRepository):
         sorted_tags = sorted(tags_dict.items(), key=lambda kv: kv[1], reverse=True)
         return [{"name": tag, "count": int(count)} for tag, count in sorted_tags]
 
-    def filter(self, query="", sorting="newest", publication_type="any", authors_filter="any", tags_filter="any", **kwargs):
+    def filter(
+        self, query="", sorting="newest", publication_type="any", authors_filter="any", tags_filter="any", **kwargs
+    ):
         normalized_query = unidecode.unidecode(query).lower()
         cleaned_query = re.sub(r'[,.":\'()\[\]^;!¡¿?]', "", normalized_query)
 
@@ -56,14 +54,10 @@ class ExploreRepository(BaseRepository):
         filters = []
         for word in cleaned_query.split():
             like = f"%{word}%"
-            filters.extend([
-                DSMetaData.title.ilike(like),
-                DSMetaData.description.ilike(like)
-            ])
+            filters.extend([DSMetaData.title.ilike(like), DSMetaData.description.ilike(like)])
 
         datasets = (
-            self.model.query
-            .join(DataSet.ds_meta_data)
+            self.model.query.join(DataSet.ds_meta_data)
             .outerjoin(DsAuthor, DsAuthor.ds_meta_data_id == DSMetaData.id)
             .join(DataSet.feature_models)
             .join(FeatureModel.fm_meta_data)
@@ -91,7 +85,7 @@ class ExploreRepository(BaseRepository):
             if tag_name:
                 like_tag = f"%{tag_name}%"
                 datasets = datasets.filter(or_(DSMetaData.tags.ilike(like_tag), FMMetaData.tags.ilike(like_tag)))
-        
+
         if sorting == "oldest":
             datasets = datasets.order_by(self.model.created_at.asc())
         else:
