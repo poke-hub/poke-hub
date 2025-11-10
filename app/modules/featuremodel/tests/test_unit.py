@@ -1,5 +1,5 @@
 import pytest
-from app.modules.feature_model.models import FMMetaData
+from app.modules.featuremodel.models import FMMetaData
 
 
 @pytest.fixture(scope="module")
