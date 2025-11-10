@@ -17,6 +17,7 @@ from app.modules.auth.models import User
 from app.modules.auth.repositories import UserRepository
 from app.modules.profile.models import UserProfile
 from app.modules.profile.repositories import UserProfileRepository
+from app.modules.shopping_cart.repositories import ShoppingCartRepository
 from core.configuration.configuration import uploads_folder_name
 from core.services.BaseService import BaseService
 
@@ -47,6 +48,7 @@ class AuthenticationService(BaseService):
     def __init__(self):
         super().__init__(UserRepository())
         self.user_profile_repository = UserProfileRepository()
+        self.shopping_cart_repository = ShoppingCartRepository()
 
     def login(self, email, password, remember=True):
         """
@@ -95,6 +97,8 @@ class AuthenticationService(BaseService):
             user = self.create(commit=False, **user_data)
             profile_data["user_id"] = user.id
             self.user_profile_repository.create(**profile_data)
+            shopping_cart_data = {"user_id": user.id}
+            self.shopping_cart_repository.create(**shopping_cart_data)
             self.repository.session.commit()
         except Exception as exc:
             self.repository.session.rollback()
