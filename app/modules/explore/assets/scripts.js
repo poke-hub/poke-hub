@@ -20,6 +20,8 @@ function send_query() {
                 csrf_token: csrfToken,
                 query: document.querySelector('#query').value,
                 publication_type: document.querySelector('#publication_type').value,
+                authors_filter: document.querySelector('#authors_filter').value,      // añadido
+                tags_filter: document.querySelector('#tags_filter').value,            // añadido
                 sorting: document.querySelector('[name="sorting"]:checked').value,
             };
 
@@ -161,25 +163,23 @@ function set_publication_type_as_query(publicationType) {
 document.getElementById('clear-filters').addEventListener('click', clearFilters);
 
 function clearFilters() {
-
-    // Reset the search query
     let queryInput = document.querySelector('#query');
     queryInput.value = "";
-    // queryInput.dispatchEvent(new Event('input', {bubbles: true}));
 
-    // Reset the publication type to its default value
     let publicationTypeSelect = document.querySelector('#publication_type');
-    publicationTypeSelect.value = "any"; // replace "any" with whatever your default value is
-    // publicationTypeSelect.dispatchEvent(new Event('input', {bubbles: true}));
+    publicationTypeSelect.value = "any";
 
-    // Reset the sorting option
+    let authorsSelect = document.querySelector('#authors_filter');   // añadido
+    authorsSelect.value = "any";
+
+    let tagsSelect = document.querySelector('#tags_filter');         // añadido
+    tagsSelect.value = "any";
+
     let sortingOptions = document.querySelectorAll('[name="sorting"]');
     sortingOptions.forEach(option => {
-        option.checked = option.value == "newest"; // replace "default" with whatever your default value is
-        // option.dispatchEvent(new Event('input', {bubbles: true}));
+        option.checked = option.value == "newest";
     });
 
-    // Perform a new search with the reset filters
     queryInput.dispatchEvent(new Event('input', {bubbles: true}));
 }
 

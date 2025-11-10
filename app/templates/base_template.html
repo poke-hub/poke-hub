@@ -121,6 +121,13 @@ chico sundermann">
                         </a>
                     </li>
 
+                    <li class="sidebar-item {{ 'active' if request.endpoint == 'profile.security_settings' else '' }}">
+                        <a class="sidebar-link" href="{{ url_for('profile.security_settings') }}">
+                            <i class="align-middle" data-feather="shield"></i> <span
+                                class="align-middle">Security</span>
+                        </a>
+                    </li>
+
                     <li class="sidebar-item">
                         <a class="sidebar-link" href="{{ url_for('auth.logout') }}">
                             <i class="align-middle" data-feather="log-out"></i> <span
@@ -161,6 +168,14 @@ chico sundermann">
 
             <div class="navbar-collapse collapse">
                 <ul class="navbar-nav navbar-align">
+                    {% if not current_user.is_anonymous %}
+                    <li class="nav-item">
+                        <a class="nav-icon" href="{{ url_for('shopping_cart.index') }}">
+                            <i class="align-middle" data-feather="shopping-cart"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
                     <li class="nav-item dropdown">
 
                         {% if current_user.is_anonymous %}
@@ -180,6 +195,8 @@ chico sundermann">
                         <div class="dropdown-menu dropdown-menu-end">
                             <a class="dropdown-item" href="{{ url_for('profile.my_profile') }}">
                                 <i class="align-middle me-1" data-feather="user"></i> My profile</a>
+                            <a class="dropdown-item" href="{{ url_for('profile.security_settings') }}">
+                                <i class="align-middle me-1" data-feather="shield"></i> Security</a>
                             <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                                 <i class="align-middle me-1" data-feather="log-out"></i> Log out</a>
                         </div>
@@ -196,6 +213,19 @@ chico sundermann">
 
         <main class="content">
             <div class="container p-0">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div style="padding: 1rem">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
 
                 {% block content %}{% endblock %}
 

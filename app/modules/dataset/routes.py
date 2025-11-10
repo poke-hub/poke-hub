@@ -7,16 +7,7 @@ import uuid
 from datetime import datetime, timezone
 from zipfile import ZipFile
 
-from flask import (
-    abort,
-    jsonify,
-    make_response,
-    redirect,
-    render_template,
-    request,
-    send_from_directory,
-    url_for,
-)
+from flask import abort, jsonify, make_response, redirect, render_template, request, send_from_directory, url_for
 from flask_login import current_user, login_required
 
 from app.modules.dataset import dataset_bp
@@ -122,7 +113,7 @@ def upload():
     file = request.files["file"]
     temp_folder = current_user.temp_folder()
 
-    if not file or not file.filename.endswith(".uvl"):
+    if not file or not file.filename.endswith(".poke"):
         return jsonify({"message": "No valid file"}), 400
 
     # create temp folder
@@ -150,7 +141,7 @@ def upload():
     return (
         jsonify(
             {
-                "message": "UVL uploaded and validated successfully",
+                "message": "Poke uploaded and validated successfully",
                 "filename": new_filename,
             }
         ),
@@ -230,6 +221,8 @@ def download_dataset(dataset_id):
             download_cookie=user_cookie,
         )
 
+    dataset_service.increment_download_count(dataset_id)
+
     return resp
 
 
@@ -270,3 +263,24 @@ def get_unsynchronized_dataset(dataset_id):
         abort(404)
 
     return render_template("dataset/view_dataset.html", dataset=dataset)
+
+
+@dataset_bp.route("/dataset/<int:dataset_id>/stats", methods=["GET"])
+def dataset_stats(dataset_id):
+    dataset = dataset_service.get_or_404(dataset_id)
+
+    total_files = dataset.get_files_count()
+    total_size_human = dataset.get_file_total_size_for_human()
+    view_count = dataset_service.get_view_count(dataset_id)
+    download_count = dataset.download_count
+    created_at = dataset.created_at
+
+    return render_template(
+        "dataset/stats_dataset.html",
+        dataset=dataset,
+        total_files=total_files,
+        total_size_human=total_size_human,
+        view_count=view_count,
+        download_count=download_count,
+        created_at=created_at,
+    )

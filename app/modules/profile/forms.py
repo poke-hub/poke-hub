@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import PasswordField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional, Regexp
 
 
@@ -16,3 +16,17 @@ class UserProfileForm(FlaskForm):
     )
     affiliation = StringField("Affiliation", validators=[Optional(), Length(min=5, max=100)])
     submit = SubmitField("Save profile")
+
+
+class TwoFactorEnableForm(FlaskForm):
+    """Verificar token y activar el 2FA."""
+
+    token = StringField("6-digit code:", validators=[DataRequired(), Length(min=6, max=6)])
+    submit = SubmitField("Verify and Activate")
+
+
+class TwoFactorDisableForm(FlaskForm):
+    """Confirmar la desactivación del 2FA (pide la contraseña)."""
+
+    password = PasswordField("Current password:", validators=[DataRequired()])
+    submit = SubmitField("Disable 2FA")

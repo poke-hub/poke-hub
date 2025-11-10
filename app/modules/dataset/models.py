@@ -63,6 +63,35 @@ class DSMetaData(db.Model):
     ds_metrics = db.relationship("DSMetrics", uselist=False, backref="ds_meta_data", cascade="all, delete")
     authors = db.relationship("Author", backref="ds_meta_data", lazy=True, cascade="all, delete")
 
+    def get_all_tags(self):
+        res, aux = set(), set()
+        for fm in self.data_set.feature_models:
+            if fm.fm_meta_data.tags:
+                aux.update(fm.fm_meta_data.get_all_tags())
+        if self.tags:
+            aux.update(self.tags.split(","))
+        for tag in aux:
+            tag = tag.strip()
+            res.add(tag)
+        return res
+
+    def get_all_authors(self):
+        res = set()
+        for fm in self.data_set.feature_models:
+            if fm.fm_meta_data.authors:
+                res.update(fm.fm_meta_data.authors)
+        if self.authors:
+            res.update(self.authors)
+        return res
+
+    def has_tag(self, tag_name):
+        all_tags = self.get_all_tags()
+        return tag_name in all_tags
+
+    def has_author(self, author_id):
+        author_ids = [author.id for author in self.get_all_authors()]
+        return author_id in author_ids
+
 
 class DataSet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -70,6 +99,8 @@ class DataSet(db.Model):
 
     ds_meta_data_id = db.Column(db.Integer, db.ForeignKey("ds_meta_data.id"), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    download_count = db.Column(db.Integer, nullable=False, default=0)
 
     ds_meta_data = db.relationship("DSMetaData", backref=db.backref("data_set", uselist=False))
     feature_models = db.relationship("FeatureModel", backref="data_set", lazy=True, cascade="all, delete")
@@ -101,10 +132,10 @@ class DataSet(db.Model):
 
         return SizeService().get_human_readable_size(self.get_file_total_size())
 
-    def get_uvlhub_doi(self):
+    def get_pokehub_doi(self):
         from app.modules.dataset.services import DataSetService
 
-        return DataSetService().get_uvlhub_doi(self)
+        return DataSetService().get_pokehub_doi(self)
 
     def to_dict(self):
         return {
@@ -118,7 +149,7 @@ class DataSet(db.Model):
             "publication_doi": self.ds_meta_data.publication_doi,
             "dataset_doi": self.ds_meta_data.dataset_doi,
             "tags": self.ds_meta_data.tags.split(",") if self.ds_meta_data.tags else [],
-            "url": self.get_uvlhub_doi(),
+            "url": self.get_pokehub_doi(),
             "download": f'{request.host_url.rstrip("/")}/dataset/download/{self.id}',
             "zenodo": self.get_zenodo_url(),
             "files": [file.to_dict() for fm in self.feature_models for file in fm.files],

@@ -29,6 +29,9 @@ class Config:
         f"{os.getenv('MARIADB_PORT', '3306')}/"
         f"{os.getenv('MARIADB_DATABASE', 'default_db')}"
     )
+
+    ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     TIMEZONE = "Europe/Madrid"
     TEMPLATES_AUTO_RELOAD = True

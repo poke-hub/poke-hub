@@ -1,0 +1,48 @@
+{% extends "base_template.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="alert alert-danger" role="alert">
+                <h4 class="alert-heading"><strong>Important!</strong> Save these recovery codes</h4>
+                <p>
+                    Save these codes in a safe place (for example, a password manager).
+                    If you lose access to your device, these codes will be the <strong>only</strong>
+                    way to access your account. You can use each code only <strong>once</strong>.
+                </p>
+                <hr>
+                <p class="mb-0">
+                    You will not see this list again.
+                </p>
+            </div>
+
+            <h4>Your recovery codes:</h4>
+
+            <div id="all-recovery-codes" style="display: none;">{% for code in codes %}{{ code }}
+{% endfor %}</div>
+
+            <div class="card">
+                <ul class="list-group list-group-flush">
+                    {% for code in codes %}
+                        <li class="list-group-item">
+                            <strong style="font-family: monospace; font-size: 1.2rem;">{{ code }}</strong>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="mt-3">
+                <button type="button" class="btn btn-secondary" onclick="copyText('all-recovery-codes')">
+                    <i class="align-middle" data-feather="copy"></i> Copy all codes
+                </button>
+
+                <a href="{{ url_for('profile.security_settings') }}" class="btn btn-primary">
+                    Got it, I've saved them
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
