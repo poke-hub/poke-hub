@@ -64,12 +64,15 @@ class DSMetaData(db.Model):
     authors = db.relationship("Author", backref="ds_meta_data", lazy=True, cascade="all, delete")
 
     def get_all_tags(self):
-        res = set()
+        res, aux = set(), set()
         for fm in self.data_set.feature_models:
             if fm.fm_meta_data.tags:
-                res.update(fm.fm_meta_data.get_all_tags())
+                aux.update(fm.fm_meta_data.get_all_tags())
         if self.tags:
-            res.update(self.tags.split(","))
+            aux.update(self.tags.split(","))
+        for tag in aux:
+            tag = tag.strip()
+            res.add(tag)
         return res
 
     def get_all_authors(self):
@@ -86,7 +89,7 @@ class DSMetaData(db.Model):
         return tag_name in all_tags
 
     def has_author(self, author_id):
-        author_ids = [author.id for author in self.authors]
+        author_ids = [author.id for author in self.get_all_authors()]
         return author_id in author_ids
 
 
