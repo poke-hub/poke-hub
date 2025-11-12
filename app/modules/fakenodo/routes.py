@@ -10,6 +10,7 @@ fakenodo_bp = Blueprint("fakenodo_api", __name__)
 DB_PATH = os.path.join(os.getenv("WORKING_DIR", ""), "fakenodo_db.json")
 STORAGE = os.path.join(os.getenv("WORKING_DIR", ""), "fakenodo_storage")
 
+
 def _load_db():
     if os.path.exists(DB_PATH):
         with open(DB_PATH, "r") as f:

@@ -5,7 +5,6 @@ import os
 
 import requests
 from dotenv import load_dotenv
-from flask import Response, jsonify
 from flask_login import current_user
 
 # (Asegúrate de que estas rutas de import sean correctas en tu proyecto)
