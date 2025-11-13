@@ -1,6 +1,4 @@
-import io
-
-from locust import HttpUser, task, TaskSet
+from locust import HttpUser, TaskSet, task
 
 from core.environment.host import get_host_for_locust_testing
 
@@ -12,14 +10,16 @@ class FakenodoBehavior(TaskSet):
         deposition_id = None
 
         with self.client.post(
-            "/api/deposit/depositions", json={"metadata": {"title": "Dataset de prueba con Locust"}}, catch_response=True
+            "/api/deposit/depositions",
+            json={"metadata": {"title": "Dataset de prueba con Locust"}},
+            catch_response=True,
         ) as response:
             if response.status_code == 201:
                 deposition_id = response.json()["id"]
                 response.success()
             else:
                 response.failure(f"Failed to create deposition, status: {response.status_code}")
-                return  
+                return
 
         if deposition_id:
             file_content = b"Este es el contenido de un archivo de prueba generado por Locust."
@@ -31,7 +31,7 @@ class FakenodoBehavior(TaskSet):
                     response.success()
                 else:
                     response.failure(f"Failed to upload file, status: {response.status_code}")
-                    return  
+                    return
 
         if deposition_id:
             with self.client.post(
