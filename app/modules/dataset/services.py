@@ -274,7 +274,7 @@ class DataSetService(BaseService):
                 ignored.append(name)
                 continue
 
-            if not norm.lower().endswith(".uvl"):
+            if not norm.lower().endswith(".poke"):
                 ignored.append(name)
                 continue
 
