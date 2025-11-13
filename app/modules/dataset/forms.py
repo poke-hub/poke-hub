@@ -71,7 +71,7 @@ class DataSetForm(FlaskForm):
     source = SelectField(
         "Source",
         choices=[
-            ("file", "Single file (.uvl)"),
+            ("file", "Single file (.poke)"),
             ("zip", "ZIP archive"),
             ("github", "GitHub repository"),
         ],

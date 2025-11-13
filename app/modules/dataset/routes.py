@@ -205,7 +205,7 @@ def upload_zip():
                     ignored.append(name)
                     continue
 
-                if not norm.lower().endswith(".uvl"):
+                if not norm.lower().endswith(".poke"):
                     ignored.append(name)
                     continue
 
@@ -303,7 +303,7 @@ def import_from_github():
                     ignored.append(name)
                     continue
 
-                if not norm.lower().endswith(".uvl"):
+                if not norm.lower().endswith(".poke"):
                     ignored.append(name)
                     continue
 

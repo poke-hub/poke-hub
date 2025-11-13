@@ -180,13 +180,13 @@ class DataSetService(BaseService):
         """
         return self.repository.trending_by_downloads(limit=limit, days=days)
 
-    def extract_uvls_from_zip(self, file_stream, dest_dir: str) -> List[str]:
+    def extract_pokes_from_zip(self, file_stream, dest_dir: str) -> List[str]:
         """
-        Extrae SOLO .uvl del stream ZIP (file-like), guarda en dest_dir
+        Extrae SOLO .poke del stream ZIP (file-like), guarda en dest_dir
         con nombres únicos. Devuelve la lista de nombres guardados.
         """
         os.makedirs(dest_dir, exist_ok=True)
-        saved, _ignored = self._extract_uvls_from_zip(ZipFile(file_stream), dest_dir=dest_dir, subdir=None)
+        saved, _ignored = self._extract_pokes_from_zip(ZipFile(file_stream), dest_dir=dest_dir, subdir=None)
         return saved
 
     def fetch_repo_zip(self, repo_url: str, branch: str | None) -> bytes:
@@ -217,7 +217,7 @@ class DataSetService(BaseService):
             logger.exception("Error downloading GitHub archive")
             raise e
 
-    def import_uvls_from_github(
+    def import_pokes_from_github(
         self,
         repo_url: str,
         branch: str = "main",
@@ -232,13 +232,13 @@ class DataSetService(BaseService):
 
         try:
             with ZipFile(io.BytesIO(zip_bytes)) as zf:
-                saved, _ignored = self._extract_uvls_from_zip(zf, dest_dir=dest_dir, subdir=subdir)
+                saved, _ignored = self._extract_pokes_from_zip(zf, dest_dir=dest_dir, subdir=subdir)
                 return saved
         except BadZipFile as e:
             logger.exception("Invalid ZIP from GitHub")
             raise e
 
-    def _extract_uvls_from_zip(self, zf: ZipFile, dest_dir: str, subdir: str | None) -> Tuple[List[str], List[str]]:
+    def _extract_pokes_from_zip(self, zf: ZipFile, dest_dir: str, subdir: str | None) -> Tuple[List[str], List[str]]:
         saved: List[str] = []
         ignored: List[str] = []
 
