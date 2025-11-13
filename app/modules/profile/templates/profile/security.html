@@ -1,0 +1,91 @@
+{% extends "base_template.html" %} {% block content %}
+<div class="container">
+    <h2>Security Settings</h2>
+    <hr>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if current_user.is_two_factor_enabled %}
+        <div class="alert alert-success">
+            Two-factor authentication (2FA) is <strong>enabled</strong> on your account.
+        </div>
+        
+        <h4>Disable 2FA</h4>
+        <p>If you disable 2FA, your account will be protected only by your password.</p>
+        
+        <form action="{{ url_for('profile.disable_2fa') }}" method="POST">
+            {{ disable_form.csrf_token }}
+            <div class="mb-3">
+                {{ disable_form.password.label(class="form-label") }}
+                {{ disable_form.password(class="form-control") }}
+            </div>
+            {{ disable_form.submit(class="btn btn-danger") }}
+        </form>
+
+    {% else %}
+        <div class="alert alert-warning">
+            Two-factor authentication (2FA) is <strong>disabled</strong>.
+        </div>
+        
+        <h4>Enable 2FA</h4>
+        <p>Protect your account with an additional layer of security.</p>
+        
+        <button id="start-2fa-btn" class="btn btn-primary">Enable 2FA</button>
+
+        <div id="2fa-setup-section" style="display: none; margin-top: 20px;">
+            <h5>Step 1: Scan the QR Code</h5>
+            <p>Use your authentication app to scan this image:</p>
+            <img id="qr-code-img" src="" alt="2FA QR Code" style="max-width: 200px;">
+            <p class="mt-2">Or enter this code manually: 
+                <strong id="secret-key"></strong>
+                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="copyText('secret-key')">
+                    <i class="align-middle" data-feather="copy"></i>
+                </button>
+            </p>            
+            <hr>
+            
+            <h5>Step 2: Verify your device</h5>
+            <p>Enter the 6-digit code from your app to confirm.</p>
+            
+            <form action="{{ url_for('profile.enable_2fa') }}" method="POST">
+                {{ enable_form.csrf_token }}
+                <div class="mb-3">
+                    {{ enable_form.token.label(class="form-label") }}
+                    {{ enable_form.token(class="form-control") }}
+                </div>
+                {{ enable_form.submit(class="btn btn-success") }}
+            </form>
+        </div>
+    {% endif %}
+
+</div>
+
+<script>
+document.getElementById('start-2fa-btn').addEventListener('click', function() {
+    this.disabled = true;
+    this.textContent = 'Generating...';
+    fetch("{{ url_for('profile.setup_2fa') }}", {
+        method: 'POST',
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('qr-code-img').src = 'data:image/png;base64,' + data.qr_base64;
+        document.getElementById('secret-key').textContent = data.secret;
+        document.getElementById('2fa-setup-section').style.display = 'block';
+        this.style.display = 'none';
+    })
+    .catch(error => {
+        console.error('Error setting up 2FA:', error);
+        alert('There was an error starting the 2FA setup. Please reload the page.');
+        this.disabled = false;
+        this.textContent = 'Enable 2FA';
+    });
+});
+</script>
+{% endblock %}

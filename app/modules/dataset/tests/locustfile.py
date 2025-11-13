@@ -50,6 +50,11 @@ class DatasetBehavior(TaskSet):
         }
         self.client.post("/dataset/file/upload", data=data, name="/dataset/file/upload")
 
+    @task
+    def download_dataset(self):
+        dataset_id = 8
+        self.client.get(f"/dataset/download/{dataset_id}")
+
 
 class DatasetUser(HttpUser):
     tasks = [DatasetBehavior]

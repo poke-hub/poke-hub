@@ -1,5 +1,7 @@
 import pytest
 
+from app.modules.featuremodel.models import FMMetaData
+
 
 @pytest.fixture(scope="module")
 def test_client(test_client):
@@ -22,3 +24,14 @@ def test_sample_assertion(test_client):
     """
     greeting = "Hello, World!"
     assert greeting == "Hello, World!", "The greeting does not coincide with 'Hello, World!'"
+
+
+def test_fm_meta_data_get_all_tags():
+
+    metadata = FMMetaData(tags="tag1,tag2,tag3")
+    tags = metadata.get_all_tags()
+    assert tags == {"tag1", "tag2", "tag3"}, "The tags extracted do not match the expected set."
+
+    metadata_empty = FMMetaData(tags="")
+    tags_empty = metadata_empty.get_all_tags()
+    assert tags_empty == set(), "The tags extracted from an empty string should be an empty set."
