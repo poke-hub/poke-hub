@@ -29,13 +29,10 @@ def count_datasets(driver, host):
     driver.get(f"{host}/dataset/list")
     wait_for_page_to_load(driver)
 
-
     try:
         amount_datasets = len(driver.find_elements(By.XPATH, "//table//tbody//tr"))
         amount_datasets = len(driver.find_elements(By.XPATH, "//table//tbody//tr"))
     except Exception:
-        amount_datasets = 0
-    return amount_datasets
         amount_datasets = 0
     return amount_datasets
 
@@ -57,7 +54,6 @@ def login_user(driver, host, email="user1@example.com", password="1234"):
 
 def test_upload_dataset():
     driver = initialize_driver()
-
 
     try:
         host = get_host_for_selenium_testing()
