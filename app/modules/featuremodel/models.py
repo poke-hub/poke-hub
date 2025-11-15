@@ -1,8 +1,19 @@
+from app import db
+import os, re
+from flask import current_app
+from app.modules.dataset.models import Author, PublicationType
 from sqlalchemy import Enum as SQLAlchemyEnum
 
-from app import db
-from app.modules.dataset.models import Author, PublicationType
 
+class Pokemon():
+    name : str
+    item : str
+    ability : str
+    tera_type : str
+    evs : dict[str, int]
+    ivs : dict[str, int]
+    moves : list[str]
+    
 
 class FeatureModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -13,6 +24,68 @@ class FeatureModel(db.Model):
 
     def __repr__(self):
         return f"FeatureModel<{self.id}>"
+    
+    def get_pokemon(self):
+        
+        directory_path = f"uploads/user_{self.data_set.user_id}/dataset_{self.data_set_id}/"
+        parent_directory_path = os.path.dirname(current_app.root_path)
+        file_path = os.path.join(parent_directory_path, directory_path)
+    
+        pokemon = parse_poke(file_path)
+        return pokemon
+    
+def parse_poke(file_path):
+
+    with open(file_path, "r") as f:
+        lines = f.read().strip().splitlines()
+        name = lines[0].split('@')[0].strip()
+        item = lines[0].split('@')[1].strip() if '@' in lines[0] else ''
+        moves = []
+        ability = ""
+        tera_type = ""
+        evs = {}
+        ivs = {}
+        
+        for line in lines[1:]:
+            if not line:
+                continue
+            
+            kv_match = re.match(r"^\s*([^:]+):\s*(.*)$", line, re.IGNORECASE)
+            if kv_match:
+                key = kv_match.group(1).strip().lower()
+                value = kv_match.group(2).strip()
+
+                if key == "ability":
+                    ability = value
+                elif key == "tera type":
+                    tera_type = value
+                elif key == "evs":
+                    evs = value.split('/')
+                    for ev in evs:
+                        val, stat = ev.strip().split()
+                        evs[stat] = int(val)
+                elif key == "ivs":
+                    ivs = value.split('/')
+                    for iv in ivs:
+                        val, stat = iv.strip().split()
+                        ivs[stat] = int(val)
+                continue
+
+            move_match = re.match(r"^\s*-\s+(.*)$", line)
+            if move_match:
+                moves.append(move_match.group(1).strip())
+                continue
+        
+        pokemon = Pokemon()
+        pokemon.name = name
+        pokemon.item = item
+        pokemon.ability = ability
+        pokemon.tera_type = tera_type
+        pokemon.evs = evs
+        pokemon.ivs = ivs
+        pokemon.moves = moves
+    return pokemon
+    
 
 
 class FMMetaData(db.Model):
