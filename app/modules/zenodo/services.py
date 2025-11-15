@@ -7,7 +7,7 @@ from flask import Response, jsonify
 from flask_login import current_user
 
 from app.modules.dataset.models import DataSet
-from app.modules.featuremodel.models import FeatureModel
+from app.modules.pokemodel.models import PokeModel
 from app.modules.zenodo.repositories import ZenodoRepository
 from core.configuration.configuration import uploads_folder_name
 from core.services.BaseService import BaseService
@@ -178,19 +178,19 @@ class ZenodoService(BaseService):
             raise Exception(error_message)
         return response.json()
 
-    def upload_file(self, dataset: DataSet, deposition_id: int, feature_model: FeatureModel, user=None) -> dict:
+    def upload_file(self, dataset: DataSet, deposition_id: int, poke_model: PokeModel, user=None) -> dict:
         """
         Upload a file to a deposition in Zenodo.
 
         Args:
             deposition_id (int): The ID of the deposition in Zenodo.
-            feature_model (FeatureModel): The FeatureModel object representing the feature model.
-            user (FeatureModel): The User object representing the file owner.
+            poke_model (PokeModel): The PokeModel object representing the poke model.
+            user (PokeModel): The User object representing the file owner.
 
         Returns:
             dict: The response in JSON format with the details of the uploaded file.
         """
-        poke_filename = feature_model.fm_meta_data.poke_filename
+        poke_filename = poke_model.fm_meta_data.poke_filename
         data = {"name": poke_filename}
         user_id = current_user.id if user is None else user.id
         file_path = os.path.join(uploads_folder_name(), f"user_{str(user_id)}", f"dataset_{dataset.id}/", poke_filename)

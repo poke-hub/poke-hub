@@ -1,6 +1,6 @@
 import pytest
 
-from app.modules.featuremodel.models import FMMetaData
+from app.modules.pokemodel.models import FMMetaData
 
 
 @pytest.fixture(scope="module")

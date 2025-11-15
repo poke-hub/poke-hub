@@ -1,7 +1,7 @@
 from core.seeders.BaseSeeder import BaseSeeder
 
 
-class FeaturemodelSeeder(BaseSeeder):
+class PokeModelSeeder(BaseSeeder):
 
     def run(self):
 

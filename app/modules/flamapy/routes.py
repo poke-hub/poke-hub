@@ -51,7 +51,7 @@ def check_poke(file_id):
         parser.removeErrorListeners()
         parser.addErrorListener(error_listener)
 
-        # tree = parser.featureModel()
+        # tree = parser.pokeModel()
 
         if error_listener.errors:
             return jsonify({"errors": error_listener.errors}), 400

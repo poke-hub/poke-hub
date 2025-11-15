@@ -9,6 +9,7 @@ from zipfile import ZipFile
 
 from flask import abort, jsonify, make_response, redirect, render_template, request, send_from_directory, url_for
 from flask_login import current_user, login_required
+from werkzeug.datastructures import FileStorage
 
 from app.modules.dataset import dataset_bp
 from app.modules.dataset.forms import DataSetForm
@@ -21,6 +22,7 @@ from app.modules.dataset.services import (
     DSMetaDataService,
     DSViewRecordService,
 )
+from app.modules.pokemon_check.check_poke import PokemonSetChecker
 from app.modules.zenodo.services import ZenodoService
 
 logger = logging.getLogger(__name__)
@@ -49,7 +51,7 @@ def create_dataset():
             logger.info("Creating dataset...")
             dataset = dataset_service.create_from_form(form=form, current_user=current_user)
             logger.info(f"Created dataset: {dataset}")
-            dataset_service.move_feature_models(dataset)
+            dataset_service.move_poke_models(dataset)
         except Exception as exc:
             logger.exception(f"Exception while create dataset data in local {exc}")
             return jsonify({"Exception while create dataset data in local: ": str(exc)}), 400
@@ -72,9 +74,9 @@ def create_dataset():
             dataset_service.update_dsmetadata(dataset.ds_meta_data_id, deposition_id=deposition_id)
 
             try:
-                # iterate for each feature model (one feature model = one request to Zenodo)
-                for feature_model in dataset.feature_models:
-                    zenodo_service.upload_file(dataset, deposition_id, feature_model)
+                # iterate for each poke model (one poke model = one request to Zenodo)
+                for poke_model in dataset.poke_models:
+                    zenodo_service.upload_file(dataset, deposition_id, poke_model)
 
                 # publish deposition
                 zenodo_service.publish_deposition(deposition_id)
@@ -83,7 +85,7 @@ def create_dataset():
                 deposition_doi = zenodo_service.get_doi(deposition_id)
                 dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
             except Exception as e:
-                msg = f"it has not been possible upload feature models in Zenodo and update the DOI: {e}"
+                msg = f"it has not been possible upload poke models in Zenodo and update the DOI: {e}"
                 return jsonify({"message": msg}), 200
 
         # Delete temp folder
@@ -110,11 +112,21 @@ def list_dataset():
 @dataset_bp.route("/dataset/file/upload", methods=["POST"])
 @login_required
 def upload():
-    file = request.files["file"]
+    file: FileStorage = request.files["file"]
     temp_folder = current_user.temp_folder()
 
     if not file or not file.filename.endswith(".poke"):
         return jsonify({"message": "No valid file"}), 400
+
+    # Read content and validate format before saving
+    try:
+        file_content = file.read().decode("utf-8")
+        file.seek(0)  # IMPORTANT: Reset stream so file.save() can read it later
+        checker = PokemonSetChecker(file_content)
+        if not checker.is_valid():
+            return jsonify({"message": "Invalid .poke file format", "errors": checker.get_errors()}), 400
+    except Exception as e:
+        return jsonify({"message": f"Error reading or validating file: {e}"}), 500
 
     # create temp folder
     if not os.path.exists(temp_folder):

@@ -6,7 +6,7 @@ import pytest
 from app import db
 from app.modules.auth.models import User
 from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
-from app.modules.featuremodel.models import FeatureModel, FMMetaData
+from app.modules.pokemodel.models import FMMetaData, PokeModel
 
 
 @pytest.fixture(scope="module")
@@ -29,7 +29,7 @@ def database_seed(test_client):
             id=33333,
             title="Dataset Alpha",
             description="A test dataset",
-            publication_type=PublicationType.BOOK,
+            publication_type=PublicationType.CASUAL,
             tags="Fighting",
             dataset_doi="10.1234/alpha",
             authors=[author1],
@@ -39,7 +39,7 @@ def database_seed(test_client):
             id=33337,
             title="Dataset Beta",
             description="Another test dataset",
-            publication_type=PublicationType.JOURNAL_ARTICLE,
+            publication_type=PublicationType.CASUAL,
             tags="Fighting",
             dataset_doi="10.1234/beta",
             authors=[author2],
@@ -51,7 +51,7 @@ def database_seed(test_client):
             poke_filename="pokefile.poke",
             title="Test FM",
             description="A test FM",
-            publication_type=PublicationType.JOURNAL_ARTICLE,
+            publication_type=PublicationType.CASUAL,
             tags="Competitive",
             authors=[author1],
         )
@@ -61,7 +61,7 @@ def database_seed(test_client):
             poke_filename="pokefile2.poke",
             title="Test FM 2",
             description="Another test FM",
-            publication_type=PublicationType.BOOK,
+            publication_type=PublicationType.CASUAL,
             tags="Randomlocke",
             authors=[author2],
         )
@@ -72,9 +72,9 @@ def database_seed(test_client):
         dataset2 = DataSet(id=33340, ds_meta_data_id=33337, user_id=user.id)
         db.session.add(dataset2)
         db.session.flush()
-        fm1 = FeatureModel(id=33335, fm_meta_data_id=33334, data_set_id=33336)
+        fm1 = PokeModel(id=33335, fm_meta_data_id=33334, data_set_id=33336)
         db.session.add(fm1)
-        fm2 = FeatureModel(id=33339, fm_meta_data_id=33338, data_set_id=33340)
+        fm2 = PokeModel(id=33339, fm_meta_data_id=33338, data_set_id=33340)
         db.session.add(fm2)
         db.session.flush()
 
@@ -148,19 +148,19 @@ def test_get_explore_page(test_client, database_seed):
             {
                 "query": "",
                 "sorting": "newest",
-                "publication_type": "book",
+                "publication_type": "casual",
                 "authors_filter": "any",
                 "tags_filter": "any",
             },
             200,
-            1,
-            "Dataset Alpha",  # Test 5: Filtrar por Publication Type 'book'
+            2,
+            None,  # Test 5: Filtrar por Publication Type 'casual'
         ),
         (
             {
                 "query": "",
                 "sorting": "newest",
-                "publication_type": "any",
+                "publication_type": "casual",
                 "authors_filter": "1",
                 "tags_filter": "Randomlocke",
             },

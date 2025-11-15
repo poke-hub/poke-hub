@@ -31,7 +31,7 @@ def publish_dataset(dataset_id):
         return redirect("/dataset/list")
 
     # Bloque IF 2
-    if not dataset.feature_models:
+    if not dataset.poke_models:
         flash("No se puede publicar un dataset sin modelos de características.", "warning")
         return redirect("/dataset/list")
 
@@ -42,7 +42,7 @@ def publish_dataset(dataset_id):
         dep_id = deposition_data["id"]
 
         # --- 2. Subir Ficheros ---
-        first_fm = dataset.feature_models[0]
+        first_fm = dataset.poke_models[0]
         service.upload_file(dataset, dep_id, first_fm, user=dataset.user)
 
         # --- 3. Publicar ---

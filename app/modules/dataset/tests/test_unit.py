@@ -4,7 +4,7 @@ import pytest
 
 from app.modules.dataset.models import Author, DataSet, DSMetaData
 from app.modules.dataset.services import DataSetService, SizeService
-from app.modules.featuremodel.models import FeatureModel, FMMetaData
+from app.modules.pokemodel.models import FMMetaData, PokeModel
 
 
 class DummyDS:
@@ -103,10 +103,10 @@ def test_ds_meta_data_get_all_tags():
 
     fm_meta_data = FMMetaData(tags="tag3,tag5")
     fm_meta_data2 = FMMetaData(tags="tag4")
-    fm1 = FeatureModel(fm_meta_data=fm_meta_data)
-    fm2 = FeatureModel(fm_meta_data=fm_meta_data2)
+    fm1 = PokeModel(fm_meta_data=fm_meta_data)
+    fm2 = PokeModel(fm_meta_data=fm_meta_data2)
     metadata_complex = DSMetaData(tags="tag1 , tag2")
-    DataSet(feature_models=[fm1, fm2], ds_meta_data=metadata_complex)
+    DataSet(poke_models=[fm1, fm2], ds_meta_data=metadata_complex)
     tags_complex = metadata_complex.get_all_tags()
     assert tags_complex == {
         "tag1",
@@ -135,10 +135,10 @@ def test_ds_meta_data_get_all_authors():
     author4 = Author(name="author4")
     fm_meta_data = FMMetaData(authors=[author1, author2])
     fm_meta_data2 = FMMetaData(authors=[author3])
-    fm1 = FeatureModel(fm_meta_data=fm_meta_data)
-    fm2 = FeatureModel(fm_meta_data=fm_meta_data2)
+    fm1 = PokeModel(fm_meta_data=fm_meta_data)
+    fm2 = PokeModel(fm_meta_data=fm_meta_data2)
     metadata_complex = DSMetaData(authors=[author1, author4])
-    DataSet(feature_models=[fm1, fm2], ds_meta_data=metadata_complex)
+    DataSet(poke_models=[fm1, fm2], ds_meta_data=metadata_complex)
     authors_complex = metadata_complex.get_all_authors()
     assert authors_complex == {
         author1,
@@ -157,8 +157,8 @@ def test_ds_meta_data_has_tag():
 
     metadata = DSMetaData(tags="tag1,tag3")
     fm_meta_data = FMMetaData(tags="tag2,tag3")
-    fm = FeatureModel(fm_meta_data=fm_meta_data)
-    DataSet(feature_models=[fm], ds_meta_data=metadata)
+    fm = PokeModel(fm_meta_data=fm_meta_data)
+    DataSet(poke_models=[fm], ds_meta_data=metadata)
 
     assert metadata.has_tag("tag1") is True, "The tag 'tag1' should be found."
     assert metadata.has_tag("tag2") is True, "The tag 'tag2' should be found."
@@ -173,8 +173,8 @@ def test_ds_meta_data_has_author():
     Author(id=4, name="author4")
     metadata = DSMetaData(authors=[author1, author3])
     fm_meta_data = FMMetaData(authors=[author2, author3])
-    fm = FeatureModel(fm_meta_data=fm_meta_data)
-    DataSet(feature_models=[fm], ds_meta_data=metadata)
+    fm = PokeModel(fm_meta_data=fm_meta_data)
+    DataSet(poke_models=[fm], ds_meta_data=metadata)
 
     assert metadata.has_author(1) is True, "The author 'author1' should be found."
     assert metadata.has_author(2) is True, "The author 'author2' should be found."
