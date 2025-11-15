@@ -293,5 +293,42 @@ def test_top3_list_structure(driver):
         pass
 
 
-# Call the test function (this should be removed in production - pytest discovers tests automatically)
-# test_upload_dataset()
+def test_increment_download_count(driver):
+    host = get_host_for_selenium_testing()
+
+    login_user(driver, host)
+
+    dataset_url = f"{host}/doi/10.1234/dataset4/"
+    driver.get(dataset_url)
+    wait_for_page_to_load(driver)
+
+    # Get initial download count from the badge
+    try:
+        # Find the "Downloads" label row and get the badge with the count
+        downloads_xpath = "//span[contains(text(), 'Downloads')]/ancestor::div[@class='row mb-2']"
+        downloads_row = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, downloads_xpath)))
+        download_badge = downloads_row.find_element(By.CSS_SELECTOR, "span.badge.bg-primary")
+        initial_count = int(download_badge.text)
+    except Exception:
+        initial_count = 0
+
+    # Click download button
+    download_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.LINK_TEXT, "Download all (494 bytes)"))
+    )
+    download_button.click()
+    wait_for_page_to_load(driver)
+    time.sleep(1)
+
+    # Refresh and get updated count
+    driver.refresh()
+    wait_for_page_to_load(driver)
+
+    # Get final download count
+    downloads_xpath = "//span[contains(text(), 'Downloads')]/ancestor::div[@class='row mb-2']"
+    downloads_row = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, downloads_xpath)))
+    download_badge = downloads_row.find_element(By.CSS_SELECTOR, "span.badge.bg-primary")
+    final_count = int(download_badge.text)
+    assert (
+        final_count == initial_count + 1
+    ), f"Download count should increment by 1. Initial: {initial_count}, Final: {final_count}"

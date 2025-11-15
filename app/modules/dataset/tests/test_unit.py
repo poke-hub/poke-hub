@@ -179,3 +179,18 @@ def test_ds_meta_data_has_author():
     assert metadata.has_author(1) is True, "The author 'author1' should be found."
     assert metadata.has_author(2) is True, "The author 'author2' should be found."
     assert metadata.has_author(4) is False, "The author 'author4' should not be found."
+
+
+def test_increment_download_count():
+    svc = DataSetService()
+    svc.repository = Mock()
+
+    mock_dataset = Mock()
+    mock_dataset.download_count = 5
+    svc.repository.get_or_404.return_value = mock_dataset
+
+    dataset_id = 42
+    svc.increment_download_count(dataset_id)
+
+    svc.repository.get_or_404.assert_called_once_with(dataset_id)
+    svc.repository.update.assert_called_once_with(dataset_id, download_count=6)
