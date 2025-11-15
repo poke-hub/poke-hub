@@ -1,0 +1,131 @@
+{
+  "next_id": 9,
+  "depositions": {
+    "1": {
+      "id": 1,
+      "metadata": {
+        "title": "Mi Publicaci\u00f3n de Prueba",
+        "upload_type": "publication",
+        "publication_type": "dataset",
+        "description": "Descripci\u00f3n de prueba",
+        "creators": [
+          {
+            "name": "Test Author",
+            "affiliation": "Test Affiliation",
+            "orcid": "0000-0000-0000-0001"
+          }
+        ],
+        "keywords": [
+          "test",
+          "fakenodo",
+          "uvlhub"
+        ],
+        "access_right": "open",
+        "license": "CC-BY-4.0"
+      },
+      "files": [
+        {
+          "name": "test_file.txt",
+          "size": 33,
+          "uploaded_at": 1762603597.2912445
+        }
+      ],
+      "created": 1762603597.2845933,
+      "published": true,
+      "version": 1,
+      "doi": "10.9999/fakenodo.1.v1",
+      "last_published_files_checksum": "8a10726a2b4ed6c8358948653d5a96e59cb6b415b516d33139eff59534872dfa"
+    },
+    "2": {
+      "id": 2,
+      "metadata": {
+        "title": "Test Deposition",
+        "upload_type": "dataset",
+        "description": "This is a test deposition created via Zenodo API",
+        "creators": [
+          {
+            "name": "John Doe"
+          }
+        ]
+      },
+      "files": [
+        {
+          "name": "test_file.txt",
+          "size": 38,
+          "uploaded_at": 1762603613.740318
+        }
+      ],
+      "created": 1762603613.7350767,
+      "published": false,
+      "version": 1,
+      "doi": null,
+      "last_published_files_checksum": null
+    },
+    "3": {
+      "id": 3,
+      "metadata": {
+        "title": "Test"
+      },
+      "files": [],
+      "created": 1762603654.5137312,
+      "published": false,
+      "version": 1,
+      "doi": null,
+      "last_published_files_checksum": null
+    },
+    "4": {
+      "id": 4,
+      "metadata": {},
+      "files": [],
+      "created": 1762603654.5534785,
+      "published": true,
+      "version": 1,
+      "doi": "10.9999/fakenodo.4.v1",
+      "last_published_files_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "5": {
+      "id": 5,
+      "metadata": {
+        "title": "Test"
+      },
+      "files": [],
+      "created": 1762603848.2988176,
+      "published": false,
+      "version": 1,
+      "doi": null,
+      "last_published_files_checksum": null
+    },
+    "6": {
+      "id": 6,
+      "metadata": {},
+      "files": [],
+      "created": 1762603848.3369355,
+      "published": true,
+      "version": 1,
+      "doi": "10.9999/fakenodo.6.v1",
+      "last_published_files_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "7": {
+      "id": 7,
+      "metadata": {
+        "title": "Test"
+      },
+      "files": [],
+      "created": 1762603860.8364043,
+      "published": false,
+      "version": 1,
+      "doi": null,
+      "last_published_files_checksum": null
+    },
+    "8": {
+      "id": 8,
+      "metadata": {},
+      "files": [],
+      "created": 1762603860.8412688,
+      "published": true,
+      "version": 1,
+      "doi": "10.9999/fakenodo.8.v1",
+      "last_published_files_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

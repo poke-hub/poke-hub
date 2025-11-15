@@ -21,17 +21,17 @@ class ZenodoService(BaseService):
 
     def get_zenodo_url(self):
 
+        fake = os.getenv("FAKENODO_URL")
+        if fake:
+            return fake.rstrip("/")  # e.g. http://localhost:8000/api/deposit/depositions
+
         FLASK_ENV = os.getenv("FLASK_ENV", "development")
-        ZENODO_API_URL = ""
-
         if FLASK_ENV == "development":
-            ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
+            return os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
         elif FLASK_ENV == "production":
-            ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://zenodo.org/api/deposit/depositions")
+            return os.getenv("ZENODO_API_URL", "https://zenodo.org/api/deposit/depositions")
         else:
-            ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
-
-        return ZENODO_API_URL
+            return os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
 
     def get_zenodo_access_token(self):
         return os.getenv("ZENODO_ACCESS_TOKEN")
@@ -215,7 +215,7 @@ class ZenodoService(BaseService):
         """
         publish_url = f"{self.ZENODO_API_URL}/{deposition_id}/actions/publish"
         response = requests.post(publish_url, params=self.params, headers=self.headers)
-        if response.status_code != 202:
+        if response.status_code not in [202, 200]:
             raise Exception("Failed to publish deposition")
         return response.json()
 

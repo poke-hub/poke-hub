@@ -42,6 +42,8 @@ jobs:
           MARIADB_TEST_DATABASE: pokehubdb_test
           MARIADB_USER: pokehub_user
           MARIADB_PASSWORD: pokehub_password
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+
         run: |
           pytest app/modules/ --ignore-glob='*selenium*'
 
