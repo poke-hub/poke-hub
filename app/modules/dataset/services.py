@@ -1,10 +1,14 @@
 import hashlib
+import io
 import logging
 import os
 import shutil
 import uuid
-from typing import Optional
+from typing import List, Optional, Tuple
+from urllib.parse import urlparse
+from zipfile import BadZipFile, ZipFile
 
+import requests
 from flask import request
 
 from app.modules.auth.services import AuthenticationService
@@ -34,6 +38,23 @@ def calculate_checksum_and_size(file_path):
         content = file.read()
         hash_md5 = hashlib.md5(content).hexdigest()
         return hash_md5, file_size
+
+
+def _ensure_unique_filename(dest_dir: str, filename: str) -> str:
+    base, ext = os.path.splitext(filename)
+    candidate = filename
+    dest_path = os.path.join(dest_dir, candidate)
+    i = 1
+    while os.path.exists(dest_path):
+        candidate = f"{base} ({i}){ext}"
+        dest_path = os.path.join(dest_dir, candidate)
+        i += 1
+    return candidate
+
+
+def _safe_norm(path: str) -> str:
+    norm = os.path.normpath(path).replace("\\", "/")
+    return norm
 
 
 class DataSetService(BaseService):
@@ -159,6 +180,110 @@ class DataSetService(BaseService):
         """
         return self.repository.trending_by_downloads(limit=limit, days=days)
 
+    def extract_uvls_from_zip(self, file_stream, dest_dir: str) -> List[str]:
+        os.makedirs(dest_dir, exist_ok=True)
+        saved, _ignored = self._extract_uvls_from_zip(ZipFile(file_stream), dest_dir=dest_dir, subdir=None)
+        return saved
+
+    def fetch_repo_zip(self, repo_url: str, branch: str | None) -> bytes:
+        if not repo_url:
+            raise ValueError("repo_url is required")
+
+        parsed = urlparse(repo_url)
+        if "github.com" not in parsed.netloc.lower():
+            raise ValueError("Only GitHub URLs are supported")
+
+        parts = [p for p in parsed.path.split("/") if p]
+        if len(parts) < 2:
+            raise ValueError("Invalid GitHub repo URL")
+
+        owner, repo = parts[0], parts[1]
+        if repo.endswith(".git"):
+            repo = repo[:-4]
+
+        branch = branch or "main"
+        archive_url = f"https://codeload.github.com/{owner}/{repo}/zip/refs/heads/{branch}"
+
+        try:
+            resp = requests.get(archive_url, timeout=60)
+            if resp.status_code != 200:
+                raise RuntimeError(f"GitHub returned {resp.status_code}")
+            return resp.content
+        except Exception as e:
+            logger.exception("Error downloading GitHub archive")
+            raise e
+
+    def import_uvls_from_github(
+        self,
+        repo_url: str,
+        branch: str = "main",
+        subdir: str | None = None,
+        dest_dir: str = "",
+    ) -> List[str]:
+        if not dest_dir:
+            raise ValueError("dest_dir is required")
+
+        zip_bytes = self.fetch_repo_zip(repo_url=repo_url, branch=branch)
+        os.makedirs(dest_dir, exist_ok=True)
+
+        try:
+            with ZipFile(io.BytesIO(zip_bytes)) as zf:
+                saved, _ignored = self._extract_uvls_from_zip(zf, dest_dir=dest_dir, subdir=subdir)
+                return saved
+        except BadZipFile as e:
+            logger.exception("Invalid ZIP from GitHub")
+            raise e
+
+    def _extract_uvls_from_zip(self, zf: ZipFile, dest_dir: str, subdir: str | None) -> Tuple[List[str], List[str]]:
+        saved: List[str] = []
+        ignored: List[str] = []
+
+        possible_root = ""
+        try:
+            first = zf.namelist()[0]
+            if "/" in first:
+                possible_root = first.split("/")[0]  # 'repo-branch'
+        except Exception:
+            possible_root = ""
+
+        prefixes: List[str] = []
+        if subdir:
+            subdir = subdir.strip("/")
+
+            if possible_root:
+                prefixes.append(f"{possible_root}/{subdir}/")
+            prefixes.append(f"{subdir}/")
+
+        for member in zf.infolist():
+            name = member.filename
+
+            if member.is_dir():
+                continue
+
+            if prefixes:
+                if not any(name.startswith(p) for p in prefixes):
+                    continue
+
+            norm = _safe_norm(name)
+
+            if norm.startswith("../") or norm.startswith("/"):
+                ignored.append(name)
+                continue
+
+            if not norm.lower().endswith(".uvl"):
+                ignored.append(name)
+                continue
+
+            base_filename = os.path.basename(norm)
+            candidate = _ensure_unique_filename(dest_dir, base_filename)
+            dest_path = os.path.join(dest_dir, candidate)
+
+            with zf.open(member, "r") as src, open(dest_path, "wb") as dst:
+                shutil.copyfileobj(src, dst)
+
+            saved.append(candidate)
+
+        return saved, ignored
 
 class AuthorService(BaseService):
     def __init__(self):
