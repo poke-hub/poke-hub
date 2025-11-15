@@ -52,7 +52,7 @@ class DatasetBehavior(TaskSet):
 
     @task
     def download_dataset(self):
-        dataset_id = 8
+        dataset_id = 1
         self.client.get(f"/dataset/download/{dataset_id}")
 
 

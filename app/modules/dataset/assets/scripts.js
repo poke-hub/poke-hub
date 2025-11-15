@@ -338,7 +338,7 @@ var currentId = 0;
                     if (savedBox && (body.saved || []).length) savedBox.style.display = 'block';
                     if (ignoredBox && (body.ignored || []).length) ignoredBox.style.display = 'block';
 
-                    showToast('success', `ZIP procesado: ${(body.saved || []).length} archivos .uvl añadidos`);
+                    showToast('success', `ZIP procesado: ${(body.saved || []).length} archivos .poke añadidos`);
                 })
                 .catch(err => {
                     showToast('danger', err.message || 'Error procesando ZIP');
@@ -394,7 +394,7 @@ var currentId = 0;
                 if (savedBox && (body.saved || []).length) savedBox.style.display = 'block';
                 if (ignoredBox && (body.ignored || []).length) ignoredBox.style.display = 'block';
 
-                showToast('success', `GitHub import: ${(body.saved || []).length} archivos .uvl añadidos`);
+                showToast('success', `GitHub import: ${(body.saved || []).length} archivos .poke añadidos`);
             })
             .catch(err => {
                 showToast('danger', err.message || 'Error importando desde GitHub');

@@ -1,87 +1,62 @@
-2025-11-11 10:07:50,259 - app - ERROR - Internal Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
-2025-11-11 10:42:14,770 - app - ERROR - Exception on /zenodo/test [GET]
+2025-11-08 17:08:05,885 - app.modules.dataset.routes - ERROR - Exception while create dataset data in local [Errno 2] No such file or directory: 'uploads/temp/12/sandwich.uvl'
 Traceback (most recent call last):
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/urllib3/connection.py", line 198, in _new_conn
-    sock = connection.create_connection(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/urllib3/util/connection.py", line 60, in create_connection
-    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/socket.py", line 963, in getaddrinfo
-    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-socket.gaierror: [Errno -3] Temporary failure in name resolution
-
-The above exception was the direct cause of the following exception:
-
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/dataset/routes.py", line 62, in create_dataset
+    dataset = dataset_service.create_from_form(form=form, current_user=current_user)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/dataset/services.py", line 151, in create_from_form
+    raise exc
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/dataset/services.py", line 141, in create_from_form
+    checksum, size = calculate_checksum_and_size(file_path)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/dataset/services.py", line 35, in calculate_checksum_and_size
+    file_size = os.path.getsize(file_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen genericpath>", line 62, in getsize
+FileNotFoundError: [Errno 2] No such file or directory: 'uploads/temp/12/sandwich.uvl'
+2025-11-08 17:08:07,699 - app.modules.dataset.routes - ERROR - Exception while create dataset data in local [Errno 2] No such file or directory: 'uploads/temp/12/sandwich.uvl'
 Traceback (most recent call last):
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 787, in urlopen
-    response = self._make_request(
-               ^^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 488, in _make_request
-    raise new_e
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 464, in _make_request
-    self._validate_conn(conn)
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 1093, in _validate_conn
-    conn.connect()
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/urllib3/connection.py", line 753, in connect
-    self.sock = sock = self._new_conn()
-                       ^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/urllib3/connection.py", line 205, in _new_conn
-    raise NameResolutionError(self.host, self, e) from e
-urllib3.exceptions.NameResolutionError: <urllib3.connection.HTTPSConnection object at 0x7df89592f170>: Failed to resolve 'sandbox.zenodo.org' ([Errno -3] Temporary failure in name resolution)
-
-The above exception was the direct cause of the following exception:
-
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/dataset/routes.py", line 62, in create_dataset
+    dataset = dataset_service.create_from_form(form=form, current_user=current_user)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/dataset/services.py", line 151, in create_from_form
+    raise exc
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/dataset/services.py", line 141, in create_from_form
+    checksum, size = calculate_checksum_and_size(file_path)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/dataset/services.py", line 35, in calculate_checksum_and_size
+    file_size = os.path.getsize(file_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen genericpath>", line 62, in getsize
+FileNotFoundError: [Errno 2] No such file or directory: 'uploads/temp/12/sandwich.uvl'
+2025-11-08 17:08:16,455 - app.modules.dataset.routes - ERROR - Exception while create dataset data in Zenodo Failed to create deposition. Error details: {'status': 403, 'message': 'Permission denied.'}
 Traceback (most recent call last):
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/requests/adapters.py", line 667, in send
-    resp = conn.urlopen(
-           ^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 841, in urlopen
-    retries = retries.increment(
-              ^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/urllib3/util/retry.py", line 519, in increment
-    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='sandbox.zenodo.org', port=443): Max retries exceeded with url: /api/deposit/depositions (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7df89592f170>: Failed to resolve 'sandbox.zenodo.org' ([Errno -3] Temporary failure in name resolution)"))
-
-During handling of the above exception, another exception occurred:
-
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/dataset/routes.py", line 72, in create_dataset
+    zenodo_response_json = zenodo_service.create_new_deposition(dataset)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/zenodo/services.py", line 178, in create_new_deposition
+    raise Exception(error_message)
+Exception: Failed to create deposition. Error details: {'status': 403, 'message': 'Permission denied.'}
+2025-11-08 17:40:16,166 - app.modules.dataset.routes - ERROR - Exception while create dataset data in Zenodo Failed to create deposition. Error details: {'status': 403, 'message': 'Permission denied.'}
 Traceback (most recent call last):
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 1511, in wsgi_app
-    response = self.full_dispatch_request()
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 919, in full_dispatch_request
-    rv = self.handle_user_exception(e)
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/flask_restful/__init__.py", line 298, in error_router
-    return original_handler(e)
-           ^^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 917, in full_dispatch_request
-    rv = self.dispatch_request()
-         ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/flask/app.py", line 902, in dispatch_request
-    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/app/modules/zenodo/routes.py", line 15, in zenodo_test
-    return service.test_full_connection()
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/app/modules/zenodo/services.py", line 85, in test_full_connection
-    response = requests.post(self.ZENODO_API_URL, json=data, params=self.params, headers=self.headers)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/requests/api.py", line 115, in post
-    return request("post", url, data=data, json=json, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/requests/api.py", line 59, in request
-    return session.request(method=method, url=url, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/requests/sessions.py", line 589, in request
-    resp = self.send(prep, **send_kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/requests/sessions.py", line 703, in send
-    r = adapter.send(request, **kwargs)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/carlosjavier/Escritorio/poke-hub/venv/lib/python3.12/site-packages/requests/adapters.py", line 700, in send
-    raise ConnectionError(e, request=request)
-requests.exceptions.ConnectionError: HTTPSConnectionPool(host='sandbox.zenodo.org', port=443): Max retries exceeded with url: /api/deposit/depositions (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7df89592f170>: Failed to resolve 'sandbox.zenodo.org' ([Errno -3] Temporary failure in name resolution)"))
-2025-11-11 10:42:14,777 - app - ERROR - Internal Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/dataset/routes.py", line 72, in create_dataset
+    zenodo_response_json = zenodo_service.create_new_deposition(dataset)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/zenodo/services.py", line 178, in create_new_deposition
+    raise Exception(error_message)
+Exception: Failed to create deposition. Error details: {'status': 403, 'message': 'Permission denied.'}
+2025-11-08 17:49:36,512 - app.modules.dataset.routes - ERROR - Exception while create dataset data in Zenodo Failed to create deposition. Error details: {'status': 403, 'message': 'Permission denied.'}
+Traceback (most recent call last):
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/dataset/routes.py", line 72, in create_dataset
+    zenodo_response_json = zenodo_service.create_new_deposition(dataset)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/zenodo/services.py", line 178, in create_new_deposition
+    raise Exception(error_message)
+Exception: Failed to create deposition. Error details: {'status': 403, 'message': 'Permission denied.'}
+2025-11-08 18:01:17,967 - app.modules.dataset.routes - ERROR - Exception while create dataset data in Zenodo Failed to create deposition. Error details: {'status': 403, 'message': 'Permission denied.'}
+Traceback (most recent call last):
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/dataset/routes.py", line 72, in create_dataset
+    zenodo_response_json = zenodo_service.create_new_deposition(dataset)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/Documentos/EGC/poke-hub/app/modules/zenodo/services.py", line 178, in create_new_deposition
+    raise Exception(error_message)
+Exception: Failed to create deposition. Error details: {'status': 403, 'message': 'Permission denied.'}

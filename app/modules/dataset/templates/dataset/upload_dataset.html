@@ -10,7 +10,6 @@
         <div class="col-12 mb-3">
             <div class="alert alert-warning" role="alert" id="test_zenodo_connection_error" style="display: none">
                 <div class="alert-message">
-
                     <h4 class="alert-heading"><i class="align-middle" data-feather="alert-triangle"></i> Limited
                         connection to the Zenodo API</h4>
                     <p class="p-0 m-0">
@@ -22,7 +21,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     {% if messages %}
@@ -34,20 +32,15 @@
     {% endif %}
 
     <div class="row">
-
         <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
             <div id="basic_info_form">
-
                 {{ form.hidden_tag() }}
 
                 <div class="row">
-
                     <div class="col-12">
-
                         <h1 class="h3 mb-3">Basic info</h1>
 
                         <div class="row" style="padding-left: 2rem">
-
                             <div class="col-lg-6 col-xs-12 col-md-12">
                                 <div class="mb-3">
                                     {{ form.title.label(class="form-label") }} *
@@ -73,7 +66,6 @@
                                     {{ form.publication_type.label(class="form-label") }}
                                     {{ form.publication_type(class="form-control") }}
                                 </div>
-
                             </div>
 
                             <div class="col-lg-6 col-6">
@@ -95,17 +87,16 @@
                                     {% endfor %}
                                 </div>
                             </div>
-
                         </div>
 
                         <h1 class="h3 mb-3 mt-4">
                           Authors
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#infoModal">
-                            <i data-feather="info"></i>
+                          <a href="#" data-bs-toggle="modal" data-bs-target="#infoModal">
+                              <i data-feather="info"></i>
                           </a>
                         </h1>
 
-                        <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true" style="display: none">
+                        <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
                           <div class="modal-dialog" role="document">
                             <div class="modal-content">
                               <div class="modal-header">
@@ -125,7 +116,6 @@
                         </div>
 
                         <div class="row" style="padding-left: 2rem">
-
                             <div class="col-lg-6 col-12 mb-3">
                                 <label class="form-label">Author name</label>
                                 <input class="form-control"
@@ -146,9 +136,7 @@
                             </div>
 
                             <div class="col-12">
-
                                 <div class="mb-3">
-
                                     <div id="authors">
                                         {% for subform in form.authors %}
                                         <div class="row author" {% if not loop.first %}
@@ -181,42 +169,27 @@
                                         </div>
                                         {% endfor %}
                                     </div>
-                                    <button type="button" class="btn btn-secondary" id="add_author">Add author
-                                    </button>
-
+                                    <button type="button" class="btn btn-secondary" id="add_author">Add author</button>
                                 </div>
-
                             </div>
-
-
                         </div>
-
                     </div>
-
                 </div>
 
                 <div class="row">
-
                     {% if error %}
-
                         <div class="mt-3 col-lg-6 col-12">
                             <span style="color: red;">{{ error }}</span>
                         </div>
-
                     {% endif %}
-
                 </div>
-
-
             </div>
         </div>
 
         <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
-
             <h1 class="h3 mb-3 mt-2">Poke models</h1>
 
             <div id="uploaded_models_form" style="padding-left: 2rem">
-
                 <ul class="nav nav-tabs" id="sourceTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <a class="nav-link active" id="tab-file" data-bs-toggle="tab" href="#pane-file" role="tab" aria-controls="pane-file" aria-selected="true">Single .poke</a>
@@ -230,7 +203,6 @@
                 </ul>
 
                 <div class="tab-content pt-3" id="sourceTabsContent">
-
                     <div class="tab-pane fade show active" id="pane-file" role="tabpanel" aria-labelledby="tab-file">
                         <form action="{{ url_for('dataset.upload') }}" class="dropzone" id="myDropzone">
                             <div id="dropzone-text"></div>
@@ -286,164 +258,25 @@
                 </div>
 
                 <span class="text-danger" id="alerts" style="display: none"></span>
-
                 <ul class="mt-2" id="file-list"></ul>
 
                 <script>
-                    // Función reutilizable para añadir un modelo a la lista
-                    function appendUploadedModel(filename) {
-                        const fileList = document.getElementById('file-list');
-
-                        const listItem = document.createElement('li');
-                        const h4Element = document.createElement('h4');
-                        h4Element.textContent = filename;
-                        listItem.appendChild(h4Element);
-
-                        const formUniqueId = generateIncrementalId();
-
-                        const formButton = document.createElement('button');
-                        formButton.innerHTML = 'Show info';
-                        formButton.classList.add('info-button', 'btn', 'btn-outline-secondary', 'btn-sm');
-                        formButton.style.borderRadius = '5px';
-                        formButton.id = formUniqueId + "_button";
-
-                        let space = document.createTextNode(" ");
-                        listItem.appendChild(space);
-
-                        const removeButton = document.createElement('button');
-                        removeButton.innerHTML = 'Delete model';
-                        removeButton.classList.add('remove-button', 'btn', 'btn-outline-danger', 'btn-sm', 'remove-button');
-                        removeButton.style.borderRadius = '5px';
-
-                        removeButton.addEventListener('click', function () {
-                            const xhr = new XMLHttpRequest();
-                            xhr.open('POST', '/dataset/file/delete', true);
-                            xhr.setRequestHeader('Content-Type', 'application/json');
-                            xhr.onload = function () {
-                                if (xhr.status === 200) {
-                                    fileList.removeChild(listItem);
-                                    if (!fileList.children.length) {
-                                        document.getElementById("upload_dataset").style.display = "none";
-                                        clean_upload_errors();
-                                    }
-                                }
-                            };
-                            xhr.send(JSON.stringify({file: filename}));
-                        });
-
-                        listItem.appendChild(formButton);
-                        listItem.appendChild(removeButton);
-
-                        // Poke form
-                        const formContainer = document.createElement('div');
-                        formContainer.id = formUniqueId + "_form";
-                        formContainer.classList.add('poke_form', "mt-3");
-                        formContainer.style.display = "none";
-
-                        formContainer.innerHTML = `
-                            <div class="row">
-                                <input type="hidden" value="${filename}" name="feature_models-${formUniqueId}-poke_filename">
-                                <div class="col-12">
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <div class="mb-3">
-                                                <label class="form-label">Title</label>
-                                                <input type="text" class="form-control" name="feature_models-${formUniqueId}-title">
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="mb-3">
-                                                <label class="form-label">Description</label>
-                                                <textarea rows="4" class="form-control" name="feature_models-${formUniqueId}-desc"></textarea>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6 col-12">
-                                            <div class="mb-3">
-                                                <label class="form-label" for="publication_type">Publication type</label>
-                                                <select class="form-control" name="feature_models-${formUniqueId}-publication_type">
-                                                    <option value="none">None</option>
-                                                    <option value="annotationcollection">Annotation Collection</option>
-                                                    <option value="book">Book</option>
-                                                    <option value="section">Book Section</option>
-                                                    <option value="conferencepaper">Conference Paper</option>
-                                                    <option value="datamanagementplan">Data Management Plan</option>
-                                                    <option value="article">Journal Article</option>
-                                                    <option value="patent">Patent</option>
-                                                    <option value="preprint">Preprint</option>
-                                                    <option value="deliverable">Project Deliverable</option>
-                                                    <option value="milestone">Project Milestone</option>
-                                                    <option value="proposal">Proposal</option>
-                                                    <option value="report">Report</option>
-                                                    <option value="softwaredocumentation">Software Documentation</option>
-                                                    <option value="taxonomictreatment">Taxonomic Treatment</option>
-                                                    <option value="technicalnote">Technical Note</option>
-                                                    <option value="thesis">Thesis</option>
-                                                    <option value="workingpaper">Working Paper</option>
-                                                    <option value="other">Other</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6 col-6">
-                                            <div class="mb-3">
-                                                <label class="form-label" for="publication_doi">Publication DOI</label>
-                                                <input class="form-control" name="feature_models-${formUniqueId}-publication_doi" type="text" value="">
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">Tags (separated by commas)</label>
-                                                <input type="text" class="form-control" name="feature_models-${formUniqueId}-tags">
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">Poke version</label>
-                                                <input type="text" class="form-control" name="feature_models-${formUniqueId}-poke_version">
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="mb-3">
-                                                <label class="form-label">Authors</label>
-                                                <div id="${formContainer.id}_authors"></div>
-                                                <button type="button" class="add_author_to_poke btn btn-secondary" id="${formContainer.id}_authors_button">Add author</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>`;
-
-                        formButton.addEventListener('click', function () {
-                            if (formContainer.style.display === "none") {
-                                formContainer.style.display = "block";
-                                formButton.innerHTML = 'Hide info';
-                            } else {
-                                formContainer.style.display = "none";
-                                formButton.innerHTML = 'Show info';
-                            }
-                        });
-
-                        listItem.appendChild(formContainer);
-                        fileList.appendChild(listItem);
-
-                        show_upload_dataset();
-                    }
-
-                    // Dropzone (individual .poke) -> /dataset/file/upload
+                    // Dropzone configuration
                     Dropzone.options.myDropzone = {
                         url: "/dataset/file/upload",
                         paramName: 'file',
                         maxFilesize: 10,
                         acceptedFiles: '.poke',
                         init: function () {
-                            const alerts = document.getElementById('alerts');
+                            let alerts = document.getElementById('alerts');
 
                             this.on('addedfile', function (file) {
                                 let ext = file.name.split('.').pop();
                                 if (ext !== 'poke') {
                                     this.removeFile(file);
-                                    const p = document.createElement('p');
-                                    p.textContent = 'Invalid file extension: ' + file.name;
-                                    alerts.appendChild(p);
+                                    let alert = document.createElement('p');
+                                    alert.textContent = 'Invalid file extension: ' + file.name;
+                                    alerts.appendChild(alert);
                                     alerts.style.display = 'block';
                                 }
                             });
@@ -451,145 +284,42 @@
                             this.on('success', function (file, response) {
                                 console.log("File uploaded: ", response);
                                 appendUploadedModel(response.filename);
+                                appendUploadedModel(response.filename);
                             });
 
                             this.on('error', function (file, response) {
-                                console.error("Error uploading file: ", response);
-                                const p = document.createElement('p');
-                                p.textContent = 'Poke not valid: ' + file.name;
-                                alerts.appendChild(p);
-                                alerts.style.display = 'block';
+                                console.error("Error uploading file:", response);
+                                const alert = document.createElement("p");
+                                alert.textContent = "Poke not valid: " + file.name;
+                                alerts.appendChild(alert);
+                                alerts.style.display = "block";
                             });
                         }
                     };
 
-                    // ZIP -> /dataset/zip/upload
-                    document.getElementById('processZipBtn').addEventListener('click', function (e) {
-                        e.preventDefault();
-
-                        const zipInput = document.getElementById('zipFile');
-                        const savedBox = document.getElementById('zipSavedBox');
-                        const ignoredBox = document.getElementById('zipIgnoredBox');
-                        const savedList = document.getElementById('zipSavedList');
-                        const ignoredList = document.getElementById('zipIgnoredList');
-                        const errorBox = document.getElementById('zipErrorBox');
-
-                        savedBox.style.display = 'none';
-                        ignoredBox.style.display = 'none';
-                        errorBox.style.display = 'none';
-                        savedList.innerHTML = '';
-                        ignoredList.innerHTML = '';
-
-                        if (!zipInput.files.length) {
-                            errorBox.textContent = 'Selecciona un archivo ZIP.';
-                            errorBox.style.display = 'block';
-                            return;
-                        }
-
-                        const fd = new FormData();
-                        fd.append('file', zipInput.files[0]);
-
-                        fetch('/dataset/zip/upload', { method: 'POST', body: fd })
-                            .then(r => r.json().then(j => ({ ok: r.ok, status: r.status, body: j })))
-                            .then(({ ok, status, body }) => {
-                                if (!ok) throw new Error(body.message || ('ZIP error (' + status + ')'));
-
-                                (body.saved || []).forEach(fn => {
-                                    const li = document.createElement('li'); li.textContent = fn; savedList.appendChild(li);
-                                    appendUploadedModel(fn);
-                                });
-                                (body.ignored || []).forEach(fn => {
-                                    const li = document.createElement('li'); li.textContent = fn; ignoredList.appendChild(li);
-                                });
-
-                                if ((body.saved || []).length) savedBox.style.display = 'block';
-                                if ((body.ignored || []).length) ignoredBox.style.display = 'block';
-                            })
-                            .catch(err => {
-                                errorBox.textContent = err.message;
-                                errorBox.style.display = 'block';
-                            });
-                    });
-
-                    // GitHub -> /dataset/github/import
-                    document.getElementById('importGithubBtn').addEventListener('click', function (e) {
-                        e.preventDefault();
-
-                        const url = (document.getElementById('ghUrl').value || '').trim();
-                        const branch = (document.getElementById('ghBranch').value || '').trim();
-                        const subdir = (document.getElementById('ghSubdir').value || '').trim();
-
-                        const savedBox = document.getElementById('ghSavedBox');
-                        const ignoredBox = document.getElementById('ghIgnoredBox');
-                        const savedList = document.getElementById('ghSavedList');
-                        const ignoredList = document.getElementById('ghIgnoredList');
-                        const errorBox = document.getElementById('ghErrorBox');
-
-                        savedBox.style.display = 'none';
-                        ignoredBox.style.display = 'none';
-                        errorBox.style.display = 'none';
-                        savedList.innerHTML = '';
-                        ignoredList.innerHTML = '';
-
-                        if (!url) {
-                            errorBox.textContent = 'Introduce una URL de GitHub válida.';
-                            errorBox.style.display = 'block';
-                            return;
-                        }
-
-                        fetch('/dataset/github/import', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ repo_url: url, branch: branch || 'main', subdir: subdir || null })
-                        })
-                        .then(r => r.json().then(j => ({ ok: r.ok, status: r.status, body: j })))
-                        .then(({ ok, status, body }) => {
-                            if (!ok) throw new Error(body.message || ('GitHub import error (' + status + ')'));
-
-                            (body.saved || []).forEach(fn => {
-                                const li = document.createElement('li'); li.textContent = fn; savedList.appendChild(li);
-                                appendUploadedModel(fn);
-                            });
-                            (body.ignored || []).forEach(fn => {
-                                const li = document.createElement('li'); li.textContent = fn; ignoredList.appendChild(li);
-                            });
-
-                            if ((body.saved || []).length) savedBox.style.display = 'block';
-                            if ((body.ignored || []).length) ignoredBox.style.display = 'block';
-                        })
-                        .catch(err => {
-                            errorBox.textContent = err.message;
-                            errorBox.style.display = 'block';
-                        });
-                    });
                 </script>
-
             </div>
-        </div> 
-        
-    </div> 
+        </div>
+    </div>
 
     <div class="row" id="upload_dataset" style="display: none">
-
         <div class="col-12">
-
             <hr>
-
             <h1 class="h3 mb-3 mt-2">Upload dataset</h1>
 
             <div style="padding-left: 2rem">
-
                 <label class="form-check">
                     <input id="agreeCheckbox" class="form-check-input" type="checkbox" value="">
                     <span class="form-check-label" style="font-size: 15px">
-                                I agree to have my feature models automatically uploaded to Zenodo and made available to the public according to the <a
+                        I agree to have my feature models automatically uploaded to Zenodo and made available to the public according to the <a
                             href="https://en.wikipedia.org/wiki/Open_science" target="_blank">Open Science</a> manifesto
-                            </span>
+                    </span>
                 </label>
 
                 <button id="upload_button" class="btn btn-primary mt-2" disabled>
                     <i data-feather="upload" class="center-button-icon"></i>
-                    Upload dataset</button>
+                    Upload dataset
+                </button>
 
                 <div id="loading" style="display: none">
                     <img width="40px" src="{{ url_for("static", filename="gifs/loading.svg") }}"/>
@@ -597,32 +327,19 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-12 mb-3">
-
-                    </div>
+                    <div class="col-12 mb-3"></div>
                 </div>
 
-                <div class="alert alert-error" role="alert" id="upload_error"
-                     style="display: none">
+                <div class="alert alert-error" role="alert" id="upload_error_box" style="display: none">
                     <div class="alert-message">
-
-                        <h4 class="alert-heading"><i class="align-middle" data-feather="alert-triangle"></i> Limited
-                            connection to the Zenodo API</h4>
+                        <h4 class="alert-heading"><i class="align-middle" data-feather="alert-triangle"></i> Upload Error</h4>
                         <p class="p-0 m-0">
-                            There seems to be some kind of problem with the Zenodo API and synchronization of your
-                            dataset
-                            files may not be possible. We will save your files locally to eventually synchronize
-                            them with
-                            Zenodo. Sorry for the inconvenience, Zenodo is an external service and we can't do
-                            anything about it.
+                            There was an error uploading your dataset. Please check and try again.
                         </p>
                     </div>
                 </div>
 
-
-                <span class="text-danger mt-2" id="upload_error" style="display: none">
-
-                    </span>
+                <span class="text-danger mt-2" id="upload_error_text" style="display: none"></span>
 
                 <script>
                     const checkbox = document.getElementById('agreeCheckbox');
@@ -632,13 +349,9 @@
                         upload_button.disabled = !checkbox.checked;
                     });
                 </script>
-
             </div>
-
         </div>
-
     </div>
-
 
 {% endblock %}
 

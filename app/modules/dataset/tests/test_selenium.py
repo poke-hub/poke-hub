@@ -29,9 +29,13 @@ def count_datasets(driver, host):
     driver.get(f"{host}/dataset/list")
     wait_for_page_to_load(driver)
 
+
     try:
         amount_datasets = len(driver.find_elements(By.XPATH, "//table//tbody//tr"))
+        amount_datasets = len(driver.find_elements(By.XPATH, "//table//tbody//tr"))
     except Exception:
+        amount_datasets = 0
+    return amount_datasets
         amount_datasets = 0
     return amount_datasets
 
@@ -54,8 +58,12 @@ def login_user(driver, host, email="user1@example.com", password="1234"):
 def test_upload_dataset():
     driver = initialize_driver()
 
+
     try:
         host = get_host_for_selenium_testing()
+
+        # Open the login page
+        driver.get(f"{host}/login")
 
         # Open the login page
         driver.get(f"{host}/login")
@@ -71,7 +79,23 @@ def test_upload_dataset():
         # Send the form
         password_field.send_keys(Keys.RETURN)
         time.sleep(4)
+
+        # Find the username and password field and enter the values
+        email_field = driver.find_element(By.NAME, "email")
+        password_field = driver.find_element(By.NAME, "password")
+
+        email_field.send_keys("user1@example.com")
+        password_field.send_keys("1234")
+
+        # Send the form
+        password_field.send_keys(Keys.RETURN)
+        time.sleep(4)
         wait_for_page_to_load(driver)
+
+        # Count initial datasets
+        initial_datasets = count_datasets(driver, host)
+
+        # Open the upload dataset
 
         # Count initial datasets
         initial_datasets = count_datasets(driver, host)
@@ -152,6 +176,8 @@ def test_upload_dataset():
         print("Test passed!")
 
     finally:
+
+        # Close the browser
 
         # Close the browser
         close_driver(driver)

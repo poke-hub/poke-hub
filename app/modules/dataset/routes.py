@@ -10,7 +10,16 @@ from urllib.parse import urlparse
 from zipfile import ZipFile
 
 import requests
-from flask import abort, jsonify, make_response, redirect, render_template, request, send_from_directory, url_for
+from flask import (
+    abort,
+    jsonify,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
+)
 from flask_login import current_user, login_required
 
 from app.modules.dataset import dataset_bp
@@ -196,7 +205,7 @@ def upload_zip():
                     ignored.append(name)
                     continue
 
-                if not norm.lower().endswith(".uvl"):
+                if not norm.lower().endswith(".poke"):
                     ignored.append(name)
                     continue
 
@@ -294,7 +303,7 @@ def import_from_github():
                     ignored.append(name)
                     continue
 
-                if not norm.lower().endswith(".uvl"):
+                if not norm.lower().endswith(".poke"):
                     ignored.append(name)
                     continue
 
