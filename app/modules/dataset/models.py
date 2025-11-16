@@ -158,6 +158,20 @@ class DataSet(db.Model):
             "total_size_in_human_format": self.get_file_total_size_for_human(),
         }
 
+    def to_indexed(self):
+        return{
+            "title": self.ds_meta_data.title,
+            "description": self.ds_meta_data.description,
+            "tags": list(self.ds_meta_data.get_all_tags()),
+            "authors": [author.name for author in self.ds_meta_data.get_all_authors()],
+            "created_at": self.created_at.isoformat(),
+            "pokemons": [], # TODO agregar pokémones cuando suban el modelo
+            "abilities": [], # TODO agregar habilidades cuando suban el modelo
+            "moves": [], # TODO agregar movimientos cuando suban el modelo
+            "max_ev_count": 0, # TODO agregar función para calcular esto cuando suban el modelo
+            "max_iv_count": 0, # TODO agregar función para calcular esto cuando suban el modelo
+        }
+
     def __repr__(self):
         return f"DataSet<{self.id}>"
 
