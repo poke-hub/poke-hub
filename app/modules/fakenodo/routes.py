@@ -36,12 +36,12 @@ def upload_file(dep_id):
     No guarda el archivo, solo comprueba que venga uno y devuelve éxito.
     """
     if "file" not in request.files:
-        logger.error(f"[FAKENODO] Intento de subida a {dep_id} sin archivo.")
+        logger.warning(f"[FAKENODO] Intento de subida a {dep_id} sin archivo.")
         return jsonify({"error": "No se encontró ningún archivo"}), 400
 
     # Obtenemos el nombre del archivo solo para el log
     filename = request.files["file"].filename
-    logger.info(f"[FAKENODO] Recibido (e ignorado) archivo '{filename}' para deposición {dep_id}")
+    logger.warning(f"[FAKENODO] Recibido (e ignorado) archivo '{filename}' para deposición {dep_id}")
 
     # Devolvemos una respuesta de éxito genérica
     response_data = {
@@ -60,7 +60,7 @@ def publish_deposition(dep_id):
     # Inventamos un DOI que se vea realista
     fake_doi = f"10.9999/fakenodo.{dep_id}.v1"
 
-    logger.info(f"[FAKENODO] Publicando deposición {dep_id}. Asignando DOI: {fake_doi}")
+    logger.warning(f"[FAKENODO] Publicando deposición {dep_id}. Asignando DOI: {fake_doi}")
 
     # Devolvemos la estructura que ZenodoService espera
     response_data = {"id": dep_id, "doi": fake_doi, "state": "done", "submitted": True}
