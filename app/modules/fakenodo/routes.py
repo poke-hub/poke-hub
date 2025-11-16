@@ -17,20 +17,12 @@ def create_deposition():
     fake_id = int(time.time())
 
     # Obtenemos los metadatos solo para simular que los usamos
-    data = request.get_json() or {}
-    metadata = data.get("metadata", {})
 
-    logger.info(f"[FAKENODO] Creando deposición falsa. Título: '{metadata.get('title')}' -> ID: {fake_id}")
+    logger.info(f"[FAKENODO] Creando deposición falsa. Título: -> ID: {fake_id}")
 
-    # Devolvemos la estructura que ZenodoService espera
+    # Devolvemos la estructura que ZenodoService espera pero pq
     response_data = {
-        "id": fake_id,
-        "metadata": metadata,
-        "links": {
-            "publish": f"/api/deposit/depositions/{fake_id}/actions/publish",
-            "files": f"/api/deposit/depositions/{fake_id}/files",
-        },
-        "published": False,
+        "id": fake_id
     }
 
     return jsonify(response_data), 201  # 201 = Created
@@ -52,10 +44,7 @@ def upload_file(dep_id):
 
     # Devolvemos una respuesta de éxito genérica
     response_data = {
-        "key": filename,
-        "mimetype": "application/octet-stream",
-        "size": 0,  # No nos importa el tamaño
-        "links": {},
+        "key": filename
     }
 
     return jsonify(response_data), 201  # 201 = Created

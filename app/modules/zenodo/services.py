@@ -35,14 +35,12 @@ class ZenodoService(BaseService):
         self.headers = {"Content-Type": "application/json"}
         self.params = {}
 
-    # ... (Aquí van TODOS tus otros métodos: test_connection, test_full_connection, etc.) ...
-
     def create_new_deposition(self, dataset: DataSet) -> dict:
         metadata = {
             "title": dataset.ds_meta_data.title,
         }
         data = {"metadata": metadata}
-        response = requests.post(self.ZENODO_API_URL, params=self.params, json=data, headers=self.headers)
+        response = requests.post(self.ZENODO_API_URL, params=self.params, json=data, headers=self.headers) #Nos lleva a fakenodo
         if response.status_code != 201:
             error_message = f"Failed to create deposition. Error details: {response.json()}"
             raise Exception(error_message)
@@ -52,15 +50,13 @@ class ZenodoService(BaseService):
         poke_filename = feature_model.fm_meta_data.poke_filename
         data = {"name": poke_filename}
 
-        if user is None:
-            user_id = current_user.id
-        else:
-            user_id = user.id
+        user_id = user.id
 
         file_path = os.path.join(uploads_folder_name(), f"user_{str(user_id)}", f"dataset_{dataset.id}/", poke_filename)
         files = {"file": open(file_path, "rb")}
 
         publish_url = f"{self.ZENODO_API_URL}/{deposition_id}/files"
+        #en la siguiente linea no se llama a nada???
         response = requests.post(publish_url, params=self.params, data=data, files=files)
         files["file"].close()  # Cierra el archivo después de usarlo
 
