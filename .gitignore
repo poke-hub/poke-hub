@@ -60,3 +60,8 @@ ubuntu-bionic-18.04-cloudimg-console.log
 #===========================
 fakenodo_db.json
 fakenodo_storage/
+
+# ==========================
+# Elasticsearch
+# ==========================
+elasticsearch_ca.crt
