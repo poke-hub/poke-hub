@@ -26,21 +26,21 @@ def create_deposition():
         "id": fake_id
     }
 
-    return jsonify(response_data), 201  # 201 = Created
+    return response_data, 201  # 201 = Created
 
 
 @fakenodo_bp.route("/deposit/depositions/<int:dep_id>/files", methods=["POST"])
-def upload_file(dep_id):
+def upload_file(dep_id,data,files):
     """
     Simula la subida de un archivo.
     No guarda el archivo, solo comprueba que venga uno y devuelve éxito.
     """
-    if "file" not in request.files:
+    if "file" not in files:
         logger.warning(f"[FAKENODO] Intento de subida a {dep_id} sin archivo.")
         return jsonify({"error": "No se encontró ningún archivo"}), 400
 
     # Obtenemos el nombre del archivo solo para el log
-    filename = request.files["file"].filename
+    filename = files["file"].name
     logger.warning(f"[FAKENODO] Recibido (e ignorado) archivo '{filename}' para deposición {dep_id}")
 
     # Devolvemos una respuesta de éxito genérica
@@ -48,7 +48,7 @@ def upload_file(dep_id):
         "key": filename
     }
 
-    return jsonify(response_data), 201  # 201 = Created
+    return response_data, 201  # 201 = Created
 
 
 @fakenodo_bp.route("/deposit/depositions/<int:dep_id>/actions/publish", methods=["POST"])
@@ -66,4 +66,4 @@ def publish_deposition(dep_id):
     response_data = {"id": dep_id, "doi": fake_doi, "state": "done", "submitted": True}
 
     # 202 (Accepted) es lo que devuelve Zenodo cuando la publicación es exitosa
-    return jsonify(response_data), 202
+    return response_data, 202

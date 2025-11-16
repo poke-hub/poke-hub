@@ -13,6 +13,7 @@ from app.modules.featuremodel.models import FeatureModel
 from app.modules.zenodo.repositories import ZenodoRepository
 from core.configuration.configuration import uploads_folder_name
 from core.services.BaseService import BaseService
+from app.modules.fakenodo.routes import create_deposition,upload_file,publish_deposition
 
 logger = logging.getLogger(__name__)
 
@@ -40,11 +41,12 @@ class ZenodoService(BaseService):
             "title": dataset.ds_meta_data.title,
         }
         data = {"metadata": metadata}
-        response = requests.post(self.ZENODO_API_URL, params=self.params, json=data, headers=self.headers) #Nos lleva a fakenodo
-        if response.status_code != 201:
-            error_message = f"Failed to create deposition. Error details: {response.json()}"
+        response_json, status_code = create_deposition()
+        #response = requests.post(self.ZENODO_API_URL, params=self.params, json=data, headers=self.headers) #Nos lleva a fakenodo
+        if status_code != 201:
+            error_message = f"Failed to create deposition. Error details: {response_json}"
             raise Exception(error_message)
-        return response.json()
+        return response_json
 
     def upload_file(self, dataset: DataSet, deposition_id: int, feature_model: FeatureModel, user=None) -> dict:
         poke_filename = feature_model.fm_meta_data.poke_filename
@@ -55,18 +57,18 @@ class ZenodoService(BaseService):
         file_path = os.path.join(uploads_folder_name(), f"user_{str(user_id)}", f"dataset_{dataset.id}/", poke_filename)
         files = {"file": open(file_path, "rb")}
 
-        publish_url = f"{self.ZENODO_API_URL}/{deposition_id}/files"
-        response = requests.post(publish_url, params=self.params, data=data, files=files)
+        # publish_url = f"{self.ZENODO_API_URL}/{deposition_id}/files"
+        response_json, status_code = upload_file(deposition_id,data,files)
+        # response = requests.post(publish_url, params=self.params, data=data, files=files)
         files["file"].close()  # Cierra el archivo después de usarlo
 
-        if response.status_code != 201:
-            error_message = f"Failed to upload files. Error details: {response.json()}"
+        if status_code != 201:
+            error_message = f"Failed to upload files. Error details: {response_json()}"
             raise Exception(error_message)
-        return response.json()
+        return response_json
 
     def publish_deposition(self, deposition_id: int) -> dict:
-        publish_url = f"{self.ZENODO_API_URL}/{deposition_id}/actions/publish"
-        response = requests.post(publish_url, params=self.params, headers=self.headers)
-        if response.status_code not in [202, 200]:
+        response_json, status_code = publish_deposition(deposition_id)
+        if status_code not in [202, 200]:
             raise Exception("Failed to publish deposition")
-        return response.json()
+        return response_json
