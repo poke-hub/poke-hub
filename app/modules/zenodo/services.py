@@ -3,17 +3,15 @@
 import logging
 import os
 
-import requests
+# import requests  # F401 - No se usa, ya que llamamos a fakenodo directamente
 from dotenv import load_dotenv
-from flask_login import current_user
 
-# (Asegúrate de que estas rutas de import sean correctas en tu proyecto)
 from app.modules.dataset.models import DataSet
+from app.modules.fakenodo.routes import create_deposition, publish_deposition, upload_file
 from app.modules.featuremodel.models import FeatureModel
 from app.modules.zenodo.repositories import ZenodoRepository
 from core.configuration.configuration import uploads_folder_name
 from core.services.BaseService import BaseService
-from app.modules.fakenodo.routes import create_deposition,upload_file,publish_deposition
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +35,12 @@ class ZenodoService(BaseService):
         self.params = {}
 
     def create_new_deposition(self, dataset: DataSet) -> dict:
-        metadata = {
-            "title": dataset.ds_meta_data.title,
-        }
-        data = {"metadata": metadata}
+        # metadata = {
+        #     "title": dataset.ds_meta_data.title,
+        # }
+        # data = {"metadata": metadata}  # F841 - Esta variable no se usaba
         response_json, status_code = create_deposition()
-        #response = requests.post(self.ZENODO_API_URL, params=self.params, json=data, headers=self.headers) #Nos lleva a fakenodo
+        # response = requests.post(self.ZENODO_API_URL, params=self.params, json=data, headers=self.headers)
         if status_code != 201:
             error_message = f"Failed to create deposition. Error details: {response_json}"
             raise Exception(error_message)
@@ -58,7 +56,7 @@ class ZenodoService(BaseService):
         files = {"file": open(file_path, "rb")}
 
         # publish_url = f"{self.ZENODO_API_URL}/{deposition_id}/files"
-        response_json, status_code = upload_file(deposition_id,data,files)
+        response_json, status_code = upload_file(deposition_id, data, files)
         # response = requests.post(publish_url, params=self.params, data=data, files=files)
         files["file"].close()  # Cierra el archivo después de usarlo
 
