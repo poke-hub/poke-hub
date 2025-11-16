@@ -92,3 +92,6 @@ class ExploreRepository(BaseRepository):
             datasets = datasets.order_by(self.model.created_at.desc())
 
         return datasets.all()
+
+    def get_all_datasets(self):
+        return self.filter()
