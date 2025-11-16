@@ -64,13 +64,13 @@ def parse_poke(file_path):
                 elif key == "tera type":
                     tera_type = value
                 elif key == "evs":
-                    evs = value.split("/")
-                    for ev in evs:
+                    ev_parts = value.split("/")
+                    for ev in ev_parts:
                         val, stat = ev.strip().split()
                         evs[stat] = int(val)
                 elif key == "ivs":
-                    ivs = value.split("/")
-                    for iv in ivs:
+                    iv_parts = value.split("/")
+                    for iv in iv_parts:
                         val, stat = iv.strip().split()
                         ivs[stat] = int(val)
                 continue
