@@ -56,7 +56,6 @@ class ZenodoService(BaseService):
         files = {"file": open(file_path, "rb")}
 
         publish_url = f"{self.ZENODO_API_URL}/{deposition_id}/files"
-        #en la siguiente linea no se llama a nada???
         response = requests.post(publish_url, params=self.params, data=data, files=files)
         files["file"].close()  # Cierra el archivo después de usarlo
 

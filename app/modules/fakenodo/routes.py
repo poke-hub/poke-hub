@@ -2,6 +2,7 @@ import logging
 import time
 
 from flask import Blueprint, jsonify, request
+import random
 
 fakenodo_bp = Blueprint("fakenodo_api", __name__)
 logger = logging.getLogger(__name__)
@@ -14,7 +15,7 @@ def create_deposition():
     Devuelve un ID inventado (basado en el tiempo actual).
     """
     # Usamos el timestamp como ID único y falso
-    fake_id = int(time.time())
+    fake_id = random.randint(100000, 999999)
 
     # Obtenemos los metadatos solo para simular que los usamos
 
