@@ -1,119 +1,56 @@
-import hashlib
-import json
-import os
-import time
-from threading import Lock
+import logging
+import random
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify  # , request
 
 fakenodo_bp = Blueprint("fakenodo_api", __name__)
-
-DB_PATH = os.path.join(os.getenv("WORKING_DIR", ""), "fakenodo_db.json")
-STORAGE = os.path.join(os.getenv("WORKING_DIR", ""), "fakenodo_storage")
-db_lock = Lock()
-
-
-def _load_db():
-    if os.path.exists(DB_PATH):
-        with open(DB_PATH, "r") as f:
-            try:
-                return json.load(f)
-            except json.JSONDecodeError:
-                return {"next_id": 1, "depositions": {}}
-    return {"next_id": 1, "depositions": {}}
-
-
-def _save_db(db):
-    with open(DB_PATH, "w") as f:
-        json.dump(db, f, indent=2)
-
-
-def _files_checksum(files):
-    h = hashlib.sha256()
-    for f in sorted(files):
-        h.update(f.encode("utf-8"))
-    return h.hexdigest()
+logger = logging.getLogger(__name__)
 
 
 @fakenodo_bp.route("/deposit/depositions", methods=["POST"])
 def create_deposition():
-    with db_lock:
-        db = _load_db()
-        dep_id = db["next_id"]
-        db["next_id"] += 1
-        data = request.get_json() or {}
-        deposition = {
-            "id": dep_id,
-            "metadata": data.get("metadata", {}),
-            "files": [],
-            "created": time.time(),
-            "published": False,
-            "version": 1,
-            "doi": None,
-            "last_published_files_checksum": None,
-        }
-        db["depositions"][str(dep_id)] = deposition
-        _save_db(db)
-    return jsonify(deposition), 201
+    """
+    Simula la creación de una deposición.
+    Devuelve un ID inventado (basado en el tiempo actual).
+    """
+    # Usamos el random como ID único y falso
+    fake_id = random.randint(100000, 999999)
 
+    # Devolvemos la estructura que ZenodoService espera pero pq
+    response_data = {"id": fake_id}
 
-@fakenodo_bp.route("/deposit/depositions", methods=["GET"])
-def list_depositions():
-    db = _load_db()
-    return jsonify(list(db["depositions"].values())), 200
-
-
-@fakenodo_bp.route("/deposit/depositions/<int:dep_id>", methods=["GET"])
-def get_deposition(dep_id):
-    db = _load_db()
-    dep = db["depositions"].get(str(dep_id))
-    if not dep:
-        return jsonify({"error": "Not found"}), 404
-    return jsonify(dep), 200
+    return response_data, 201  # 201 = Created
 
 
 @fakenodo_bp.route("/deposit/depositions/<int:dep_id>/files", methods=["POST"])
-def upload_file(dep_id):
-    with db_lock:
-        db = _load_db()
-        dep = db["depositions"].get(str(dep_id))
-        if not dep:
-            return jsonify({"error": "Not found"}), 404
+def upload_file(dep_id, data, files):
+    """
+    Simula la subida de un archivo.
+    No guarda el archivo, solo comprueba que venga uno y devuelve éxito.
+    """
+    if "file" not in files:
+        return jsonify({"error": "No se encontró ningún archivo"}), 400
 
-        if "file" not in request.files:
-            return jsonify({"error": "No file"}), 400
+    # Obtenemos el nombre del archivo solo para el log
+    filename = files["file"].name
 
-        f = request.files["file"]
-        filename = f.filename
-        dest_dir = os.path.join(STORAGE, str(dep_id))
-        os.makedirs(dest_dir, exist_ok=True)
-        file_path = os.path.join(dest_dir, filename)
-        f.save(file_path)
+    # Devolvemos una respuesta de éxito genérica
+    response_data = {"key": filename}
 
-        file_entry = {"name": filename, "size": os.path.getsize(file_path), "uploaded_at": time.time()}
-        dep["files"].append(file_entry)
-        db["depositions"][str(dep_id)] = dep
-        _save_db(db)
-    return jsonify(file_entry), 201
+    return response_data, 201  # 201 = Created
 
 
 @fakenodo_bp.route("/deposit/depositions/<int:dep_id>/actions/publish", methods=["POST"])
 def publish_deposition(dep_id):
-    with db_lock:
-        db = _load_db()
-        dep = db["depositions"].get(str(dep_id))
-        if not dep:
-            return jsonify({"error": "Not found"}), 404
+    """
+    Simula la publicación.
+    Inventa un DOI usando el ID de la deposición.
+    """
+    # Inventamos un DOI que se vea realista
+    fake_doi = f"10.9999/fakenodo.{dep_id}.v1"
 
-        current_checksum = _files_checksum([f["name"] + str(f["size"]) for f in dep["files"]])
+    # Devolvemos la estructura que ZenodoService espera
+    response_data = {"id": dep_id, "doi": fake_doi, "state": "done", "submitted": True}
 
-        if dep["last_published_files_checksum"] != current_checksum:
-            dep["version"] = dep.get("version", 1) + (0 if not dep["published"] else 1)
-            dep["doi"] = f"10.9999/fakenodo.{dep['id']}.v{dep['version']}"
-            dep["last_published_files_checksum"] = current_checksum
-            dep["published"] = True
-            db["depositions"][str(dep_id)] = dep
-            _save_db(db)
-            return jsonify({"id": dep_id, "doi": dep["doi"], "version": dep["version"]}), 202
-        else:
-            return jsonify({"id": dep_id, "doi": dep.get("doi"), "version": dep.get("version", 1)}), 200
+    # 202 (Accepted) es lo que devuelve Zenodo cuando la publicación es exitosa
+    return response_data, 202
