@@ -29,10 +29,14 @@ class Config:
         f"{os.getenv('MARIADB_PORT', '3306')}/"
         f"{os.getenv('MARIADB_DATABASE', 'default_db')}"
     )
+
+    ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     TIMEZONE = "Europe/Madrid"
     TEMPLATES_AUTO_RELOAD = True
     UPLOAD_FOLDER = "uploads"
+    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH_MB", "200")) * 1024 * 1024
 
 
 class DevelopmentConfig(Config):

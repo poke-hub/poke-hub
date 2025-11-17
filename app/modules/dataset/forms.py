@@ -23,7 +23,7 @@ class AuthorForm(FlaskForm):
 
 
 class FeatureModelForm(FlaskForm):
-    uvl_filename = StringField("UVL Filename", validators=[DataRequired()])
+    poke_filename = StringField("Poke Filename", validators=[DataRequired()])
     title = StringField("Title", validators=[Optional()])
     desc = TextAreaField("Description", validators=[Optional()])
     publication_type = SelectField(
@@ -33,7 +33,7 @@ class FeatureModelForm(FlaskForm):
     )
     publication_doi = StringField("Publication DOI", validators=[Optional(), URL()])
     tags = StringField("Tags (separated by commas)")
-    version = StringField("UVL Version")
+    version = StringField("Poke Version")
     authors = FieldList(FormField(AuthorForm))
 
     class Meta:
@@ -44,13 +44,13 @@ class FeatureModelForm(FlaskForm):
 
     def get_fmmetadata(self):
         return {
-            "uvl_filename": self.uvl_filename.data,
+            "poke_filename": self.poke_filename.data,
             "title": self.title.data,
             "description": self.desc.data,
             "publication_type": self.publication_type.data,
             "publication_doi": self.publication_doi.data,
             "tags": self.tags.data,
-            "uvl_version": self.version.data,
+            "poke_version": self.version.data,
         }
 
 
@@ -67,6 +67,22 @@ class DataSetForm(FlaskForm):
     tags = StringField("Tags (separated by commas)")
     authors = FieldList(FormField(AuthorForm))
     feature_models = FieldList(FormField(FeatureModelForm), min_entries=1)
+
+    source = SelectField(
+        "Source",
+        choices=[
+            ("file", "Single file (.poke)"),
+            ("zip", "ZIP archive"),
+            ("github", "GitHub repository"),
+        ],
+        validators=[Optional()],
+        default="file",
+    )
+
+    # We used it if source == "github"
+    github_url = StringField("GitHub repository URL", validators=[Optional(), URL()])
+    github_branch = StringField("Git branch", validators=[Optional()])
+    github_subdir = StringField("Repository subdirectory", validators=[Optional()])
 
     submit = SubmitField("Submit")
 
@@ -94,3 +110,11 @@ class DataSetForm(FlaskForm):
 
     def get_feature_models(self):
         return [fm.get_feature_model() for fm in self.feature_models]
+
+    def get_source_info(self):
+        return {
+            "source": self.source.data or "file",
+            "github_url": self.github_url.data,
+            "github_branch": self.github_branch.data or "main",
+            "github_subdir": (self.github_subdir.data or "").strip("/"),
+        }

@@ -3,9 +3,7 @@ import shutil
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
-from sqlalchemy import and_
 
-from app import db
 from app.modules.auth.models import User
 from app.modules.dataset.models import Author, DataSet, DSMetaData, DSMetrics, PublicationType
 from app.modules.featuremodel.models import FeatureModel, FMMetaData
@@ -17,173 +15,110 @@ class DataSetSeeder(BaseSeeder):
 
     priority = 2  # Lower priority
 
-    def _get_or_create(self, model, defaults=None, **filters):
-        instance = model.query.filter_by(**filters).first()
-        if instance:
-            return instance, False
-        data = dict(defaults or {})
-        data.update(filters)
-        instance = model(**data)
-        db.session.add(instance)
-        db.session.flush()
-        return instance, True
-
     def run(self):
-        # 1) Usuarios requeridos
-        users = User.query.filter(User.email.in_(["user1@example.com", "user2@example.com"])).all()
-        if len(users) < 2:
+        # Retrieve users
+        user1 = User.query.filter_by(email="user1@example.com").first()
+        user2 = User.query.filter_by(email="user2@example.com").first()
+
+        if not user1 or not user2:
             raise Exception("Users not found. Please seed users first.")
-        user1, user2 = users
 
-        # 2) Métricas base
-        ds_metrics, _ = self._get_or_create(
-            DSMetrics,
-            number_of_models="3",
-            number_of_features="25",
-        )
+        # Create DSMetrics instance
+        ds_metrics = DSMetrics(number_of_models="5", number_of_features="50")
+        seeded_ds_metrics = self.seed([ds_metrics])[0]
 
-        # ------------------------------------------------------
-        # 3) Crear 3 datasets por usuario: published, unsync, draft
-        # ------------------------------------------------------
-        dataset_specs = []
-        for user in [user1, user2]:
-            dataset_specs.extend([
-                dict(  # Published
-                    owner=user,
-                    title=f"Published dataset ({user.email})",
-                    description="A published dataset example.",
-                    publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
-                    dataset_doi=f"10.1234/{user.id}_published",
-                    publication_doi=f"10.1234/{user.id}_published",
-                    draft_mode=False,
-                    deposition_id=100 + user.id,
-                ),
-                dict(  # Unsynchronized (no DOI, no draft)
-                    owner=user,
-                    title=f"Unsynchronized dataset ({user.email})",
-                    description="A local dataset pending synchronization.",
-                    publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
-                    dataset_doi=None,
-                    publication_doi=None,
-                    draft_mode=False,
-                    deposition_id=None,
-                ),
-                dict(  # Draft (no DOI, draft_mode=True)
-                    owner=user,
-                    title=f"Draft dataset ({user.email})",
-                    description="A dataset saved as draft.",
-                    publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
-                    dataset_doi=None,
-                    publication_doi=None,
-                    draft_mode=True,
-                    deposition_id=None,
-                ),
-            ])
-
-        seeded_datasets = []
-
-        for spec in dataset_specs:
-            dsmeta, _ = self._get_or_create(
-                DSMetaData,
-                title=spec["title"],
-                defaults=dict(
-                    description=spec["description"],
-                    publication_type=spec["publication_type"],
-                    dataset_doi=spec["dataset_doi"],
-                    publication_doi=spec["publication_doi"],
-                    tags="tag1, tag2",
-                    ds_metrics_id=ds_metrics.id,
-                    deposition_id=spec["deposition_id"],
-                ),
+        # Create DSMetaData instances
+        ds_meta_data_list = [
+            DSMetaData(
+                deposition_id=1 + i,
+                title=f"Sample dataset {i+1}",
+                description=f"Description for dataset {i+1}",
+                publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
+                publication_doi=f"10.1234/dataset{i+1}",
+                dataset_doi=f"10.1234/dataset{i+1}",
+                tags="tag1, tag2",
+                ds_metrics_id=seeded_ds_metrics.id,
             )
+            for i in range(4)
+        ]
+        seeded_ds_meta_data = self.seed(ds_meta_data_list)
 
-            # autor principal
-            author, _ = self._get_or_create(
-                Author,
-                name=f"{spec['owner'].profile.surname}, {spec['owner'].profile.name}",
-                ds_meta_data_id=dsmeta.id,
-                defaults=dict(
-                    affiliation=spec['owner'].profile.affiliation,
-                    orcid=spec['owner'].profile.orcid or f"0000-0000-0000-{spec['owner'].id:04d}",
-                ),
+        # Create Author instances and associate with DSMetaData
+        authors = [
+            Author(
+                name=f"Author {i+1}",
+                affiliation=f"Affiliation {i+1}",
+                orcid=f"0000-0000-0000-000{i}",
+                ds_meta_data_id=seeded_ds_meta_data[i % 4].id,
             )
+            for i in range(4)
+        ]
+        self.seed(authors)
 
-            dataset, _ = self._get_or_create(
-                DataSet,
-                ds_meta_data_id=dsmeta.id,
-                user_id=spec["owner"].id,
-                defaults=dict(
-                    created_at=datetime.now(timezone.utc),
-                    draft_mode=spec["draft_mode"],
-                ),
+        # Create DataSet instances
+        datasets = [
+            DataSet(
+                user_id=user1.id if i % 2 == 0 else user2.id,
+                ds_meta_data_id=seeded_ds_meta_data[i].id,
+                created_at=datetime.now(timezone.utc),
             )
+            for i in range(4)
+        ]
+        seeded_datasets = self.seed(datasets)
 
-            dataset.draft_mode = spec["draft_mode"]
-            seeded_datasets.append(dataset)
-
-        # ------------------------------------------------------
-        # 4) Crear feature models (3 por dataset, 6 datasets = 18)
-        # ------------------------------------------------------
-        fm_meta_data_list = []
-        for i in range(18):
-            filename = f"fm_{i+1}.uvl"
-            fmmeta, _ = self._get_or_create(
-                FMMetaData,
-                uvl_filename=filename,
-                defaults=dict(
-                    title=f"Feature Model {i+1}",
-                    description=f"Description for feature model {i+1}",
-                    publication_type=PublicationType.SOFTWARE_DOCUMENTATION,
-                    publication_doi=f"10.1234/fm{i+1}",
-                    tags="tag1, tag2",
-                    uvl_version="1.0",
-                ),
+        # Assume there are 12 Poke files, create corresponding FMMetaData and FeatureModel
+        fm_meta_data_list = [
+            FMMetaData(
+                poke_filename=f"file{i+1}.poke",
+                title=f"Feature Model {i+1}",
+                description=f"Description for feature model {i+1}",
+                publication_type=PublicationType.SOFTWARE_DOCUMENTATION,
+                publication_doi=f"10.1234/fm{i+1}",
+                tags="tag1, tag2",
+                poke_version="1.0",
             )
-            fm_meta_data_list.append(fmmeta)
+            for i in range(12)
+        ]
+        seeded_fm_meta_data = self.seed(fm_meta_data_list)
 
-        seeded_feature_models = []
-        for i, fmmeta in enumerate(fm_meta_data_list):
-            ds_idx = i // 3  # 3 FMs por dataset
-            dataset = seeded_datasets[ds_idx]
-            fm, _ = self._get_or_create(
-                FeatureModel,
-                fm_meta_data_id=fmmeta.id,
-                data_set_id=dataset.id,
+        # Create Author instances and associate with FMMetaData
+        fm_authors = [
+            Author(
+                name=f"Author {i+5}",
+                affiliation=f"Affiliation {i+5}",
+                orcid=f"0000-0000-0000-000{i+5}",
+                fm_meta_data_id=seeded_fm_meta_data[i].id,
             )
-            seeded_feature_models.append(fm)
+            for i in range(12)
+        ]
+        self.seed(fm_authors)
 
-        # ------------------------------------------------------
-        # 5) Crear Hubfiles asociados y copiar ejemplos UVL
-        # ------------------------------------------------------
+        feature_models = [
+            FeatureModel(data_set_id=seeded_datasets[i // 3].id, fm_meta_data_id=seeded_fm_meta_data[i].id)
+            for i in range(12)
+        ]
+        seeded_feature_models = self.seed(feature_models)
+
+        # Create files, associate them with FeatureModels and copy files
         load_dotenv()
         working_dir = os.getenv("WORKING_DIR", "")
-        src_folder = os.path.join(working_dir, "app", "modules", "dataset", "uvl_examples")
-
-        for i, fm in enumerate(seeded_feature_models):
-            file_name = fm.fm_meta_data.uvl_filename
-            dataset = next(ds for ds in seeded_datasets if ds.id == fm.data_set_id)
+        src_folder = os.path.join(working_dir, "app", "modules", "dataset", "poke_examples")
+        for i in range(12):
+            file_name = f"file{i+1}.poke"
+            feature_model = seeded_feature_models[i]
+            dataset = next(ds for ds in seeded_datasets if ds.id == feature_model.data_set_id)
             user_id = dataset.user_id
-
-            src_path = os.path.join(src_folder, file_name)
-            if not os.path.exists(src_path):
-                continue
 
             dest_folder = os.path.join(working_dir, "uploads", f"user_{user_id}", f"dataset_{dataset.id}")
             os.makedirs(dest_folder, exist_ok=True)
-            dest_path = os.path.join(dest_folder, file_name)
-            if not os.path.exists(dest_path):
-                shutil.copy(src_path, dest_path)
-            size = os.path.getsize(dest_path)
+            shutil.copy(os.path.join(src_folder, file_name), dest_folder)
 
-            hubfile, _ = self._get_or_create(
-                Hubfile,
-                feature_model_id=fm.id,
+            file_path = os.path.join(dest_folder, file_name)
+
+            poke_file = Hubfile(
                 name=file_name,
-                defaults=dict(
-                    checksum=f"checksum_{i+1}",
-                    size=size,
-                ),
+                checksum=f"checksum{i+1}",
+                size=os.path.getsize(file_path),
+                feature_model_id=feature_model.id,
             )
-            hubfile.size = size
-
-        db.session.commit()
+            self.seed([poke_file])

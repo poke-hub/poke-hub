@@ -19,14 +19,16 @@ jobs:
 
     # Global environment variables shared across services and steps
     env:
-      MARIADB_ROOT_PASSWORD: uvlhub_root_password
-      MARIADB_DATABASE: uvlhubdb_test
-      MARIADB_TEST_DATABASE: uvlhubdb_test
-      MARIADB_USER: uvlhub_user
-      MARIADB_PASSWORD: uvlhub_password
+      MARIADB_ROOT_PASSWORD: pokehub_root_password
+      MARIADB_DATABASE: pokehubdb_test
+      MARIADB_TEST_DATABASE: pokehubdb_test
+      MARIADB_USER: pokehub_user
+      MARIADB_PASSWORD: pokehub_password
       MARIADB_HOSTNAME: 127.0.0.1
       MARIADB_PORT: 3306
       FLASK_ENV: testing
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+      FAKENODO_URL: "http://127.0.0.1:5000/api/deposit/depositions"
 
     services:
       # MariaDB service container for integration tests
