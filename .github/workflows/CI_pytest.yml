@@ -28,6 +28,7 @@ jobs:
       MARIADB_PORT: 3306
       FLASK_ENV: testing
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+      FAKENODO_URL: "http://127.0.0.1:5000/api/deposit/depositions"
 
     services:
       # MariaDB service container for integration tests
