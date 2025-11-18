@@ -481,34 +481,44 @@ window.onload = function () {
             }
 
 
-            if (checked_orcid && checked_name) {
-                fetch('/dataset/upload', {
-                    method: 'POST',
-                    body: formUploadData
-                })
-                    .then(response => {
-                        if (response.ok) {
-                            console.log('Dataset sent successfully');
-                            response.json().then(data => {
-                                console.log(data.message);
-                                window.location.href = "/dataset/list";
-                            });
-                        } else {
-                            response.json().then(data => {
-                                console.error('Error: ' + data.message);
+                    if (checked_orcid && checked_name) {
+
+                        const datasetId = this.dataset.id;
+
+                        const url = datasetId
+                            ? `/dataset/${datasetId}/edit`
+                            : `/dataset/upload`;
+
+                        fetch(url, {
+                            method: 'POST',
+                            body: formUploadData,
+                            headers: {
+
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        })
+                            .then(response => {
+                                if (response.ok) {
+                                    console.log('Dataset sent successfully');
+                                    return response.json().then(data => {
+                                        console.log(data.message || data);
+                                        window.location.href = "/dataset/list";
+                                    });
+                                } else {
+                                    return response.json().then(data => {
+                                        console.error('Error: ' + (data.message || JSON.stringify(data)));
+                                        hide_loading();
+                                        write_upload_error(data.message || 'Unexpected error');
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error in POST request:', error);
                                 hide_loading();
-
-                                write_upload_error(data.message);
-
+                                write_upload_error('Network error: ' + error.message);
                             });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error in POST request:', error);
-                        hide_loading();
-                        write_upload_error('Network error: ' + error.message);
-                    });
-            }
+                    }
+
         } else {
             hide_loading();
         }

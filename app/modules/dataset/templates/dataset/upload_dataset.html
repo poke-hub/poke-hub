@@ -504,14 +504,14 @@
                 {% if editing and dataset.feature_models %}
                <div class="card mb-3">
                <div class="card-body">
-                   <h4 class="mb-3">Existing UVL models</h4>
+                   <h4 class="mb-3">Existing POKE models</h4>
                    <div id="existing-fms" class="list-group">
                    {% for fm in dataset.feature_models %}
                        {% set main_file = fm.files[0] if fm.files and fm.files|length > 0 else None %}
                        <div class="list-group-item d-flex justify-content-between align-items-center" id="fm-row-{{ fm.id }}">
                        <div class="me-3">
                            <div class="fw-bold">
-                           {{ fm.fm_meta_data.title or (main_file.name if main_file else 'Untitled UVL') }}
+                           {{ fm.fm_meta_data.title or (main_file.name if main_file else 'Untitled POKE') }}
                            </div>
                            <small class="text-muted">
                            {% if main_file %}{{ main_file.name }}{% else %}No file{% endif %}

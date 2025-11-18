@@ -208,8 +208,8 @@ class DataSetService(BaseService):
         try:
             for feature_model in getattr(form, "feature_models", []):
                 # WTForms: FileField/StringField -> usa .data
-                uvl_filename = getattr(feature_model.uvl_filename, "data", None)
-                if not uvl_filename:
+                poke_filename = getattr(feature_model.poke_filename, "data", None)
+                if not poke_filename:
                     continue  # nada que añadir
 
                 # Crear FMMetaData
@@ -226,11 +226,11 @@ class DataSetService(BaseService):
                 )
 
                 # Archivo asociado
-                file_path = os.path.join(current_user.temp_folder(), uvl_filename)
+                file_path = os.path.join(current_user.temp_folder(), poke_filename)
                 checksum, size = calculate_checksum_and_size(file_path)
 
                 file = self.hubfilerepository.create(
-                    commit=False, name=uvl_filename, checksum=checksum, size=size, feature_model_id=fm.id
+                    commit=False, name=poke_filename, checksum=checksum, size=size, feature_model_id=fm.id
                 )
                 fm.files.append(file)
 
