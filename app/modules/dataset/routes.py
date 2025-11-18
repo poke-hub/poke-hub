@@ -474,3 +474,34 @@ def add_dataset_comment(dataset_id):
         return redirect(url_for("dataset.subdomain_index", doi=dataset.ds_meta_data.dataset_doi))
     else:
         return redirect(url_for("dataset.get_unsynchronized_dataset", dataset_id=dataset.id))
+
+
+@dataset_bp.route("/dataset/<int:dataset_id>/comment/<int:comment_id>/delete", methods=["POST"])
+@login_required
+def delete_dataset_comment(dataset_id, comment_id):
+    dataset = dataset_service.get_or_404(dataset_id)
+    comment = DSComment.query.get_or_404(comment_id)
+
+    # Verificar que el comentario pertenece a este dataset
+    if comment.dataset_id != dataset.id:
+        abort(404)
+
+    # Solo puede eliminar el autor del comentario o el dueño del dataset
+    if comment.user_id != current_user.id and dataset.user_id != current_user.id:
+        flash("You don't have permission to delete this comment.", "danger")
+        if dataset.ds_meta_data.dataset_doi:
+            return redirect(url_for("dataset.subdomain_index", doi=dataset.ds_meta_data.dataset_doi))
+        else:
+            return redirect(url_for("dataset.get_unsynchronized_dataset", dataset_id=dataset.id))
+
+    # Eliminar el comentario
+    db.session.delete(comment)
+    db.session.commit()
+
+    flash("Comment deleted successfully.", "success")
+
+    # Redirigir según el tipo de dataset
+    if dataset.ds_meta_data.dataset_doi:
+        return redirect(url_for("dataset.subdomain_index", doi=dataset.ds_meta_data.dataset_doi))
+    else:
+        return redirect(url_for("dataset.get_unsynchronized_dataset", dataset_id=dataset.id))
