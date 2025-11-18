@@ -50,7 +50,7 @@ class DatasetBehavior(TaskSet):
         data = {
             "csrf_token": csrf_token,
             "save_as_draft": "true",
-            "title": f"Draft actualizado {random.randint(1,1000)}",
+            "title": f"Draft actualizado {random.randint(1, 1000)}",
             "desc": "desc",
             "publication_type": "article",
             "tags": "update,locust"

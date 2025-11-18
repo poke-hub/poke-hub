@@ -3,15 +3,12 @@ import pytest
 from app import db
 from app.modules.auth.models import User
 from app.modules.profile.models import UserProfile
-from app.modules.dataset.models import DataSet, DSMetaData, PublicationType
+from app.modules.dataset.models import DataSet, DSMetaData, PublicationType, Author
 from app.modules.conftest import login, logout
 import io
 from unittest.mock import Mock, patch
 from zipfile import ZipFile
 
-import pytest
-
-from app.modules.dataset.models import Author, DataSet, DSMetaData
 from app.modules.dataset.services import DataSetService, SizeService
 from app.modules.featuremodel.models import FeatureModel, FMMetaData
 
@@ -88,7 +85,7 @@ def test_client(test_client):
     """
     with test_client.application.app_context():
 
-        user= User(email="user@example.com", password="test1234")
+        user = User(email="user@example.com", password="test1234")
         db.session.add(user)
         db.session.commit()
 
@@ -125,9 +122,9 @@ def test_client(test_client):
     yield test_client
 
 
-#Test 1: crear dataset en modo draft. Successfull.
+# Test 1: crear dataset en modo draft. Successfull.
 def test_create_dataset_draft_success(test_client):
-  
+
     login_response = login(test_client, "user@example.com", "test1234")
     assert login_response.status_code == 200, "Login was unsucessful"
 
@@ -135,7 +132,7 @@ def test_create_dataset_draft_success(test_client):
         "save_as_draft": "true",
         "title": "test",
         "desc": "test",
-        "publication_type": "test", 
+        "publication_type": "test",
     }
 
     response = test_client.post("/dataset/upload", data=data)
@@ -145,7 +142,6 @@ def test_create_dataset_draft_success(test_client):
     assert json_data["message"] == "Draft saved", "Confirmation message is not the one expected."
     assert "dataset_id" in json_data, "Dataset ID not found."
 
-
     with test_client.application.app_context():
         dataset = DataSet.query.get(json_data["dataset_id"])
         assert dataset is not None, "Dataset was not sucessfuly stored in DB."
@@ -153,7 +149,9 @@ def test_create_dataset_draft_success(test_client):
 
     logout(test_client)
 
-#Test 1: crear dataset en modo draft sin titulo. Unsuccessfull.
+# Test 1: crear dataset en modo draft sin titulo. Unsuccessfull.
+
+
 def test_create_dataset_draft_unsuccessful_no_title(test_client):
 
     login_response = login(test_client, "user@example.com", "test1234")
@@ -161,9 +159,9 @@ def test_create_dataset_draft_unsuccessful_no_title(test_client):
 
     data = {
         "save_as_draft": "true",
-        "title": "", 
+        "title": "",
         "desc": "test",
-        "publication_type": "test", 
+        "publication_type": "test",
     }
 
     response = test_client.post("/dataset/upload", data=data)
@@ -176,7 +174,7 @@ def test_create_dataset_draft_unsuccessful_no_title(test_client):
     logout(test_client)
 
 
-#Test 3: editar dataset en modo draft. Successfull.
+# Test 3: editar dataset en modo draft. Successfull.
 def test_edit_draft_dataset_allowed(test_client):
 
     login_response = login(test_client, "user@example.com", "test1234")
@@ -200,7 +198,7 @@ def test_edit_draft_dataset_allowed(test_client):
     logout(test_client)
 
 
-#Test 4: editar dataset publicado. Unsuccessfull.
+# Test 4: editar dataset publicado. Unsuccessfull.
 def test_edit_non_draft_dataset_forbidden(test_client):
 
     login_response = login(test_client, "user@example.com", "test1234")
@@ -224,7 +222,7 @@ def test_edit_non_draft_dataset_forbidden(test_client):
     logout(test_client)
 
 
-#Test 5: acceder formulario de edición de dataset en draft. Successful.
+# Test 5: acceder formulario de edición de dataset en draft. Successful.
 def test_get_edit_draft_dataset_page(test_client):
 
     login_response = login(test_client, "user@example.com", "test1234")
@@ -239,6 +237,8 @@ def test_get_edit_draft_dataset_page(test_client):
     assert b"Edit" in response.data or b"upload_dataset" in response.data
 
     logout(test_client)
+
+
 def test_sample_assertion(test_client):
     """
     Sample test to verify that the test framework and environment are working correctly.

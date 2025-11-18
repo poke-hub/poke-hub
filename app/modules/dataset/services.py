@@ -38,7 +38,8 @@ def calculate_checksum_and_size(file_path):
         content = file.read()
         hash_md5 = hashlib.md5(content).hexdigest()
         return hash_md5, file_size
-    
+
+
 def _normalize_publication_type(raw) -> str:
     if isinstance(raw, PublicationType):
         return raw.name
@@ -69,6 +70,7 @@ def _normalize_publication_type(raw) -> str:
 
     # fallback
     return PublicationType.NONE.name
+
 
 def _ensure_unique_filename(dest_dir: str, filename: str) -> str:
     base, ext = os.path.splitext(filename)
@@ -117,7 +119,6 @@ class DataSetService(BaseService):
             if os.path.exists(src):
                 shutil.move(src, dst)
 
-
     def get_synchronized(self, current_user_id: int) -> DataSet:
         return self.repository.get_synchronized(current_user_id)
 
@@ -161,7 +162,8 @@ class DataSetService(BaseService):
                 author = self.author_repository.create(commit=False, ds_meta_data_id=dsmetadata.id, **author_data)
                 dsmetadata.authors.append(author)
 
-            dataset = self.create(commit=False, user_id=current_user.id, ds_meta_data_id=dsmetadata.id, draft_mode=draft_mode)
+            dataset = self.create(commit=False, user_id=current_user.id, ds_meta_data_id=dsmetadata.id,
+                                  draft_mode=draft_mode)
 
             any_fm_persisted = False
 
@@ -207,9 +209,9 @@ class DataSetService(BaseService):
             self.repository.session.rollback()
             raise exc
         return dataset
-    
+
     def append_feature_models_from_form(self, dataset: DataSet, form, current_user):
-    
+
         try:
             for feature_model in getattr(form, "feature_models", []):
                 # WTForms: FileField/StringField -> usa .data
@@ -220,7 +222,7 @@ class DataSetService(BaseService):
                 # Crear FMMetaData
                 fmmetadata = self.fmmetadata_repository.create(commit=False, **feature_model.get_fmmetadata())
 
-                # Autores del FM 
+                # Autores del FM
                 for author_data in feature_model.get_authors():
                     author = self.author_repository.create(commit=False, fm_meta_data_id=fmmetadata.id, **author_data)
                     fmmetadata.authors.append(author)
@@ -243,6 +245,7 @@ class DataSetService(BaseService):
             self.repository.session.commit()
 
         except Exception as exc:
+            logger.info(f"Exception creating dataset from form...: {exc}")
             self.repository.session.rollback()
             raise
 
