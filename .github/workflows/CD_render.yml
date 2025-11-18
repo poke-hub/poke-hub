@@ -46,6 +46,7 @@ jobs:
           MARIADB_USER: pokehub_user
           MARIADB_PASSWORD: pokehub_password
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          FAKENODO_URL: "http://127.0.0.1:5000/api/deposit/depositions"
         run: |
           pytest app/modules/ --ignore-glob='*selenium*'
 
