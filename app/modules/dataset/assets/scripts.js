@@ -488,6 +488,8 @@ window.onload = function () {
                         const url = datasetId
                             ? `/dataset/${datasetId}/edit`
                             : `/dataset/upload`;
+                        
+                        formUploadData.set("save_as_draft", "0");
 
                         fetch(url, {
                             method: 'POST',
@@ -497,19 +499,47 @@ window.onload = function () {
                                 'X-Requested-With': 'XMLHttpRequest',
                             },
                         })
-                            .then(response => {
-                                if (response.ok) {
-                                    console.log('Dataset sent successfully');
-                                    return response.json().then(data => {
-                                        console.log(data.message || data);
-                                        window.location.href = "/dataset/list";
-                                    });
-                                } else {
-                                    return response.json().then(data => {
+                            .then(async (response) => {
+                                if (!response.ok) {
+                                    try {
+                                        const data = await response.json();
                                         console.error('Error: ' + (data.message || JSON.stringify(data)));
-                                        hide_loading();
                                         write_upload_error(data.message || 'Unexpected error');
-                                    });
+                                    } catch (e) {
+                                        console.error('Error no-JSON', e);
+                                        write_upload_error('Unexpected error uploading dataset');
+                                    }
+                                    hide_loading();
+                                    return;
+                                }
+
+                                console.log('Dataset sent successfully');
+
+                                if (response.redirected) {
+                                    window.location.href = response.url;
+                                    return;
+                                }
+
+                                const ct = response.headers.get('Content-Type') || "";
+
+                                if (ct.includes('application/json')) {
+                                    try {
+                                        const data = await response.json();
+                                        console.log(data.message || data);
+
+                                        if (data.redirect) {
+                                            window.location.href = data.redirect;
+                                        } else {
+                                            window.location.href = "/dataset/list";
+                                        }
+                                    } catch (e) {
+
+                                        console.error('JSON parse error', e);
+                                        window.location.href = "/dataset/list";
+                                    }
+                                } else {
+
+                                    window.location.href = "/dataset/list";
                                 }
                             })
                             .catch(error => {

@@ -553,7 +553,8 @@
 
     </div>
 
-    <div class="row" id="upload_dataset" style="display: none">
+    <div class="row" id="upload_dataset"
+     style="{% if editing and dataset.feature_models|length > 0 %}display: block{% else %}display: none{% endif %}">
 
         <div class="col-12">
 

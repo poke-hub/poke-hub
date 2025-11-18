@@ -170,17 +170,46 @@ def edit_dataset(dataset_id):
 
     # --- Guardar cambios ---
     if request.method == "POST":
-        save_as_draft = request.form.get("save_as_draft") in ("1", "true", "True")
 
-        # Validación ligera (no estricta en draft)
-        if not save_as_draft and not form.validate_on_submit():
-            return render_template(
-                "dataset/upload_dataset.html",
-                dataset=dataset,
-                form=form,
-                editing=True,
-                error="Invalid form data"
-            )
+        save_as_draft = request.form.get("save_as_draft", "0") in ("1", "true", "True")
+
+        has_new_fms = any(
+            key.startswith("feature_models-")
+            for key in request.form.keys()
+        )
+        existing_fm_count = len(dataset.feature_models)
+
+        if not save_as_draft:
+            if not has_new_fms and existing_fm_count == 0:
+                return render_template(
+                    "dataset/upload_dataset.html",
+                    dataset=dataset,
+                    form=form,
+                    editing=True,
+                    error="You must add at least one POKE model before uploading the dataset."
+                )
+
+        if not save_as_draft and has_new_fms:
+            if not form.validate_on_submit():
+                return render_template(
+                    "dataset/upload_dataset.html",
+                    dataset=dataset,
+                    form=form,
+                    editing=True,
+                    error="Invalid form data."
+                )
+        
+        if not save_as_draft and not has_new_fms:
+            title = (form.title.data or "").strip()
+            desc = (form.desc.data or "").strip()
+            if len(title) < 3 or len(desc) < 3:
+                return render_template(
+                    "dataset/upload_dataset.html",
+                    dataset=dataset,
+                    form=form,
+                    editing=True,
+                    error="Title and description must have at least 3 characters."
+                )
         
         pub_type = form.publication_type.data or "none"
 

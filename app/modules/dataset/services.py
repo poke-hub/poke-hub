@@ -111,7 +111,12 @@ class DataSetService(BaseService):
 
         for feature_model in dataset.feature_models:
             poke_filename = feature_model.fm_meta_data.poke_filename
-            shutil.move(os.path.join(source_dir, poke_filename), dest_dir)
+            src = os.path.join(source_dir, poke_filename)
+            dst = os.path.join(dest_dir, poke_filename)
+
+            if os.path.exists(src):
+                shutil.move(src, dst)
+
 
     def get_synchronized(self, current_user_id: int) -> DataSet:
         return self.repository.get_synchronized(current_user_id)
