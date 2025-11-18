@@ -8,12 +8,12 @@ import string
 import pyotp
 import qrcode
 from cryptography.fernet import Fernet
-from flask import current_app
+from flask import current_app, session, request
 from flask_login import current_user, login_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db
-from app.modules.auth.models import User
+from app.modules.auth.models import User, UserSession
 from app.modules.auth.repositories import UserRepository
 from app.modules.profile.models import UserProfile
 from app.modules.profile.repositories import UserProfileRepository
@@ -52,11 +52,10 @@ class AuthenticationService(BaseService):
 
     def login(self, email, password, remember=True):
         """
-        Modificado para manejar el flujo 2FA.
         Devuelve:
-         - True: Login exitoso (2FA desactivado).
+         - True: Login exitoso y sesión creada (2FA desactivado).
          - False: Credenciales incorrectas.
-         - Objeto User: Credenciales correctas, pero 2FA está activado.
+         - Objeto User: Credenciales correctas, pero requiere 2FA.
         """
         user = self.repository.get_by_email(email)
         if user is not None and user.check_password(password):
@@ -64,8 +63,47 @@ class AuthenticationService(BaseService):
                 return user
             else:
                 login_user(user, remember=remember)
+                self.create_user_session(user) # <-- CREAMOS LA SESIÓN EN BBDD
                 return True
 
+        return False
+
+    def create_user_session(self, user):
+        """Registra la sesión actual en la base de datos."""
+        token = secrets.token_urlsafe(32)
+        
+        # Obtener información del dispositivo
+        user_agent = request.user_agent
+        platform = user_agent.platform or "Unknown OS"
+        browser = user_agent.browser or "Unknown Browser"
+        version = user_agent.version or ""
+        device_name = f"{platform} - {browser} {version}".strip()
+        ip = request.remote_addr
+        
+        new_session = UserSession(
+            user_id=user.id,
+            token=token,
+            ip_address=ip,
+            device=device_name
+        )
+        
+        db.session.add(new_session)
+        db.session.commit()
+        
+        # Guardar el token en la cookie del navegador
+        session['app_session_token'] = token
+
+    def get_active_sessions(self, user):
+        """Obtiene todas las sesiones activas del usuario."""
+        return user.sessions.order_by(UserSession.last_seen.desc()).all()
+
+    def revoke_session(self, user, session_id):
+        """Elimina una sesión específica."""
+        user_session = UserSession.query.filter_by(id=session_id, user_id=user.id).first()
+        if user_session:
+            db.session.delete(user_session)
+            db.session.commit()
+            return True
         return False
 
     def is_email_available(self, email: str) -> bool:
@@ -126,44 +164,33 @@ class AuthenticationService(BaseService):
         return os.path.join(uploads_folder_name(), "temp", str(user.id))
 
     def generate_2fa_secret(self):
-        """Genera un nuevo secreto 2FA."""
         return pyotp.random_base32()
 
     def get_2fa_provisioning_uri(self, user_email, secret):
-        """Genera la URI para el código QR."""
         return pyotp.totp.TOTP(secret).provisioning_uri(name=user_email, issuer_name="Poké-Hub")
 
     def generate_qr_code_base64(self, uri):
-        """Genera un código QR a partir de la URI y lo devuelve como imagen base64."""
         img = qrcode.make(uri)
         buf = io.BytesIO()
         img.save(buf, format="PNG")
         return base64.b64encode(buf.getvalue()).decode("utf-8")
 
     def verify_2fa_token(self, user: User, token: str) -> bool:
-        """Verifica un token TOTP de 6 dígitos."""
         secret = decrypt_data(user.two_factor_secret)
         if secret is None:
             return False
-
         totp = pyotp.TOTP(secret)
         return totp.verify(token)
 
     def generate_recovery_codes(self):
-        """Genera una lista de 10 códigos de recuperación."""
-
         alphabet = string.ascii_uppercase + string.digits
-
         codes = []
         for _ in range(10):
             codes.append("".join(secrets.choice(alphabet) for _ in range(10)))
-
         hashed_codes = [generate_password_hash(code) for code in codes]
-
         return codes, json.dumps(hashed_codes)
 
     def verify_recovery_code(self, user: User, provided_code: str) -> bool:
-        """Verifica un código de recuperación y lo invalida."""
         if not user.two_factor_recovery_codes:
             return False
 
@@ -184,27 +211,22 @@ class AuthenticationService(BaseService):
         return code_was_valid
 
     def set_user_2fa_secret(self, user: User, secret: str):
-        """Guarda el secreto del usuario."""
         user.two_factor_secret = encrypt_data(secret)
         db.session.commit()
 
     def set_user_2fa_recovery_codes(self, user: User, hashed_codes_json: str):
-        """Guarda los códigos de recuperación del usuario."""
         user.two_factor_recovery_codes = hashed_codes_json
         db.session.commit()
 
     def set_user_2fa_enabled(self, user: User, is_enabled: bool):
-        """Activa o desactiva el 2FA para el usuario."""
         user.is_two_factor_enabled = is_enabled
         db.session.commit()
 
     def clear_user_2fa_data(self, user: User):
-        """Limpia todos los datos relacionados con 2FA del usuario."""
         user.is_two_factor_enabled = False
         user.two_factor_secret = None
         user.two_factor_recovery_codes = None
         db.session.commit()
 
     def check_user_password(self, user: User, password: str) -> bool:
-        """Función de ayuda para verificar la contraseña."""
         return user.check_password(password)

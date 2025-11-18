@@ -1,7 +1,8 @@
 import os
+from datetime import datetime, timezone
 
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, session
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
@@ -51,9 +52,33 @@ def create_app(config_name="development"):
 
     @login_manager.user_loader
     def load_user(user_id):
-        from app.modules.auth.models import User
+        from app.modules.auth.models import User, UserSession
 
-        return User.query.get(int(user_id))
+        user = User.query.get(int(user_id))
+        
+        # Si no existe el usuario, retornamos None
+        if not user:
+            return None
+
+        # Si estamos en medio del proceso de 2FA (antes de verificar código),
+        # no validamos la sesión de base de datos todavía.
+        if '2fa_user_id' in session:
+            return None
+
+        # Validamos la sesión específica del dispositivo
+        current_session_token = session.get('app_session_token')
+        if not current_session_token:
+            return None  # No hay token de sesión, desconectar
+
+        user_session = UserSession.query.filter_by(token=current_session_token).first()
+        if not user_session:
+            return None  # La sesión fue revocada remotamente, desconectar
+
+        # Actualizamos la última vez visto (opcional: hacerlo con menos frecuencia para optimizar)
+        user_session.last_seen = datetime.now(timezone.utc)
+        db.session.commit()
+
+        return user
 
     # Set up logging
     logging_manager = LoggingManager(app)

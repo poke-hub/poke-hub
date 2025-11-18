@@ -1,10 +1,22 @@
 from datetime import datetime, timezone
-
+import secrets
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db
 from app.modules.shopping_cart.models import ShoppingCart
+
+
+class UserSession(db.Model):
+    __tablename__ = 'user_session'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    token = db.Column(db.String(64), unique=True, nullable=False)
+    ip_address = db.Column(db.String(45))
+    device = db.Column(db.String(255))
+    last_seen = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class User(db.Model, UserMixin):
@@ -17,6 +29,9 @@ class User(db.Model, UserMixin):
     data_sets = db.relationship("DataSet", backref="user", lazy=True)
     profile = db.relationship("UserProfile", backref="user", uselist=False)
     shopping_cart = db.relationship(ShoppingCart, backref="user", uselist=False)
+
+    # Relación para acceder a las sesiones del usuario
+    sessions = db.relationship("UserSession", backref="user", lazy="dynamic", cascade="all, delete-orphan")
 
     is_two_factor_enabled = db.Column(db.Boolean, nullable=False, default=False)
     two_factor_secret = db.Column(db.String(255), nullable=True)
@@ -38,5 +53,4 @@ class User(db.Model, UserMixin):
 
     def temp_folder(self) -> str:
         from app.modules.auth.services import AuthenticationService
-
         return AuthenticationService().temp_folder_by_user(self)
