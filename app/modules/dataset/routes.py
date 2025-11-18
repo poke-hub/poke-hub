@@ -12,6 +12,7 @@ from zipfile import ZipFile
 import requests
 from flask import (
     abort,
+    flash,
     jsonify,
     make_response,
     redirect,
@@ -22,9 +23,10 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
+from app import db
 from app.modules.dataset import dataset_bp
-from app.modules.dataset.forms import DataSetForm
-from app.modules.dataset.models import DSDownloadRecord
+from app.modules.dataset.forms import DataSetCommentForm, DataSetForm
+from app.modules.dataset.models import DSComment, DSDownloadRecord
 from app.modules.dataset.services import (
     AuthorService,
     DataSetService,
@@ -411,9 +413,20 @@ def subdomain_index(doi):
     # Get dataset
     dataset = ds_meta_data.data_set
 
+    # Preparar form y comentarios
+    form = DataSetCommentForm()
+    comments = dataset.comments
+
     # Save the cookie to the user's browser
     user_cookie = ds_view_record_service.create_cookie(dataset=dataset)
-    resp = make_response(render_template("dataset/view_dataset.html", dataset=dataset))
+    resp = make_response(
+        render_template(
+            "dataset/view_dataset.html",
+            dataset=dataset,
+            comments=comments,
+            form=form,
+        )
+    )
     resp.set_cookie("view_cookie", user_cookie)
 
     return resp
@@ -429,7 +442,15 @@ def get_unsynchronized_dataset(dataset_id):
     if not dataset:
         abort(404)
 
-    return render_template("dataset/view_dataset.html", dataset=dataset)
+    form = DataSetCommentForm()
+    comments = dataset.comments
+
+    return render_template(
+        "dataset/view_dataset.html",
+        dataset=dataset,
+        comments=comments,
+        form=form,
+    )
 
 
 @dataset_bp.route("/dataset/<int:dataset_id>/stats", methods=["GET"])
@@ -451,3 +472,38 @@ def dataset_stats(dataset_id):
         download_count=download_count,
         created_at=created_at,
     )
+
+
+@dataset_bp.route("/dataset/<int:dataset_id>/comment", methods=["POST"])
+@login_required
+def add_dataset_comment(dataset_id):
+    # usamos el servicio como en el resto del módulo
+    dataset = dataset_service.get_or_404(dataset_id)
+    form = DataSetCommentForm()
+
+    if not form.validate_on_submit():
+        flash("Invalid comment.", "danger")
+        # Redirigimos de nuevo a la vista del dataset
+        if dataset.ds_meta_data.dataset_doi:
+            # si tiene DOI público
+            return redirect(url_for("dataset.subdomain_index", doi=dataset.ds_meta_data.dataset_doi))
+        else:
+            # si es un dataset local/unsynchronized
+            return redirect(url_for("dataset.get_unsynchronized_dataset", dataset_id=dataset.id))
+
+    comment = DSComment(
+        dataset_id=dataset.id,
+        user_id=current_user.id,
+        content=form.content.data.strip(),
+    )
+
+    db.session.add(comment)
+    db.session.commit()
+
+    flash("Comment added successfully.", "success")
+
+    # misma lógica de redirección que arriba
+    if dataset.ds_meta_data.dataset_doi:
+        return redirect(url_for("dataset.subdomain_index", doi=dataset.ds_meta_data.dataset_doi))
+    else:
+        return redirect(url_for("dataset.get_unsynchronized_dataset", dataset_id=dataset.id))
