@@ -104,6 +104,9 @@ class DataSet(db.Model):
 
     ds_meta_data = db.relationship("DSMetaData", backref=db.backref("data_set", uselist=False))
     feature_models = db.relationship("FeatureModel", backref="data_set", lazy=True, cascade="all, delete")
+    comments = db.relationship(
+        "DSComment", backref="data_set", lazy=True, cascade="all, delete-orphan", order_by="DSComment.created_at.desc()"
+    )
 
     def name(self):
         return self.ds_meta_data.title
@@ -176,6 +179,36 @@ class DSDownloadRecord(db.Model):
             f"date={self.download_date} "
             f"cookie={self.download_cookie}>"
         )
+
+
+class DSComment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dataset_id = db.Column(db.Integer, db.ForeignKey("data_set.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    content = db.Column(db.Text, nullable=False)
+
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
+    user = db.relationship("User", backref=db.backref("ds_comments", lazy=True))
+
+    def __repr__(self):
+        return f"<DSComment id={self.id} dataset_id={self.dataset_id} user_id={self.user_id}>"
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "dataset_id": self.dataset_id,
+            "user_id": self.user_id,
+            "content": self.content,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
 
 
 class DSViewRecord(db.Model):
