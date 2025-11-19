@@ -1,0 +1,35 @@
+{% extends "base_template.html" %}
+
+{% block title %}My datasets{% endblock %}
+
+{% block content %}
+
+    <div class="container mt-5">
+        <h1>{{ community.name }}</h1>
+        <p><strong>Description:</strong> {{ community.description }}</p>
+        <p><strong>Created On:</strong> {{ community.creationDate.strftime('%B %d, %Y') }}</p>
+        <p><strong>Members:</strong> 
+            {% if community.members %}
+                <ul>
+                    {% for member in community.members %}
+                        <li>{{ member.email }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                No members yet.
+            {% endif %}
+        </p>
+        {% if current_user not in community.members %}
+            <form action="{{ url_for('community.join_community', community_id=community.id) }}" method="POST">
+                <button type="submit" class="btn btn-primary">Join Community</button>
+            </form>
+        {% else %}
+            <p>You are already a member of this community.</p>
+        {% endif %}
+        <a href="{{ url_for('community.list_communities') }}" class="btn btn-primary mt-3">Back to Communities List</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endblock %}

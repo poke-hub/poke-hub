@@ -1,0 +1,31 @@
+{% extends "base_template.html" %}
+
+{% block title %}My datasets{% endblock %}
+
+{% block content %}
+
+    <div class="container mt-5">
+        <h1 class="h3 mb-3">My communities</h1>
+        <p>Here are all the communities:</p>
+
+        {% if communities %}
+            <div class="list-group">
+                {% for community in communities %}
+                    <div class="list-group-item">
+                        <a href="{{ url_for('community.view_community', community_id=community.id) }}" 
+                            class="h5 mb-1 text-primary text-decoration-none"> {{ community.name }}
+                        </a>
+                        <p class="mb-1">{{ community.description[:100] }}...</p>
+                        <small>Created on: {{ community.creationDate.strftime('%B %d, %Y') }}</small>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No communities found.</p>
+        {% endif %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endblock %}
