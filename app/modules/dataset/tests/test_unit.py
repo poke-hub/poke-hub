@@ -1,16 +1,16 @@
-import pytest
-
-from app import db
-from app.modules.auth.models import User
-from app.modules.profile.models import UserProfile
-from app.modules.dataset.models import DataSet, DSMetaData, PublicationType, Author
-from app.modules.conftest import login, logout
 import io
 from unittest.mock import Mock, patch
 from zipfile import ZipFile
 
+import pytest
+
+from app import db
+from app.modules.auth.models import User
+from app.modules.conftest import login, logout
+from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
 from app.modules.dataset.services import DataSetService, SizeService
 from app.modules.featuremodel.models import FeatureModel, FMMetaData
+from app.modules.profile.models import UserProfile
 
 
 class DummyDS:
@@ -94,28 +94,16 @@ def test_client(test_client):
         db.session.commit()
 
         meta_draft = DSMetaData(
-            title="Draft dataset",
-            description="Un dataset en modo borrador.",
-            publication_type=PublicationType.OTHER
+            title="Draft dataset", description="Un dataset en modo borrador.", publication_type=PublicationType.OTHER
         )
         meta_final = DSMetaData(
-            title="Published dataset",
-            description="Un dataset publicado.",
-            publication_type=PublicationType.OTHER
+            title="Published dataset", description="Un dataset publicado.", publication_type=PublicationType.OTHER
         )
         db.session.add_all([meta_draft, meta_final])
         db.session.commit()
 
-        draft_dataset = DataSet(
-            user_id=user.id,
-            ds_meta_data_id=meta_draft.id,
-            draft_mode=True
-        )
-        final_dataset = DataSet(
-            user_id=user.id,
-            ds_meta_data_id=meta_final.id,
-            draft_mode=False
-        )
+        draft_dataset = DataSet(user_id=user.id, ds_meta_data_id=meta_draft.id, draft_mode=True)
+        final_dataset = DataSet(user_id=user.id, ds_meta_data_id=meta_final.id, draft_mode=False)
         db.session.add_all([draft_dataset, final_dataset])
         db.session.commit()
 
@@ -149,6 +137,7 @@ def test_create_dataset_draft_success(test_client):
 
     logout(test_client)
 
+
 # Test 1: crear dataset en modo draft sin titulo. Unsuccessfull.
 
 
@@ -168,8 +157,7 @@ def test_create_dataset_draft_unsuccessful_no_title(test_client):
     assert response.status_code == 400, "Expected 400. Cause: missing title"
     json_data = response.get_json()
 
-    assert "introduce un título" in json_data["message"].lower(), \
-        "Missing error title message."
+    assert "introduce un título" in json_data["message"].lower(), "Missing error title message."
 
     logout(test_client)
 

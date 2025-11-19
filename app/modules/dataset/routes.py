@@ -1,5 +1,5 @@
-import json
 import io
+import json
 import logging
 import os
 import shutil
@@ -33,10 +33,9 @@ from app.modules.dataset.services import (
     DSMetaDataService,
     DSViewRecordService,
 )
-from app.modules.zenodo.services import ZenodoService
-
 from app.modules.featuremodel.models import FeatureModel
 from app.modules.featuremodel.repositories import FeatureModelRepository
+from app.modules.zenodo.services import ZenodoService
 
 logger = logging.getLogger(__name__)
 
@@ -71,9 +70,7 @@ def create_dataset():
         try:
             logger.info("Creating dataset...")
             dataset = dataset_service.create_from_form(
-                form=form,
-                current_user=current_user,
-                draft_mode=True if save_as_draft else False
+                form=form, current_user=current_user, draft_mode=True if save_as_draft else False
             )
             logger.info(f"Created dataset: {dataset}")
             dataset_service.move_feature_models(dataset)
@@ -82,11 +79,16 @@ def create_dataset():
             return jsonify({"Exception while create dataset data in local: ": str(exc)}), 400
 
         if save_as_draft:
-            return jsonify({
-                "message": "Draft saved",
-                "redirect": f"/dataset/unsynchronized/{dataset.id}/",
-                "dataset_id": dataset.id
-            }), 200
+            return (
+                jsonify(
+                    {
+                        "message": "Draft saved",
+                        "redirect": f"/dataset/unsynchronized/{dataset.id}/",
+                        "dataset_id": dataset.id,
+                    }
+                ),
+                200,
+            )
 
         # send dataset as deposition to Zenodo
         data = {}
@@ -153,7 +155,7 @@ def edit_dataset(dataset_id):
                 dataset=dataset,
                 form=form,
                 editing=True,
-                error="Para guardar como borrador, introduce un título."
+                error="Para guardar como borrador, introduce un título.",
             )
 
     # --- Pre-rellenar datos al entrar ---
@@ -161,8 +163,7 @@ def edit_dataset(dataset_id):
         form.title.data = dataset.ds_meta_data.title
         form.desc.data = dataset.ds_meta_data.description
         form.publication_type.data = (
-            dataset.ds_meta_data.publication_type.value
-            if dataset.ds_meta_data.publication_type else None
+            dataset.ds_meta_data.publication_type.value if dataset.ds_meta_data.publication_type else None
         )
         form.publication_doi.data = dataset.ds_meta_data.publication_doi
         form.tags.data = dataset.ds_meta_data.tags
@@ -172,10 +173,7 @@ def edit_dataset(dataset_id):
 
         save_as_draft = request.form.get("save_as_draft", "0") in ("1", "true", "True")
 
-        has_new_fms = any(
-            key.startswith("feature_models-")
-            for key in request.form.keys()
-        )
+        has_new_fms = any(key.startswith("feature_models-") for key in request.form.keys())
         existing_fm_count = len(dataset.feature_models)
 
         if not save_as_draft:
@@ -185,17 +183,13 @@ def edit_dataset(dataset_id):
                     dataset=dataset,
                     form=form,
                     editing=True,
-                    error="You must add at least one POKE model before uploading the dataset."
+                    error="You must add at least one POKE model before uploading the dataset.",
                 )
 
         if not save_as_draft and has_new_fms:
             if not form.validate_on_submit():
                 return render_template(
-                    "dataset/upload_dataset.html",
-                    dataset=dataset,
-                    form=form,
-                    editing=True,
-                    error="Invalid form data."
+                    "dataset/upload_dataset.html", dataset=dataset, form=form, editing=True, error="Invalid form data."
                 )
 
         if not save_as_draft and not has_new_fms:
@@ -207,7 +201,7 @@ def edit_dataset(dataset_id):
                     dataset=dataset,
                     form=form,
                     editing=True,
-                    error="Title and description must have at least 3 characters."
+                    error="Title and description must have at least 3 characters.",
                 )
 
         pub_type = form.publication_type.data or "none"
@@ -226,10 +220,7 @@ def edit_dataset(dataset_id):
             dataset_service.append_feature_models_from_form(dataset, form, current_user)
 
             # Actualizar el dataset (por ejemplo, mantenerlo en modo borrador)
-            dataset_service.update(
-                dataset.id,
-                draft_mode=save_as_draft
-            )
+            dataset_service.update(dataset.id, draft_mode=save_as_draft)
 
             if not save_as_draft:
                 dataset_service.move_feature_models(dataset)
@@ -245,11 +236,7 @@ def edit_dataset(dataset_id):
         except Exception as exc:
             logger.exception(f"Error editing draft dataset {dataset.id}: {exc}")
             return render_template(
-                "dataset/upload_dataset.html",
-                dataset=dataset,
-                form=form,
-                editing=True,
-                error=str(exc)
+                "dataset/upload_dataset.html", dataset=dataset, form=form, editing=True, error=str(exc)
             )
 
     # Renderizar la misma plantilla del upload, pero en modo edición

@@ -1,3 +1,6 @@
+import random
+import time
+
 from bs4 import BeautifulSoup
 from locust import HttpUser, TaskSet, between, task
 
@@ -13,10 +16,7 @@ class DatasetBehavior(TaskSet):
 
     def on_start(self):
 
-        login_data = {
-            "email": "user@example.com",
-            "password": "test1234"
-        }
+        login_data = {"email": "user@example.com", "password": "test1234"}
         self.client.post("/login", data=login_data)
 
         response = self.client.get("/dataset/upload")
@@ -28,7 +28,7 @@ class DatasetBehavior(TaskSet):
             "title": f"Draft Locust {int(time.time())}",
             "desc": "Borrador creado por Locust",
             "publication_type": "article",
-            "tags": "loadtest,locust"
+            "tags": "loadtest,locust",
         }
 
         create_resp = self.client.post("/dataset/upload", data=data)
@@ -53,7 +53,7 @@ class DatasetBehavior(TaskSet):
             "title": f"Draft actualizado {random.randint(1, 1000)}",
             "desc": "desc",
             "publication_type": "article",
-            "tags": "update,locust"
+            "tags": "update,locust",
         }
 
         with self.client.post(f"/dataset/{self.dataset_id}/edit", data=data, catch_response=True) as resp:
