@@ -4,26 +4,14 @@
 
 {% block content %}
 
-    <h1 class="h2 mb-3"><b>Upload</b> dataset</h1>
+    <h1 class="h2 mb-3">
+        {% if editing %}
+        <b>Edit</b> draft dataset
+        {% else %}
+        <b>Upload</b> dataset
+        {% endif %}
+    </h1>
 
-    <div class="row">
-        <div class="col-12 mb-3">
-            <div class="alert alert-warning" role="alert" id="test_zenodo_connection_error" style="display: none">
-                <div class="alert-message">
-
-                    <h4 class="alert-heading"><i class="align-middle" data-feather="alert-triangle"></i> Limited
-                        connection to the Zenodo API</h4>
-                    <p class="p-0 m-0">
-                        There seems to be some kind of problem with the Zenodo API and synchronization of your dataset
-                        files may not be possible. We will save your files locally to eventually synchronize them with
-                        Zenodo. Sorry for the inconvenience, Zenodo is an external service and we can't do
-                        anything about it.
-                    </p>
-                </div>
-            </div>
-        </div>
-
-    </div>
 
     {% if messages %}
         <ul>
@@ -101,7 +89,7 @@
                         <h1 class="h3 mb-3 mt-4">
                           Authors
                           <a href="#" data-toggle="modal" data-target="#infoModal">
-                            <i data-feather="info"></i> <!-- Usamos "info" porque Feather no tiene un ícono específico llamado "feather" para más info -->
+                            <i data-feather="info"></i>
                           </a>
                         </h1>
 
@@ -218,12 +206,81 @@
 
             <div id="uploaded_models_form" style="padding-left: 2rem">
 
-                <form action="{{ url_for('dataset.upload') }}" class="dropzone" id="myDropzone">
-                    <div id="dropzone-text"></div>
-                </form>
+                <!-- Tabs de selección de fuente -->
+                <ul class="nav nav-tabs" id="sourceTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="tab-file" data-bs-toggle="tab" href="#pane-file" role="tab" aria-controls="pane-file" aria-selected="true">Single .poke</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="tab-zip" data-bs-toggle="tab" href="#pane-zip" role="tab" aria-controls="pane-zip" aria-selected="false">ZIP</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="tab-github" data-bs-toggle="tab" href="#pane-github" role="tab" aria-controls="pane-github" aria-selected="false">GitHub</a>
+                    </li>
+                </ul>
 
-                <span class="text-danger" id="alerts" style="display: none">
-                    </span>
+                <!-- Contenido de los tabs -->
+                <div class="tab-content pt-3" id="sourceTabsContent">
+                    
+                    <!-- Tab: Single .poke file -->
+                    <div class="tab-pane fade show active" id="pane-file" role="tabpanel" aria-labelledby="tab-file">
+                        <form action="{{ url_for('dataset.upload') }}" class="dropzone" id="myDropzone">
+                            <div id="dropzone-text"></div>
+                        </form>
+                    </div>
+
+                    <!-- Tab: ZIP upload -->
+                    <div class="tab-pane fade" id="pane-zip" role="tabpanel" aria-labelledby="tab-zip">
+                        <div class="form-inline">
+                            <input type="file" id="zipFile" class="form-control mr-2" accept=".zip">
+                            <button id="processZipBtn" class="btn btn-outline-primary">Procesar ZIP</button>
+                        </div>
+                        <div class="mt-2">
+                            <div class="alert alert-success py-2 px-3" id="zipSavedBox" style="display:none;">
+                                <b>Guardados:</b>
+                                <ul id="zipSavedList" class="mb-0"></ul>
+                            </div>
+                            <div class="alert alert-secondary py-2 px-3" id="zipIgnoredBox" style="display:none;">
+                                <b>Ignorados:</b>
+                                <ul id="zipIgnoredList" class="mb-0"></ul>
+                            </div>
+                            <div class="alert alert-danger py-2 px-3" id="zipErrorBox" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: GitHub import -->
+                    <div class="tab-pane fade" id="pane-github" role="tabpanel" aria-labelledby="tab-github">
+                        <div class="row">
+                            <div class="col-lg-7 mb-2">
+                                <label class="form-label">Repo URL</label>
+                                <input type="text" id="ghUrl" class="form-control" placeholder="https://github.com/owner/repo">
+                            </div>
+                            <div class="col-lg-3 mb-2">
+                                <label class="form-label">Branch (opcional)</label>
+                                <input type="text" id="ghBranch" class="form-control" placeholder="main">
+                            </div>
+                            <div class="col-lg-2 mb-2">
+                                <label class="form-label">Subdir (opt.)</label>
+                                <input type="text" id="ghSubdir" class="form-control" placeholder="path/in/repo">
+                            </div>
+                        </div>
+                        <button id="importGithubBtn" class="btn btn-outline-primary">Importar desde GitHub</button>
+                        <div class="mt-2">
+                            <div class="alert alert-success py-2 px-3" id="ghSavedBox" style="display:none;">
+                                <b>Guardados:</b>
+                                <ul id="ghSavedList" class="mb-0"></ul>
+                            </div>
+                            <div class="alert alert-secondary py-2 px-3" id="ghIgnoredBox" style="display:none;">
+                                <b>Ignorados:</b>
+                                <ul id="ghIgnoredList" class="mb-0"></ul>
+                            </div>
+                            <div class="alert alert-danger py-2 px-3" id="ghErrorBox" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <span class="text-danger" id="alerts" style="display: none"></span>
 
                 <ul class="mt-2" id="file-list"></ul>
 
@@ -444,13 +501,60 @@
 
 
                 </script>
+                {% if editing and dataset.feature_models %}
+               <div class="card mb-3">
+               <div class="card-body">
+                   <h4 class="mb-3">Existing POKE models</h4>
+                   <div id="existing-fms" class="list-group">
+                   {% for fm in dataset.feature_models %}
+                       {% set main_file = fm.files[0] if fm.files and fm.files|length > 0 else None %}
+                       <div class="list-group-item d-flex justify-content-between align-items-center" id="fm-row-{{ fm.id }}">
+                       <div class="me-3">
+                           <div class="fw-bold">
+                           {{ fm.fm_meta_data.title or (main_file.name if main_file else 'Untitled POKE') }}
+                           </div>
+                           <small class="text-muted">
+                           {% if main_file %}{{ main_file.name }}{% else %}No file{% endif %}
+                           </small>
+                       </div>
+                       <button
+                           type="button"
+                           class="btn btn-outline-danger btn-sm delete-existing-fm"
+                           style="border-radius: 5px;"
+                           data-dataset-id="{{ dataset.id }}"
+                           data-fm-id="{{ fm.id }}">
+                           <i data-feather="trash-2" class="center-button-icon"></i> Delete
+                       </button>
+                       </div>
+                   {% endfor %}
+                   </div>
+               </div>
+               </div>
+               {% endif %}
+
 
             </div>
+
+            <input type="hidden" id="save_as_draft" name="save_as_draft" value="0" />
+
+            <div class="mt-4">
+                {% if editing %}
+                <button id="update_draft_button" type="button" class="btn btn-warning" data-id="{{ dataset.id }}">
+                <i data-feather="save"></i> Update draft
+                </button>
+                {% else %}
+                <button id="save_draft_button" type="button" class="btn btn-warning">
+                <i data-feather="save"></i> Save draft
+                </button>
+                {% endif %}
+            </div>
+
         </div>
 
     </div>
 
-    <div class="row" id="upload_dataset" style="display: none">
+    <div class="row" id="upload_dataset"
+     style="{% if editing and dataset.feature_models|length > 0 %}display: block{% else %}display: none{% endif %}">
 
         <div class="col-12">
 
@@ -468,9 +572,21 @@
                             </span>
                 </label>
 
-                <button id="upload_button" class="btn btn-primary mt-2" disabled>
+                {% if editing %}
+                    <button id="upload_button"
+                            type="button"
+                            class="btn btn-primary mt-2" disabled
+                            data-id="{{ dataset.id }}"
+                            name="save_as_draft"
+                            value="false">
+                        <i data-feather="upload" class="center-button-icon"></i>
+                        Upload dataset
+                    </button>
+                    {% else %}
+                    <button id="upload_button" class="btn btn-primary mt-2" disabled>
                     <i data-feather="upload" class="center-button-icon"></i>
                     Upload dataset</button>
+                {% endif %}
 
                 <div id="loading" style="display: none">
                     <img width="40px" src="{{ url_for("static", filename="gifs/loading.svg") }}"/>

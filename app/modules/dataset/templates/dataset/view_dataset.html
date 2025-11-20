@@ -119,7 +119,7 @@
 
                 </div>
                 {% endif %}
-                {% if dataset.ds_meta_data.dataset_doi %}
+                {% if dataset.ds_meta_data.dataset_doi or dataset.draft_mode %}
 
                     {% else %}
 
@@ -131,7 +131,7 @@
                         </div>
                         <div class="col-md-8 col-12">
                             <form action="{{ url_for('zenodo.publish_dataset', dataset_id=dataset.id) }}" method="POST">
-                                <button type.submit" class="btn btn-primary btn-sm">
+                                <button type="submit" class="btn btn-primary btn-sm">
                                     <i data-feather="upload-cloud"></i>
                                     Publish to FakeNodo
                                 </button>
@@ -147,6 +147,12 @@
                             Tags
                         </span>
                     </div>
+                    {% if dataset.draft_mode %}
+                    <a href="{{ url_for('dataset.edit_dataset', dataset_id=dataset.id) }}" class="btn btn-warning">
+                        <i data-feather="edit-3"></i> Edit
+                    </a>
+                    {% endif %}
+
                     <div class="col-md-8 col-12">
                         {% for tag in dataset.ds_meta_data.tags.split(',') %}
                         <span class="badge bg-secondary">{{ tag.strip() }}</span>
@@ -381,8 +387,9 @@
             </div>
           </div>
         </div>
-      </div>
-      {% endfor %} {% endfor %}
+        {% endfor %}
+        {% endfor %}
+
     </div>
 
     <a

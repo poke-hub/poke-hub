@@ -99,6 +99,7 @@ class DataSet(db.Model):
 
     ds_meta_data_id = db.Column(db.Integer, db.ForeignKey("ds_meta_data.id"), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    draft_mode = db.Column(db.Boolean, nullable=False, default=False)
 
     download_count = db.Column(db.Integer, nullable=False, default=0)
 

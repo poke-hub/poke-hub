@@ -27,8 +27,9 @@ def show_signup_form():
         except Exception as exc:
             return render_template("auth/signup_form.html", form=form, error=f"Error creating user: {exc}")
 
-        # Log user
+        # Log user and create session
         login_user(user, remember=True)
+        authentication_service.create_user_session(user)  # <-- CREAR SESIÓN
         return redirect(url_for("public.index"))
 
     return render_template("auth/signup_form.html", form=form)
@@ -42,6 +43,7 @@ def login():
     form = LoginForm()
     if request.method == "POST" and form.validate_on_submit():
 
+        # Si login_result es True, create_user_session ya se llamó dentro de service.login()
         login_result = authentication_service.login(form.email.data, form.password.data, form.remember_me.data)
 
         if login_result is True:
@@ -51,6 +53,7 @@ def login():
             return render_template("auth/login_form.html", form=form, error="Invalid credentials")
 
         else:
+            # Es un objeto usuario, requiere 2FA
             user = login_result
             session["2fa_user_id"] = user.id
             return redirect(url_for("auth.verify_2fa"))
@@ -88,6 +91,7 @@ def verify_2fa():
             return render_template("auth/verify_2fa.html", form=form)
 
         login_user(user, remember=True)
+        authentication_service.create_user_session(user)  # <-- CREAR SESIÓN
         session.pop("2fa_user_id", None)
         return redirect(url_for("public.index"))
 
@@ -96,5 +100,6 @@ def verify_2fa():
 
 @auth_bp.route("/logout")
 def logout():
+    authentication_service.logout_session()
     logout_user()
     return redirect(url_for("public.index"))
