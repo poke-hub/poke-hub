@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-import secrets
+
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -8,10 +8,10 @@ from app.modules.shopping_cart.models import ShoppingCart
 
 
 class UserSession(db.Model):
-    __tablename__ = 'user_session'
-    
+    __tablename__ = "user_session"
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     token = db.Column(db.String(64), unique=True, nullable=False)
     ip_address = db.Column(db.String(45))
     device = db.Column(db.String(255))
@@ -53,4 +53,5 @@ class User(db.Model, UserMixin):
 
     def temp_folder(self) -> str:
         from app.modules.auth.services import AuthenticationService
+
         return AuthenticationService().temp_folder_by_user(self)

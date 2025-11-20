@@ -29,7 +29,7 @@ def show_signup_form():
 
         # Log user and create session
         login_user(user, remember=True)
-        authentication_service.create_user_session(user) # <-- CREAR SESIÓN
+        authentication_service.create_user_session(user)  # <-- CREAR SESIÓN
         return redirect(url_for("public.index"))
 
     return render_template("auth/signup_form.html", form=form)
@@ -91,7 +91,7 @@ def verify_2fa():
             return render_template("auth/verify_2fa.html", form=form)
 
         login_user(user, remember=True)
-        authentication_service.create_user_session(user) # <-- CREAR SESIÓN
+        authentication_service.create_user_session(user)  # <-- CREAR SESIÓN
         session.pop("2fa_user_id", None)
         return redirect(url_for("public.index"))
 

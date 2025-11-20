@@ -1,4 +1,4 @@
-from flask import abort, flash, jsonify, redirect, render_template, request, url_for, session # <-- Añadido SESSION
+from flask import abort, flash, jsonify, redirect, render_template, request, session, url_for  # <-- Añadido SESSION
 from flask_login import current_user, login_required
 
 from app import db
@@ -14,7 +14,9 @@ from app.modules.profile.services import UserProfileService
 @login_required
 def edit_profile():
     auth_service = AuthenticationService()
-    profile = auth_service.get_authenticated_user_profile() # <-- OJO: Añadí paréntesis () que faltaban en tu código original
+    profile = (
+        auth_service.get_authenticated_user_profile()
+    )  # <-- OJO: Añadí paréntesis () que faltaban en tu código original
     if not profile:
         return redirect(url_for("public.index"))
 
@@ -90,34 +92,34 @@ def view_profile(user_id):
 def security_settings():
     """Muestra la página de seguridad, con lista de sesiones y formularios 2FA."""
     auth_service = AuthenticationService()
-    
+
     # Formularios 2FA
     enable_form = TwoFactorEnableForm()
     disable_form = TwoFactorDisableForm()
-    
+
     # Obtener sesiones activas y token actual
     active_sessions = auth_service.get_active_sessions(current_user)
-    current_session_token = session.get('app_session_token')
+    current_session_token = session.get("app_session_token")
 
     return render_template(
-        "profile/security.html", 
-        enable_form=enable_form, 
+        "profile/security.html",
+        enable_form=enable_form,
         disable_form=disable_form,
-        active_sessions=active_sessions,           # <-- Pasamos sesiones
-        current_session_token=current_session_token # <-- Pasamos token actual
+        active_sessions=active_sessions,  # <-- Pasamos sesiones
+        current_session_token=current_session_token,  # <-- Pasamos token actual
     )
 
 
-@profile_bp.route('/profile/security/revoke/<int:session_id>', methods=['POST'])
+@profile_bp.route("/profile/security/revoke/<int:session_id>", methods=["POST"])
 @login_required
 def revoke_session(session_id):
     """Revoca una sesión específica."""
     auth_service = AuthenticationService()
     if auth_service.revoke_session(current_user, session_id):
-        flash('Session revoked successfully.', 'success')
+        flash("Session revoked successfully.", "success")
     else:
-        flash('Could not revoke session.', 'danger')
-    return redirect(url_for('profile.security_settings'))
+        flash("Could not revoke session.", "danger")
+    return redirect(url_for("profile.security_settings"))
 
 
 @profile_bp.route("/profile/2fa/setup", methods=["POST"])
@@ -133,7 +135,7 @@ def setup_2fa():
     qr_base64 = auth_service.generate_qr_code_base64(uri)
 
     # Guardamos el secreto temporalmente en sesión o BBDD (aquí usas BBDD directa según tu código)
-    # Nota: Idealmente deberías usar una sesión temporal (ver código anterior), 
+    # Nota: Idealmente deberías usar una sesión temporal (ver código anterior),
     # pero mantengo tu lógica de guardarlo en set_user_2fa_secret para que funcione con tu flujo actual.
     auth_service.set_user_2fa_secret(current_user, secret)
 

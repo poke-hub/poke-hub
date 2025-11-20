@@ -13,7 +13,6 @@ from core.managers.error_handler_manager import ErrorHandlerManager
 from core.managers.logging_manager import LoggingManager
 from core.managers.module_manager import ModuleManager
 
-
 # Load environment variables
 load_dotenv()
 
@@ -25,9 +24,7 @@ migrate = Migrate()
 def create_app(config_name="development"):
     app = Flask(__name__)
 
-    app.wsgi_app = ProxyFix(
-        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
-    )
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     # Load configuration according to environment
     config_manager = ConfigManager(app)
@@ -61,18 +58,18 @@ def create_app(config_name="development"):
         from app.modules.auth.models import User, UserSession
 
         user = User.query.get(int(user_id))
-        
+
         # Si no existe el usuario, retornamos None
         if not user:
             return None
 
         # Si estamos en medio del proceso de 2FA (antes de verificar código),
         # no validamos la sesión de base de datos todavía.
-        if '2fa_user_id' in session:
+        if "2fa_user_id" in session:
             return None
 
         # Validamos la sesión específica del dispositivo
-        current_session_token = session.get('app_session_token')
+        current_session_token = session.get("app_session_token")
         if not current_session_token:
             return None  # No hay token de sesión, desconectar
 
