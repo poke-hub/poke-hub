@@ -1,77 +1,171 @@
-{% extends "base_template.html" %} {% block content %}
-<div class="container">
-    <h2>Security Settings</h2>
-    <hr>
+{% extends "base_template.html" %} 
 
+{% block title %}Security Settings{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Security Settings</h2>
+    
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             {% endfor %}
         {% endif %}
     {% endwith %}
 
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0"><i data-feather="monitor" class="me-2"></i>Active Sessions</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Here is a list of devices that have logged into your account. Revoke any sessions that you do not recognize.</p>
+            
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Device</th>
+                            <th>IP Address</th>
+                            <th>Last Seen</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in active_sessions %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i data-feather="smartphone" class="me-2"></i>
+                                    <div>
+                                        <strong>{{ s.device }}</strong>
+                                        <br>
+                                        <small class="text-muted">Logged in {{ s.created_at.strftime('%Y-%m-%d') }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ s.ip_address }}</td>
+                            <td>{{ s.last_seen.strftime('%H:%M, %b %d') }}</td>
+                            <td>
+                                {% if s.token == current_session_token %}
+                                    <span class="badge bg-success">Current Session</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Active</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if s.token == current_session_token %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>Current</button>
+                                {% else %}
+                                    <form action="{{ url_for('profile.revoke_session', session_id=s.id) }}" method="POST" style="display:inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ enable_form.csrf_token.current_token }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Revoke</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">No active sessions found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-4">
+
+    <h4 class="mb-3">Two-Factor Authentication</h4>
+
     {% if current_user.is_two_factor_enabled %}
         <div class="alert alert-success">
+            <i data-feather="check-circle" class="me-2"></i>
             Two-factor authentication (2FA) is <strong>enabled</strong> on your account.
         </div>
         
-        <h4>Disable 2FA</h4>
-        <p>If you disable 2FA, your account will be protected only by your password.</p>
-        
-        <form action="{{ url_for('profile.disable_2fa') }}" method="POST">
-            {{ disable_form.csrf_token }}
-            <div class="mb-3">
-                {{ disable_form.password.label(class="form-label") }}
-                {{ disable_form.password(class="form-control") }}
+        <div class="card">
+            <div class="card-body">
+                <h5>Disable 2FA</h5>
+                <p class="text-muted">If you disable 2FA, your account will be protected only by your password.</p>
+                
+                <form action="{{ url_for('profile.disable_2fa') }}" method="POST">
+                    {{ disable_form.csrf_token }}
+                    <div class="mb-3" style="max-width: 300px;">
+                        {{ disable_form.password.label(class="form-label", text="Current Password") }}
+                        {{ disable_form.password(class="form-control") }}
+                    </div>
+                    {{ disable_form.submit(class="btn btn-danger", value="Disable 2FA") }}
+                </form>
             </div>
-            {{ disable_form.submit(class="btn btn-danger") }}
-        </form>
+        </div>
 
     {% else %}
         <div class="alert alert-warning">
+            <i data-feather="alert-triangle" class="me-2"></i>
             Two-factor authentication (2FA) is <strong>disabled</strong>.
         </div>
         
-        <h4>Enable 2FA</h4>
-        <p>Protect your account with an additional layer of security.</p>
-        
-        <button id="start-2fa-btn" class="btn btn-primary">Enable 2FA</button>
+        <div class="card">
+            <div class="card-body">
+                <h5>Enable 2FA</h5>
+                <p>Protect your account with an additional layer of security.</p>
+                
+                <button id="start-2fa-btn" class="btn btn-primary">Enable 2FA</button>
 
-        <div id="2fa-setup-section" style="display: none; margin-top: 20px;">
-            <h5>Step 1: Scan the QR Code</h5>
-            <p>Use your authentication app to scan this image:</p>
-            <img id="qr-code-img" src="" alt="2FA QR Code" style="max-width: 200px;">
-            <p class="mt-2">Or enter this code manually: 
-                <strong id="secret-key"></strong>
-                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="copyText('secret-key')">
-                    <i class="align-middle" data-feather="copy"></i>
-                </button>
-            </p>            
-            <hr>
-            
-            <h5>Step 2: Verify your device</h5>
-            <p>Enter the 6-digit code from your app to confirm.</p>
-            
-            <form action="{{ url_for('profile.enable_2fa') }}" method="POST">
-                {{ enable_form.csrf_token }}
-                <div class="mb-3">
-                    {{ enable_form.token.label(class="form-label") }}
-                    {{ enable_form.token(class="form-control") }}
+                <div id="2fa-setup-section" style="display: none; margin-top: 20px;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Step 1: Scan the QR Code</h6>
+                            <p>Use your authentication app (Google Authenticator, Authy) to scan this image:</p>
+                            <div class="text-center p-3 border rounded mb-3">
+                                <img id="qr-code-img" src="" alt="2FA QR Code" style="max-width: 200px;">
+                            </div>
+                            <p class="small">Or enter this code manually: 
+                                <strong id="secret-key" class="text-break"></strong>
+                                <button type="button" class="btn btn-sm btn-link" onclick="copyText('secret-key')">
+                                    <i class="align-middle" data-feather="copy"></i>
+                                </button>
+                            </p> 
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Step 2: Verify your device</h6>
+                            <p>Enter the 6-digit code from your app to confirm setup.</p>
+                            
+                            <form action="{{ url_for('profile.enable_2fa') }}" method="POST">
+                                {{ enable_form.csrf_token }}
+                                <div class="mb-3">
+                                    {{ enable_form.token.label(class="form-label") }}
+                                    {{ enable_form.token(class="form-control", placeholder="000000") }}
+                                </div>
+                                {{ enable_form.submit(class="btn btn-success w-100") }}
+                            </form>
+                        </div>
+                    </div>           
                 </div>
-                {{ enable_form.submit(class="btn btn-success") }}
-            </form>
+            </div>
         </div>
     {% endif %}
 
 </div>
 
 <script>
-document.getElementById('start-2fa-btn').addEventListener('click', function() {
+// Script para activar 2FA
+document.getElementById('start-2fa-btn')?.addEventListener('click', function() {
     this.disabled = true;
-    this.textContent = 'Generating...';
+    this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+    
     fetch("{{ url_for('profile.setup_2fa') }}", {
         method: 'POST',
+        headers: {
+            // CORRECCIÓN 2: Usamos el token del formulario enable_form aquí también
+            'X-CSRFToken': "{{ enable_form.csrf_token.current_token }}"
+        }
     })
     .then(response => response.json())
     .then(data => {
@@ -82,10 +176,17 @@ document.getElementById('start-2fa-btn').addEventListener('click', function() {
     })
     .catch(error => {
         console.error('Error setting up 2FA:', error);
-        alert('There was an error starting the 2FA setup. Please reload the page.');
+        alert('Error setup. Reload page.');
         this.disabled = false;
         this.textContent = 'Enable 2FA';
     });
 });
+
+function copyText(elementId) {
+    var copyText = document.getElementById(elementId);
+    navigator.clipboard.writeText(copyText.textContent).then(function() {
+        alert('Code copied!');
+    });
+}
 </script>
 {% endblock %}
