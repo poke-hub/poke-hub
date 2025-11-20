@@ -105,6 +105,19 @@ class AuthenticationService(BaseService):
             db.session.commit()
             return True
         return False
+    
+    def logout_session(self):
+        """Elimina la sesión actual de la base de datos usando el token de la cookie."""
+        token = session.get('app_session_token')
+        if token:
+            # Buscar la sesión en BBDD por el token actual
+            user_session = UserSession.query.filter_by(token=token).first()
+            if user_session:
+                db.session.delete(user_session)
+                db.session.commit()
+            
+            # Limpiar la referencia de la sesión
+            session.pop('app_session_token', None)
 
     def is_email_available(self, email: str) -> bool:
         return self.repository.get_by_email(email) is None

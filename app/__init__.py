@@ -5,12 +5,14 @@ from dotenv import load_dotenv
 from flask import Flask, session
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from core.configuration.configuration import get_app_version
 from core.managers.config_manager import ConfigManager
 from core.managers.error_handler_manager import ErrorHandlerManager
 from core.managers.logging_manager import LoggingManager
 from core.managers.module_manager import ModuleManager
+
 
 # Load environment variables
 load_dotenv()
@@ -22,6 +24,10 @@ migrate = Migrate()
 
 def create_app(config_name="development"):
     app = Flask(__name__)
+
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+    )
 
     # Load configuration according to environment
     config_manager = ConfigManager(app)

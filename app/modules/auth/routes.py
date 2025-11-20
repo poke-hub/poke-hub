@@ -100,5 +100,6 @@ def verify_2fa():
 
 @auth_bp.route("/logout")
 def logout():
+    authentication_service.logout_session()
     logout_user()
     return redirect(url_for("public.index"))
