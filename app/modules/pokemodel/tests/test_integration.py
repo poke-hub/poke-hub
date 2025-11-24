@@ -1,12 +1,12 @@
+from pathlib import Path
+
 import pytest
 
 from app import db
 from app.modules.auth.models import User
 from app.modules.dataset.models import DataSet, DSMetaData, PublicationType
-from app.modules.pokemodel.models import PokeModel, FMMetaData
+from app.modules.pokemodel.models import FMMetaData, PokeModel
 from app.modules.pokemodel.services import PokeModelService
-import os
-from pathlib import Path
 
 
 @pytest.fixture(scope="module")
@@ -17,10 +17,12 @@ def pokemodel_seed(test_client):
     tpl_file = template_dir / "index.html"
     created_tpl = False
     if not tpl_file.exists():
-        tpl_file.write_text("""{% extends 'base_template.html' %}
+        tpl_file.write_text(
+            """{% extends 'base_template.html' %}
 {% block title %}PokeModel index{% endblock %}
 {% block content %}PokeModel index page{% endblock %}
-""")
+"""
+        )
         created_tpl = True
 
     with test_client.application.app_context():

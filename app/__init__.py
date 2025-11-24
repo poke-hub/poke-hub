@@ -1,9 +1,11 @@
 import os
+from datetime import datetime, timezone
 
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, session
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from core.configuration.configuration import get_app_version
 from core.managers.config_manager import ConfigManager
@@ -22,6 +24,8 @@ migrate = Migrate()
 def create_app(config_name="development"):
     app = Flask(__name__)
 
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
     # Load configuration according to environment
     config_manager = ConfigManager(app)
     config_manager.load_config(config_name=config_name)
@@ -34,6 +38,14 @@ def create_app(config_name="development"):
     module_manager = ModuleManager(app)
     module_manager.register_modules()
 
+    try:
+        from app.modules.fakenodo.routes import fakenodo_bp
+
+        app.register_blueprint(fakenodo_bp, url_prefix="/api")
+        app.logger.info("Fakenodo blueprint registered successfully at /api.")
+    except ImportError:
+        app.logger.warning("Fakenodo blueprint (app/fakenodo/routes.py) not found. Skipping registration.")
+
     # Register login manager
     from flask_login import LoginManager
 
@@ -43,9 +55,33 @@ def create_app(config_name="development"):
 
     @login_manager.user_loader
     def load_user(user_id):
-        from app.modules.auth.models import User
+        from app.modules.auth.models import User, UserSession
 
-        return User.query.get(int(user_id))
+        user = User.query.get(int(user_id))
+
+        # Si no existe el usuario, retornamos None
+        if not user:
+            return None
+
+        # Si estamos en medio del proceso de 2FA (antes de verificar código),
+        # no validamos la sesión de base de datos todavía.
+        if "2fa_user_id" in session:
+            return None
+
+        # Validamos la sesión específica del dispositivo
+        current_session_token = session.get("app_session_token")
+        if not current_session_token:
+            return None  # No hay token de sesión, desconectar
+
+        user_session = UserSession.query.filter_by(token=current_session_token).first()
+        if not user_session:
+            return None  # La sesión fue revocada remotamente, desconectar
+
+        # Actualizamos la última vez visto (opcional: hacerlo con menos frecuencia para optimizar)
+        user_session.last_seen = datetime.now(timezone.utc)
+        db.session.commit()
+
+        return user
 
     # Set up logging
     logging_manager = LoggingManager(app)

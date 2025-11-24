@@ -1,8 +1,9 @@
 import os
 import tempfile
+
 import pytest
 
-from app.modules.pokemodel.models import FMMetaData, parse_poke, PokeModel, FMMetrics
+from app.modules.pokemodel.models import FMMetaData, FMMetrics, PokeModel, parse_poke
 
 
 @pytest.fixture(scope="module")
@@ -129,6 +130,7 @@ EVs: 4 SpA
     finally:
         os.remove(path)
 
+
 def test_parse_poke_malformed_evs_raises():
     content = """Bulbasaur
 EVs: 252Atk/4 Def
@@ -174,7 +176,7 @@ def test_parse_poke_missing_optional_fields_defaults():
 def test_parse_poke_moves_whitespace_handling():
     content = """Snorlax
 Ability: Immunity
-    -   Body Slam  
+    -  Body Slam
     - Sleep Talk
 """
     path = _write_temp_file(content)
@@ -206,6 +208,7 @@ IVs: 31SpA/31 Spe
 
 def test_get_pokemon_delegates_to_parse_poke(monkeypatch, test_client):
     pm = PokeModel()
+
     class DS:
         pass
 

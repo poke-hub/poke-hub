@@ -65,3 +65,4 @@ jobs:
           MARIADB_PASSWORD: pokehub_password
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          FAKENODO_URL: "http://127.0.0.1:5000/api/deposit/depositions"
