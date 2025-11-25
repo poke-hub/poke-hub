@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 
 from app.modules.auth.models import User
 from app.modules.dataset.models import Author, DataSet, DSMetaData, DSMetrics, PublicationType
-from app.modules.featuremodel.models import FeatureModel, FMMetaData
 from app.modules.hubfile.models import Hubfile
+from app.modules.pokemodel.models import FMMetaData, PokeModel
 from core.seeders.BaseSeeder import BaseSeeder
 
 
@@ -24,7 +24,7 @@ class DataSetSeeder(BaseSeeder):
             raise Exception("Users not found. Please seed users first.")
 
         # Create DSMetrics instance
-        ds_metrics = DSMetrics(number_of_models="5", number_of_features="50")
+        ds_metrics = DSMetrics(number_of_models="5", number_of_pokes="50")
         seeded_ds_metrics = self.seed([ds_metrics])[0]
 
         # Create DSMetaData instances
@@ -33,7 +33,7 @@ class DataSetSeeder(BaseSeeder):
                 deposition_id=1 + i,
                 title=f"Sample dataset {i+1}",
                 description=f"Description for dataset {i+1}",
-                publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
+                publication_type=PublicationType.CASUAL,
                 publication_doi=f"10.1234/dataset{i+1}",
                 dataset_doi=f"10.1234/dataset{i+1}",
                 tags="tag1, tag2",
@@ -66,13 +66,13 @@ class DataSetSeeder(BaseSeeder):
         ]
         seeded_datasets = self.seed(datasets)
 
-        # Assume there are 12 Poke files, create corresponding FMMetaData and FeatureModel
+        # Assume there are 12 Poke files, create corresponding FMMetaData and PokeModel
         fm_meta_data_list = [
             FMMetaData(
                 poke_filename=f"file{i+1}.poke",
-                title=f"Feature Model {i+1}",
-                description=f"Description for feature model {i+1}",
-                publication_type=PublicationType.SOFTWARE_DOCUMENTATION,
+                title=f"Poke Model {i+1}",
+                description=f"Description for poke model {i+1}",
+                publication_type=PublicationType.HISTORY_MODE,
                 publication_doi=f"10.1234/fm{i+1}",
                 tags="tag1, tag2",
                 poke_version="1.0",
@@ -93,20 +93,20 @@ class DataSetSeeder(BaseSeeder):
         ]
         self.seed(fm_authors)
 
-        feature_models = [
-            FeatureModel(data_set_id=seeded_datasets[i // 3].id, fm_meta_data_id=seeded_fm_meta_data[i].id)
+        poke_models = [
+            PokeModel(data_set_id=seeded_datasets[i // 3].id, fm_meta_data_id=seeded_fm_meta_data[i].id)
             for i in range(12)
         ]
-        seeded_feature_models = self.seed(feature_models)
+        seeded_poke_models = self.seed(poke_models)
 
-        # Create files, associate them with FeatureModels and copy files
+        # Create files, associate them with PokeModels and copy files
         load_dotenv()
         working_dir = os.getenv("WORKING_DIR", "")
         src_folder = os.path.join(working_dir, "app", "modules", "dataset", "poke_examples")
         for i in range(12):
             file_name = f"file{i+1}.poke"
-            feature_model = seeded_feature_models[i]
-            dataset = next(ds for ds in seeded_datasets if ds.id == feature_model.data_set_id)
+            poke_model = seeded_poke_models[i]
+            dataset = next(ds for ds in seeded_datasets if ds.id == poke_model.data_set_id)
             user_id = dataset.user_id
 
             dest_folder = os.path.join(working_dir, "uploads", f"user_{user_id}", f"dataset_{dataset.id}")
@@ -119,6 +119,6 @@ class DataSetSeeder(BaseSeeder):
                 name=file_name,
                 checksum=f"checksum{i+1}",
                 size=os.path.getsize(file_path),
-                feature_model_id=feature_model.id,
+                poke_model_id=poke_model.id,
             )
             self.seed([poke_file])

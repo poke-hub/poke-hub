@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 from app.modules.dataset.models import DataSet
 from app.modules.fakenodo.routes import create_deposition, publish_deposition, upload_file
-from app.modules.featuremodel.models import FeatureModel
+from app.modules.pokemodel.models import PokeModel
 from app.modules.zenodo.repositories import ZenodoRepository
 from core.configuration.configuration import uploads_folder_name
 from core.services.BaseService import BaseService
@@ -46,8 +46,8 @@ class ZenodoService(BaseService):
             raise Exception(error_message)
         return response_json
 
-    def upload_file(self, dataset: DataSet, deposition_id: int, feature_model: FeatureModel, user=None) -> dict:
-        poke_filename = feature_model.fm_meta_data.poke_filename
+    def upload_file(self, dataset: DataSet, deposition_id: int, poke_model: PokeModel, user=None) -> dict:
+        poke_filename = poke_model.fm_meta_data.poke_filename
         data = {"name": poke_filename}
 
         user_id = user.id

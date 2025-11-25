@@ -6,7 +6,7 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import aliased
 
 from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
-from app.modules.featuremodel.models import FeatureModel, FMMetaData
+from app.modules.pokemodel.models import FMMetaData, PokeModel
 from core.repositories.BaseRepository import BaseRepository
 
 
@@ -59,8 +59,8 @@ class ExploreRepository(BaseRepository):
         datasets = (
             self.model.query.join(DataSet.ds_meta_data)
             .outerjoin(DsAuthor, DsAuthor.ds_meta_data_id == DSMetaData.id)
-            .join(DataSet.feature_models)
-            .join(FeatureModel.fm_meta_data)
+            .join(DataSet.poke_models)
+            .join(PokeModel.fm_meta_data)
             .outerjoin(FmAuthor, FmAuthor.fm_meta_data_id == FMMetaData.id)
             .filter(True if not filters else or_(*filters))
             .filter(DSMetaData.dataset_doi.isnot(None))

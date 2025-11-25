@@ -12,7 +12,7 @@ import requests
 from flask import request
 
 from app.modules.auth.services import AuthenticationService
-from app.modules.dataset.models import DataSet, DSMetaData, DSViewRecord
+from app.modules.dataset.models import DataSet, DSMetaData, DSViewRecord, PublicationType
 from app.modules.dataset.repositories import (
     AuthorRepository,
     DataSetRepository,
@@ -21,12 +21,12 @@ from app.modules.dataset.repositories import (
     DSMetaDataRepository,
     DSViewRecordRepository,
 )
-from app.modules.featuremodel.repositories import FeatureModelRepository, FMMetaDataRepository
 from app.modules.hubfile.repositories import (
     HubfileDownloadRecordRepository,
     HubfileRepository,
     HubfileViewRecordRepository,
 )
+from app.modules.pokemodel.repositories import FMMetaDataRepository, PokeModelRepository
 from core.services.BaseService import BaseService
 
 logger = logging.getLogger(__name__)
@@ -38,6 +38,38 @@ def calculate_checksum_and_size(file_path):
         content = file.read()
         hash_md5 = hashlib.md5(content).hexdigest()
         return hash_md5, file_size
+
+
+def _normalize_publication_type(raw) -> str:
+    if isinstance(raw, PublicationType):
+        return raw.name
+
+    if raw is None:
+        return PublicationType.NONE.name
+
+    s = str(raw).strip()
+    if s == "":
+        return PublicationType.NONE.name
+
+    # match directo por name/value
+    for pt in PublicationType:
+        if s == pt.name or s == pt.value:
+            return pt.name
+
+    # normaliza separadores a '_'
+    norm = s.upper().replace(" ", "_").replace("-", "_").replace("/", "_")
+    for pt in PublicationType:
+        if norm == pt.name:
+            return pt.name
+
+    # comparación colapsada
+    collapsed = "".join(s.split()).lower()
+    for pt in PublicationType:
+        if "".join(pt.name.split("_")).lower() == collapsed or "".join(pt.value.split()).lower() == collapsed:
+            return pt.name
+
+    # fallback
+    return PublicationType.NONE.name
 
 
 def _ensure_unique_filename(dest_dir: str, filename: str) -> str:
@@ -60,7 +92,7 @@ def _safe_norm(path: str) -> str:
 class DataSetService(BaseService):
     def __init__(self):
         super().__init__(DataSetRepository())
-        self.feature_model_repository = FeatureModelRepository()
+        self.poke_model_repository = PokeModelRepository()
         self.author_repository = AuthorRepository()
         self.dsmetadata_repository = DSMetaDataRepository()
         self.fmmetadata_repository = FMMetaDataRepository()
@@ -70,7 +102,7 @@ class DataSetService(BaseService):
         self.dsviewrecord_repostory = DSViewRecordRepository()
         self.hubfileviewrecord_repository = HubfileViewRecordRepository()
 
-    def move_feature_models(self, dataset: DataSet):
+    def move_poke_models(self, dataset: DataSet):
         current_user = AuthenticationService().get_authenticated_user()
         source_dir = current_user.temp_folder()
 
@@ -79,9 +111,13 @@ class DataSetService(BaseService):
 
         os.makedirs(dest_dir, exist_ok=True)
 
-        for feature_model in dataset.feature_models:
-            poke_filename = feature_model.fm_meta_data.poke_filename
-            shutil.move(os.path.join(source_dir, poke_filename), dest_dir)
+        for poke_model in dataset.poke_models:
+            poke_filename = poke_model.fm_meta_data.poke_filename
+            src = os.path.join(source_dir, poke_filename)
+            dst = os.path.join(dest_dir, poke_filename)
+
+            if os.path.exists(src):
+                shutil.move(src, dst)
 
     def get_synchronized(self, current_user_id: int) -> DataSet:
         return self.repository.get_synchronized(current_user_id)
@@ -98,8 +134,8 @@ class DataSetService(BaseService):
     def count_synchronized_datasets(self):
         return self.repository.count_synchronized_datasets()
 
-    def count_feature_models(self):
-        return self.feature_model_service.count_feature_models()
+    def count_poke_models(self):
+        return self.poke_model_service.count_poke_models()
 
     def count_authors(self) -> int:
         return self.author_repository.count()
@@ -113,7 +149,7 @@ class DataSetService(BaseService):
     def total_dataset_views(self) -> int:
         return self.dsviewrecord_repostory.total_dataset_views()
 
-    def create_from_form(self, form, current_user) -> DataSet:
+    def create_from_form(self, form, current_user, draft_mode: bool = False) -> DataSet:
         main_author = {
             "name": f"{current_user.profile.surname}, {current_user.profile.name}",
             "affiliation": current_user.profile.affiliation,
@@ -126,27 +162,48 @@ class DataSetService(BaseService):
                 author = self.author_repository.create(commit=False, ds_meta_data_id=dsmetadata.id, **author_data)
                 dsmetadata.authors.append(author)
 
-            dataset = self.create(commit=False, user_id=current_user.id, ds_meta_data_id=dsmetadata.id)
+            dataset = self.create(
+                commit=False, user_id=current_user.id, ds_meta_data_id=dsmetadata.id, draft_mode=draft_mode
+            )
 
-            for feature_model in form.feature_models:
-                poke_filename = feature_model.poke_filename.data
-                fmmetadata = self.fmmetadata_repository.create(commit=False, **feature_model.get_fmmetadata())
-                for author_data in feature_model.get_authors():
+            any_fm_persisted = False
+
+            for poke_model in form.poke_models:
+                poke_filename = poke_model.poke_filename.data
+
+                # permitir draft sin UVL; exigir UVL en no-draft ---
+                if not poke_filename:
+                    if draft_mode:
+                        # En borrador, simplemente no persistimos este poke model
+                        continue
+                    else:
+                        raise ValueError("At least one poke model file is required.")
+
+                fmmetadata = self.fmmetadata_repository.create(commit=False, **poke_model.get_fmmetadata())
+                for author_data in poke_model.get_authors():
                     author = self.author_repository.create(commit=False, fm_meta_data_id=fmmetadata.id, **author_data)
                     fmmetadata.authors.append(author)
 
-                fm = self.feature_model_repository.create(
+                fm = self.poke_model_repository.create(
                     commit=False, data_set_id=dataset.id, fm_meta_data_id=fmmetadata.id
                 )
 
-                # associated files in feature model
+                # associated files in poke model
                 file_path = os.path.join(current_user.temp_folder(), poke_filename)
                 checksum, size = calculate_checksum_and_size(file_path)
 
                 file = self.hubfilerepository.create(
-                    commit=False, name=poke_filename, checksum=checksum, size=size, feature_model_id=fm.id
+                    commit=False, name=poke_filename, checksum=checksum, size=size, poke_model_id=fm.id
                 )
                 fm.files.append(file)
+
+                # --- NUEVO: marcamos que hemos persistido al menos un FM ---
+                any_fm_persisted = True
+
+            # --- NUEVO: si no es borrador y no hay ningún FM válido -> error ---
+            if not draft_mode and not any_fm_persisted:
+                raise ValueError("At least one feature model file is required.")
+
             self.repository.session.commit()
         except Exception as exc:
             logger.info(f"Exception creating dataset from form...: {exc}")
@@ -154,7 +211,48 @@ class DataSetService(BaseService):
             raise exc
         return dataset
 
+    def append_feature_models_from_form(self, dataset: DataSet, form, current_user):
+
+        try:
+            for feature_model in getattr(form, "feature_models", []):
+                # WTForms: FileField/StringField -> usa .data
+                poke_filename = getattr(feature_model.poke_filename, "data", None)
+                if not poke_filename:
+                    continue  # nada que añadir
+
+                # Crear FMMetaData
+                fmmetadata = self.fmmetadata_repository.create(commit=False, **feature_model.get_fmmetadata())
+
+                # Autores del FM
+                for author_data in feature_model.get_authors():
+                    author = self.author_repository.create(commit=False, fm_meta_data_id=fmmetadata.id, **author_data)
+                    fmmetadata.authors.append(author)
+
+                # Crear FeatureModel asociado al dataset
+                fm = self.feature_model_repository.create(
+                    commit=False, data_set_id=dataset.id, fm_meta_data_id=fmmetadata.id
+                )
+
+                # Archivo asociado
+                file_path = os.path.join(current_user.temp_folder(), poke_filename)
+                checksum, size = calculate_checksum_and_size(file_path)
+
+                file = self.hubfilerepository.create(
+                    commit=False, name=poke_filename, checksum=checksum, size=size, feature_model_id=fm.id
+                )
+                fm.files.append(file)
+
+            # persistimos todo lo creado
+            self.repository.session.commit()
+
+        except Exception as exc:
+            logger.info(f"Exception creating dataset from form...: {exc}")
+            self.repository.session.rollback()
+            raise
+
     def update_dsmetadata(self, id, **kwargs):
+        if "publication_type" in kwargs:
+            kwargs["publication_type"] = _normalize_publication_type(kwargs["publication_type"])
         return self.dsmetadata_repository.update(id, **kwargs)
 
     def get_pokehub_doi(self, dataset: DataSet) -> str:
@@ -305,6 +403,8 @@ class DSMetaDataService(BaseService):
         super().__init__(DSMetaDataRepository())
 
     def update(self, id, **kwargs):
+        if "publication_type" in kwargs:
+            kwargs["publication_type"] = _normalize_publication_type(kwargs["publication_type"])
         return self.repository.update(id, **kwargs)
 
     def filter_by_doi(self, doi: str) -> Optional[DSMetaData]:

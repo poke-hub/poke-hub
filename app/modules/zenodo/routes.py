@@ -18,11 +18,11 @@ def publish_dataset(dataset_id):
 
     dataset = DataSet.query.get(dataset_id)
 
-    if not dataset:
+    if not dataset.poke_models:
         flash("Dataset no encontrado.", "danger")
         return redirect("/dataset/list")
 
-    if not dataset.feature_models:
+    if not dataset.poke_models:
         flash("No se puede publicar un dataset sin modelos de características.", "warning")
         return redirect("/dataset/list")
 
@@ -35,8 +35,8 @@ def publish_dataset(dataset_id):
             deposition_data = zenodo_service.create_new_deposition(dataset)
             dep_id = deposition_data["id"]
 
-        for feature_model in dataset.feature_models:
-            zenodo_service.upload_file(dataset, dep_id, feature_model, user=dataset.user)
+        for poke_model in dataset.poke_models:
+            zenodo_service.upload_file(dataset, dep_id, poke_model, user=dataset.user)
 
         publish_data = zenodo_service.publish_deposition(dep_id)
 
