@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import hashlib
 import io
 import logging
@@ -13,6 +14,7 @@ from flask import request
 
 from app.modules.auth.services import AuthenticationService
 from app.modules.dataset.models import DataSet, DSMetaData, DSViewRecord, PublicationType
+from app.modules.pokemodel.models import PokeModel, FMMetaData
 from app.modules.dataset.repositories import (
     AuthorRepository,
     DataSetRepository,
@@ -386,6 +388,65 @@ class DataSetService(BaseService):
             saved.append(candidate)
 
         return saved, ignored
+
+    def create_from_cart(self, user_id, form_data, shopping_cart) -> DataSet:
+        """
+        Crea un dataset y sus pokemodels a partir de los items del carrito.
+        Maneja la transacción completa.
+        """
+        try:
+            # DSMetaData
+            ds_metadata = DSMetaData(
+                title=form_data.get("title"),
+                description=form_data.get("desc"),
+                publication_type=_normalize_publication_type(form_data.get("publication_type")),
+                publication_doi=form_data.get("publication_doi"),
+                tags=form_data.get("tags"),
+            )
+
+            # DataSet
+            new_dataset = DataSet(
+                user_id=user_id,
+                created_at=datetime.utcnow(),
+                draft_mode=False,
+                download_count=0,
+                ds_meta_data=ds_metadata
+            )   
+            
+            for cart_item in shopping_cart.items:
+                hubfile = cart_item.file
+
+                # FMMetaData, por defecto igual al dataset padre
+                fm_metadata = FMMetaData(
+                    poke_filename=hubfile.name,
+                    title=hubfile.name,
+                    description=form_data.get("desc"),
+                    publication_type=_normalize_publication_type(form_data.get("publication_type")),
+                    publication_doi=form_data.get("publication_doi"),
+                    tags=form_data.get("tags"),
+                )
+
+                new_poke_model = PokeModel(
+                    fm_meta_data=fm_metadata
+                )
+
+                new_poke_model.files.append(hubfile)
+                
+                new_dataset.poke_models.append(new_poke_model)
+
+                # Borramos el item del carrito
+                self.repository.session.delete(cart_item)
+
+            self.repository.session.add(new_dataset)
+            self.repository.session.commit()
+
+            logger.info(f"Dataset {new_dataset.id} created from cart by user {user_id}")
+            return new_dataset
+
+        except Exception as e:
+            self.repository.session.rollback()
+            logger.error(f"Error creating dataset from cart: {str(e)}")
+            raise e
 
 
 class AuthorService(BaseService):
