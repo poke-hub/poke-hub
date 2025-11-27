@@ -23,6 +23,7 @@ from app.modules.dataset.repositories import (
     DSMetaDataRepository,
     DSViewRecordRepository,
 )
+from app.modules.hubfile.models import Hubfile
 from app.modules.hubfile.repositories import (
     HubfileDownloadRecordRepository,
     HubfileRepository,
@@ -411,15 +412,38 @@ class DataSetService(BaseService):
                 draft_mode=False,
                 download_count=0,
                 ds_meta_data=ds_metadata
-            )   
+            )
+
+            self.repository.session.add(new_dataset)
+            self.repository.session.flush()
+
+            working_dir = os.getenv("WORKING_DIR", "")
+            dest_dir = os.path.join(working_dir, "uploads", f"user_{user_id}", f"dataset_{new_dataset.id}")
+            os.makedirs(dest_dir, exist_ok=True)
             
             for cart_item in shopping_cart.items:
                 hubfile = cart_item.file
 
+                # Copiamos el hubfile al nuevo dataset para que asi el original no lo pierda
+                new_hubfile = Hubfile(
+                    name=hubfile.name,
+                    checksum=hubfile.checksum,
+                    size=hubfile.size
+                )
+
+                source_path = hubfile.get_path()
+                
+                dest_path = os.path.join(dest_dir, new_hubfile.name)
+
+                if os.path.exists(source_path):
+                    shutil.copy2(source_path, dest_path)
+                else:
+                    logger.warning(f"Source file not found: {source_path}")
+
                 # FMMetaData, por defecto igual al dataset padre
                 fm_metadata = FMMetaData(
-                    poke_filename=hubfile.name,
-                    title=hubfile.name,
+                    poke_filename=new_hubfile.name,
+                    title=new_hubfile.name,
                     description=form_data.get("desc"),
                     publication_type=_normalize_publication_type(form_data.get("publication_type")),
                     publication_doi=form_data.get("publication_doi"),
@@ -430,14 +454,13 @@ class DataSetService(BaseService):
                     fm_meta_data=fm_metadata
                 )
 
-                new_poke_model.files.append(hubfile)
+                new_poke_model.files.append(new_hubfile)
                 
                 new_dataset.poke_models.append(new_poke_model)
 
                 # Borramos el item del carrito
                 self.repository.session.delete(cart_item)
 
-            self.repository.session.add(new_dataset)
             self.repository.session.commit()
 
             logger.info(f"Dataset {new_dataset.id} created from cart by user {user_id}")
