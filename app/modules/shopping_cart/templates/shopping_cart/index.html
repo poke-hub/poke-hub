@@ -19,7 +19,20 @@ endblock %} {% block content %}
           href="{{ url_for('shopping_cart.clear_cart') }}"
           class="btn btn-danger float-end"
         >
-          <i data-feather="trash"></i> Vaciar Carrito
+          <i data-feather="trash"></i> Clear Cart
+        </a>
+        <button
+          type="button"
+          class="btn btn-success float-end me-2"
+          data-bs-toggle="modal"
+          data-bs-target="#createDatasetModal"
+        >
+          <img 
+          src="{{ url_for('static', filename='img/icons/icon-ultra-bola.png') }}" 
+          alt="Icon" 
+          style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"
+        >
+        Build DataSet
         </a>
       </div>
       <div class="card-body">
@@ -183,4 +196,69 @@ endblock %} {% block content %}
       });
   }
 </script>
+
+
+<!-- Modal para crear dataset a partir del contenido del carrito -->
+<div class="modal fade" id="createDatasetModal" tabindex="-1" aria-labelledby="createDatasetModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createDatasetModalLabel">Create Dataset from Cart</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <form action="{{ url_for('dataset.create_dataset_from_cart') }}" method="POST">
+        <div class="modal-body">  
+          
+          <div class="mb-3">
+            <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="title" name="title" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="desc" class="form-label">Description <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="desc" name="desc" rows="3" required></textarea>
+          </div>
+
+          <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="publication_type" class="form-label">Publication Type</label>
+                <select class="form-select" id="publication_type" name="publication_type">
+                    <option value="none">None</option>
+                    <option value="competitive">Competitive</option>
+                    <option value="casual">Casual</option>
+                    <option value="history_mode">History Mode</option>
+                    <option value="official_tournament">Official Tournament</option>
+                    <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="publication_doi" class="form-label">Publication DOI</label>
+                <input type="text" class="form-control" id="publication_doi" name="publication_doi">
+              </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="tags" class="form-label">Tags</label>
+            <input type="text" class="form-control" id="tags" name="tags">
+          </div>
+          
+          <div class="alert alert-info py-2">
+            <i data-feather="info"></i>
+            <small>Currently selected files in cart will be associated with this dataset automatically.</small>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Dataset</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
 {% endblock %}
