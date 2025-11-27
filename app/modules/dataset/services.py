@@ -1,10 +1,10 @@
-from datetime import datetime, timezone
 import hashlib
 import io
 import logging
 import os
 import shutil
 import uuid
+from datetime import datetime
 from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 from zipfile import BadZipFile, ZipFile
@@ -14,7 +14,6 @@ from flask import request
 
 from app.modules.auth.services import AuthenticationService
 from app.modules.dataset.models import DataSet, DSMetaData, DSViewRecord, PublicationType
-from app.modules.pokemodel.models import PokeModel, FMMetaData
 from app.modules.dataset.repositories import (
     AuthorRepository,
     DataSetRepository,
@@ -29,6 +28,7 @@ from app.modules.hubfile.repositories import (
     HubfileRepository,
     HubfileViewRecordRepository,
 )
+from app.modules.pokemodel.models import FMMetaData, PokeModel
 from app.modules.pokemodel.repositories import FMMetaDataRepository, PokeModelRepository
 from core.services.BaseService import BaseService
 
@@ -411,7 +411,7 @@ class DataSetService(BaseService):
                 created_at=datetime.utcnow(),
                 draft_mode=False,
                 download_count=0,
-                ds_meta_data=ds_metadata
+                ds_meta_data=ds_metadata,
             )
 
             self.repository.session.add(new_dataset)
@@ -420,19 +420,15 @@ class DataSetService(BaseService):
             working_dir = os.getenv("WORKING_DIR", "")
             dest_dir = os.path.join(working_dir, "uploads", f"user_{user_id}", f"dataset_{new_dataset.id}")
             os.makedirs(dest_dir, exist_ok=True)
-            
+
             for cart_item in shopping_cart.items:
                 hubfile = cart_item.file
 
                 # Copiamos el hubfile al nuevo dataset para que asi el original no lo pierda
-                new_hubfile = Hubfile(
-                    name=hubfile.name,
-                    checksum=hubfile.checksum,
-                    size=hubfile.size
-                )
+                new_hubfile = Hubfile(name=hubfile.name, checksum=hubfile.checksum, size=hubfile.size)
 
                 source_path = hubfile.get_path()
-                
+
                 dest_path = os.path.join(dest_dir, new_hubfile.name)
 
                 if os.path.exists(source_path):
@@ -450,12 +446,10 @@ class DataSetService(BaseService):
                     tags=form_data.get("tags"),
                 )
 
-                new_poke_model = PokeModel(
-                    fm_meta_data=fm_metadata
-                )
+                new_poke_model = PokeModel(fm_meta_data=fm_metadata)
 
                 new_poke_model.files.append(new_hubfile)
-                
+
                 new_dataset.poke_models.append(new_poke_model)
 
                 # Borramos el item del carrito

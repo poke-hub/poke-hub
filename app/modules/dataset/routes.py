@@ -633,34 +633,32 @@ def dataset_stats(dataset_id):
     )
 
 
-@dataset_bp.route('/dataset/create_from_cart', methods=['POST'])
+@dataset_bp.route("/dataset/create_from_cart", methods=["POST"])
 @login_required
 def create_dataset_from_cart():
-    title = request.form.get('title')
-    description = request.form.get('desc')
+    title = request.form.get("title")
+    description = request.form.get("desc")
 
     if not title or not description:
-        flash('Title and description are required.', 'danger')
-        return redirect(url_for('shopping_cart.index'))
+        flash("Title and description are required.", "danger")
+        return redirect(url_for("shopping_cart.index"))
 
     cart_service = ShoppingCartService()
     shopping_cart = cart_service.get_cart_by_user(current_user)
 
     if not shopping_cart or not shopping_cart.items:
-        flash('Your shopping cart is empty.', 'warning')
-        return redirect(url_for('shopping_cart.index'))
+        flash("Your shopping cart is empty.", "warning")
+        return redirect(url_for("shopping_cart.index"))
 
     dataset_service = DataSetService()
     try:
         new_dataset = dataset_service.create_from_cart(
-            user_id=current_user.id,
-            form_data=request.form,
-            shopping_cart=shopping_cart
+            user_id=current_user.id, form_data=request.form, shopping_cart=shopping_cart
         )
-        
-        flash('Dataset created successfully from your cart!', 'success')
-        return redirect(url_for('dataset.get_unsynchronized_dataset', dataset_id=new_dataset.id))
+
+        flash("Dataset created successfully from your cart!", "success")
+        return redirect(url_for("dataset.get_unsynchronized_dataset", dataset_id=new_dataset.id))
 
     except Exception as e:
-        flash(f'Error creating dataset: {str(e)}', 'danger')
-        return redirect(url_for('shopping_cart.index'))
+        flash(f"Error creating dataset: {str(e)}", "danger")
+        return redirect(url_for("shopping_cart.index"))
