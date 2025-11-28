@@ -3,7 +3,7 @@ import logging
 from flask import render_template, request
 
 from app.modules.dataset.services import DataSetService
-from app.modules.featuremodel.services import FeatureModelService
+from app.modules.pokemodel.services import PokeModelService
 from app.modules.public import public_bp
 
 logger = logging.getLogger(__name__)
@@ -13,19 +13,19 @@ logger = logging.getLogger(__name__)
 def index():
     logger.info("Access index")
     dataset_service = DataSetService()
-    feature_model_service = FeatureModelService()
+    poke_model_service = PokeModelService()
 
-    # Statistics: total datasets and feature models
+    # Statistics: total datasets and poke models
     datasets_counter = dataset_service.count_synchronized_datasets()
-    feature_models_counter = feature_model_service.count_feature_models()
+    poke_models_counter = poke_model_service.count_poke_models()
 
     # Statistics: total downloads
     total_dataset_downloads = dataset_service.total_dataset_downloads()
-    total_feature_model_downloads = feature_model_service.total_feature_model_downloads()
+    total_poke_model_downloads = poke_model_service.total_poke_model_downloads()
 
     # Statistics: total views
     total_dataset_views = dataset_service.total_dataset_views()
-    total_feature_model_views = feature_model_service.total_feature_model_views()
+    total_poke_model_views = poke_model_service.total_poke_model_views()
 
     metric = request.args.get("metric", "views")
     trending_views = dataset_service.trending_by_views(limit=3, days=30)
@@ -36,11 +36,11 @@ def index():
         "public/index.html",
         datasets=dataset_service.latest_synchronized(),
         datasets_counter=datasets_counter,
-        feature_models_counter=feature_models_counter,
+        poke_models_counter=poke_models_counter,
         total_dataset_downloads=total_dataset_downloads,
-        total_feature_model_downloads=total_feature_model_downloads,
+        total_poke_model_downloads=total_poke_model_downloads,
         total_dataset_views=total_dataset_views,
-        total_feature_model_views=total_feature_model_views,
+        total_poke_model_views=total_poke_model_views,
         trending_views=trending_views,
         trending_downloads=trending_downloads,
         selected_metric=selected_metric,

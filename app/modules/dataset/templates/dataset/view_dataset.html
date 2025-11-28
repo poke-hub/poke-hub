@@ -119,7 +119,7 @@
 
                 </div>
                 {% endif %}
-                {% if dataset.ds_meta_data.dataset_doi %}
+                {% if dataset.ds_meta_data.dataset_doi or dataset.draft_mode %}
 
                     {% else %}
 
@@ -131,7 +131,7 @@
                         </div>
                         <div class="col-md-8 col-12">
                             <form action="{{ url_for('zenodo.publish_dataset', dataset_id=dataset.id) }}" method="POST">
-                                <button type.submit" class="btn btn-primary btn-sm">
+                                <button type="submit" class="btn btn-primary btn-sm">
                                     <i data-feather="upload-cloud"></i>
                                     Publish to FakeNodo
                                 </button>
@@ -147,6 +147,12 @@
                             Tags
                         </span>
                     </div>
+                    {% if dataset.draft_mode %}
+                    <a href="{{ url_for('dataset.edit_dataset', dataset_id=dataset.id) }}" class="btn btn-warning">
+                        <i data-feather="edit-3"></i> Edit
+                    </a>
+                    {% endif %}
+
                     <div class="col-md-8 col-12">
                         {% for tag in dataset.ds_meta_data.tags.split(',') %}
                         <span class="badge bg-secondary">{{ tag.strip() }}</span>
@@ -212,7 +218,7 @@
         David Romero-Organvidez, José A. Galindo, Chico Sundermann, Jose-Miguel
         Horcas, David Benavides,
         <i
-          >PokeHub: A feature model data repository using Poke and open science
+          >PokeHub: A poke model data repository using Poke and open science
           principles</i
         >, Journal of Systems and Software, 2024, 112150, ISSN 0164-1212,
         <a href="https://doi.org/10.1016/j.jss.2024.112150" target="_blank"
@@ -273,8 +279,8 @@
         </div>
       </div>
 
-      {% for feature_model in dataset.feature_models %} {% for file in
-      feature_model.files %}
+      {% for poke_model in dataset.poke_models %} {% for file in
+      poke_model.files %}
       <div class="list-group-item">
         <div class="row">
           <div class="col-12">
@@ -381,8 +387,9 @@
             </div>
           </div>
         </div>
-      </div>
-      {% endfor %} {% endfor %}
+        {% endfor %}
+        {% endfor %}
+
     </div>
 
     <a
@@ -418,7 +425,7 @@
         "
       >
         <h5 class="modal-title" id="fileViewerModalLabel">
-          Feature model view
+          Poke model view
         </h5>
         <div>
           <a
@@ -578,9 +585,9 @@
             with open("uvlfile.uvl", "w") as text_file:
                 print(file_content, file=text_file)
 
-            from flamapy.interfaces.python.FLAMAFeatureModel import FLAMAFeatureModel
+            from flamapy.interfaces.python.FLAMAPokeModel import FLAMAPokeModel
 
-            fm = FLAMAFeatureModel("uvlfile.uvl")
+            fm = FLAMAPokeModel("uvlfile.uvl")
             result=fm.valid()
 
             div.innerHTML = "<div id='deleteme'>"+str(result)+"</div>"

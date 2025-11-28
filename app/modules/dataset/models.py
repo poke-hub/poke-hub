@@ -9,24 +9,11 @@ from app import db
 
 class PublicationType(Enum):
     NONE = "none"
-    ANNOTATION_COLLECTION = "annotationcollection"
-    BOOK = "book"
-    BOOK_SECTION = "section"
-    CONFERENCE_PAPER = "conferencepaper"
-    DATA_MANAGEMENT_PLAN = "datamanagementplan"
-    JOURNAL_ARTICLE = "article"
-    PATENT = "patent"
-    PREPRINT = "preprint"
-    PROJECT_DELIVERABLE = "deliverable"
-    PROJECT_MILESTONE = "milestone"
-    PROPOSAL = "proposal"
-    REPORT = "report"
-    SOFTWARE_DOCUMENTATION = "softwaredocumentation"
-    TAXONOMIC_TREATMENT = "taxonomictreatment"
-    TECHNICAL_NOTE = "technicalnote"
-    THESIS = "thesis"
-    WORKING_PAPER = "workingpaper"
     OTHER = "other"
+    COMPETITIVE = "competitive"
+    CASUAL = "casual"
+    HISTORY_MODE = "history_mode"
+    OFFICIAL_TOURNAMENT = "official_tournament"
 
 
 class Author(db.Model):
@@ -44,10 +31,10 @@ class Author(db.Model):
 class DSMetrics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     number_of_models = db.Column(db.String(120))
-    number_of_features = db.Column(db.String(120))
+    number_of_pokes = db.Column(db.String(120))
 
     def __repr__(self):
-        return f"DSMetrics<models={self.number_of_models}, features={self.number_of_features}>"
+        return f"DSMetrics<models={self.number_of_models}, pokes={self.number_of_pokes}>"
 
 
 class DSMetaData(db.Model):
@@ -65,7 +52,7 @@ class DSMetaData(db.Model):
 
     def get_all_tags(self):
         res, aux = set(), set()
-        for fm in self.data_set.feature_models:
+        for fm in self.data_set.poke_models:
             if fm.fm_meta_data.tags:
                 aux.update(fm.fm_meta_data.get_all_tags())
         if self.tags:
@@ -77,7 +64,7 @@ class DSMetaData(db.Model):
 
     def get_all_authors(self):
         res = set()
-        for fm in self.data_set.feature_models:
+        for fm in self.data_set.poke_models:
             if fm.fm_meta_data.authors:
                 res.update(fm.fm_meta_data.authors)
         if self.authors:
@@ -99,17 +86,18 @@ class DataSet(db.Model):
 
     ds_meta_data_id = db.Column(db.Integer, db.ForeignKey("ds_meta_data.id"), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    draft_mode = db.Column(db.Boolean, nullable=False, default=False)
 
     download_count = db.Column(db.Integer, nullable=False, default=0)
 
     ds_meta_data = db.relationship("DSMetaData", backref=db.backref("data_set", uselist=False))
-    feature_models = db.relationship("FeatureModel", backref="data_set", lazy=True, cascade="all, delete")
+    poke_models = db.relationship("PokeModel", backref="data_set", lazy=True, cascade="all, delete")
 
     def name(self):
         return self.ds_meta_data.title
 
     def files(self):
-        return [file for fm in self.feature_models for file in fm.files]
+        return [file for fm in self.poke_models for file in fm.files]
 
     def delete(self):
         db.session.delete(self)
@@ -122,10 +110,10 @@ class DataSet(db.Model):
         return f"https://zenodo.org/record/{self.ds_meta_data.deposition_id}" if self.ds_meta_data.dataset_doi else None
 
     def get_files_count(self):
-        return sum(len(fm.files) for fm in self.feature_models)
+        return sum(len(fm.files) for fm in self.poke_models)
 
     def get_file_total_size(self):
-        return sum(file.size for fm in self.feature_models for file in fm.files)
+        return sum(file.size for fm in self.poke_models for file in fm.files)
 
     def get_file_total_size_for_human(self):
         from app.modules.dataset.services import SizeService
@@ -152,7 +140,7 @@ class DataSet(db.Model):
             "url": self.get_pokehub_doi(),
             "download": f'{request.host_url.rstrip("/")}/dataset/download/{self.id}',
             "zenodo": self.get_zenodo_url(),
-            "files": [file.to_dict() for fm in self.feature_models for file in fm.files],
+            "files": [file.to_dict() for fm in self.poke_models for file in fm.files],
             "files_count": self.get_files_count(),
             "total_size_in_bytes": self.get_file_total_size(),
             "total_size_in_human_format": self.get_file_total_size_for_human(),

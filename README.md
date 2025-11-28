@@ -4,7 +4,7 @@
 
 # Pokehub.io
 
-Repository of feature models in Poke format integrated with Zenodo and flamapy following Open Science principles - Developed by DiversoLab
+Repository of pokemon models in Poke format integrated with Fakenodo and flamapy following Open Science principles - Developed by DiversoLab
 
 ## Official documentation
 

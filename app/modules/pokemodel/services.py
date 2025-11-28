@@ -1,21 +1,21 @@
-from app.modules.featuremodel.repositories import FeatureModelRepository, FMMetaDataRepository
 from app.modules.hubfile.services import HubfileService
+from app.modules.pokemodel.repositories import FMMetaDataRepository, PokeModelRepository
 from core.services.BaseService import BaseService
 
 
-class FeatureModelService(BaseService):
+class PokeModelService(BaseService):
     def __init__(self):
-        super().__init__(FeatureModelRepository())
+        super().__init__(PokeModelRepository())
         self.hubfile_service = HubfileService()
 
-    def total_feature_model_views(self) -> int:
+    def total_poke_model_views(self) -> int:
         return self.hubfile_service.total_hubfile_views()
 
-    def total_feature_model_downloads(self) -> int:
+    def total_poke_model_downloads(self) -> int:
         return self.hubfile_service.total_hubfile_downloads()
 
-    def count_feature_models(self):
-        return self.repository.count_feature_models()
+    def count_poke_models(self):
+        return self.repository.count_poke_models()
 
     class FMMetaDataService(BaseService):
         def __init__(self):

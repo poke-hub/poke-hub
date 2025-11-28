@@ -22,7 +22,7 @@ class AuthorForm(FlaskForm):
         }
 
 
-class FeatureModelForm(FlaskForm):
+class PokeModelForm(FlaskForm):
     poke_filename = StringField("Poke Filename", validators=[DataRequired()])
     title = StringField("Title", validators=[Optional()])
     desc = TextAreaField("Description", validators=[Optional()])
@@ -66,7 +66,23 @@ class DataSetForm(FlaskForm):
     dataset_doi = StringField("Dataset DOI", validators=[Optional(), URL()])
     tags = StringField("Tags (separated by commas)")
     authors = FieldList(FormField(AuthorForm))
-    feature_models = FieldList(FormField(FeatureModelForm), min_entries=1)
+    poke_models = FieldList(FormField(PokeModelForm), min_entries=1)
+
+    source = SelectField(
+        "Source",
+        choices=[
+            ("file", "Single file (.poke)"),
+            ("zip", "ZIP archive"),
+            ("github", "GitHub repository"),
+        ],
+        validators=[Optional()],
+        default="file",
+    )
+
+    # We used it if source == "github"
+    github_url = StringField("GitHub repository URL", validators=[Optional(), URL()])
+    github_branch = StringField("Git branch", validators=[Optional()])
+    github_subdir = StringField("Repository subdirectory", validators=[Optional()])
 
     submit = SubmitField("Submit")
 
@@ -92,5 +108,13 @@ class DataSetForm(FlaskForm):
     def get_authors(self):
         return [author.get_author() for author in self.authors]
 
-    def get_feature_models(self):
-        return [fm.get_feature_model() for fm in self.feature_models]
+    def get_poke_models(self):
+        return [pm.get_poke_model() for pm in self.poke_models]
+
+    def get_source_info(self):
+        return {
+            "source": self.source.data or "file",
+            "github_url": self.github_url.data,
+            "github_branch": self.github_branch.data or "main",
+            "github_subdir": (self.github_subdir.data or "").strip("/"),
+        }

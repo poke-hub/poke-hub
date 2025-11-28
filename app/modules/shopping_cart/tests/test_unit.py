@@ -3,8 +3,8 @@ import pytest
 from app import db
 from app.modules.auth.models import User
 from app.modules.dataset.models import DataSet, DSMetaData, PublicationType
-from app.modules.featuremodel.models import FeatureModel
 from app.modules.hubfile.models import Hubfile
+from app.modules.pokemodel.models import PokeModel
 from app.modules.shopping_cart.models import ShoppingCart
 from app.modules.shopping_cart.repositories import ShoppingCartItemRepository, ShoppingCartRepository
 from app.modules.shopping_cart.services import ShoppingCartService
@@ -24,11 +24,11 @@ def test_client(test_client):
         db.session.add(dataset)
         db.session.commit()
 
-        fm = FeatureModel(data_set_id=dataset.id)
+        fm = PokeModel(data_set_id=dataset.id)
         db.session.add(fm)
         db.session.commit()
 
-        hubfile = Hubfile(name="file1", checksum="abc123", size=123, feature_model_id=fm.id)
+        hubfile = Hubfile(name="file1", checksum="abc123", size=123, poke_model_id=fm.id)
         db.session.add(hubfile)
         db.session.commit()
 
@@ -79,10 +79,10 @@ def test_clear_cart_removes_all_items(test_client):
     with test_client.application.app_context():
         user = User.query.filter_by(email="test@example.com").first()
         cart = ShoppingCart.query.filter_by(user_id=user.id).first()
-        fm = FeatureModel.query.first()
+        fm = PokeModel.query.first()
 
         hubfile1 = Hubfile.query.first()
-        hubfile2 = Hubfile(name="file2", checksum="def456", size=456, feature_model_id=fm.id)
+        hubfile2 = Hubfile(name="file2", checksum="def456", size=456, poke_model_id=fm.id)
         db.session.add(hubfile2)
         db.session.commit()
 

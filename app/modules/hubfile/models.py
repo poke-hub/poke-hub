@@ -13,7 +13,7 @@ class Hubfile(db.Model):
     name = db.Column(db.String(120), nullable=False)
     checksum = db.Column(db.String(120), nullable=False)
     size = db.Column(db.Integer, nullable=False)
-    feature_model_id = db.Column(db.Integer, db.ForeignKey("feature_model.id"), nullable=False)
+    poke_model_id = db.Column(db.Integer, db.ForeignKey("poke_model.id"), nullable=False)
     items = db.relationship("ShoppingCartItem", backref="file", lazy=True, cascade="all, delete-orphan")
 
     def get_formatted_size(self):
