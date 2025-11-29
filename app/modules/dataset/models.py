@@ -98,13 +98,17 @@ class DataSet(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     ds_meta_data_id = db.Column(db.Integer, db.ForeignKey("ds_meta_data.id"), nullable=False)
+    community_id = db.Column(db.Integer, db.ForeignKey('community.id'),nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     draft_mode = db.Column(db.Boolean, nullable=False, default=False)
 
     download_count = db.Column(db.Integer, nullable=False, default=0)
 
     ds_meta_data = db.relationship("DSMetaData", backref=db.backref("data_set", uselist=False))
+    community = db.relationship('Community', back_populates='datasets')
     feature_models = db.relationship("FeatureModel", backref="data_set", lazy=True, cascade="all, delete")
+    community_requests = db.relationship('CommunityDatasetRequest', back_populates='dataset', cascade="all, delete-orphan")
+
 
     def name(self):
         return self.ds_meta_data.title

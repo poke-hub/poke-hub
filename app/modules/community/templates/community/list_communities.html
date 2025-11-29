@@ -1,31 +1,74 @@
 {% extends "base_template.html" %}
-
-{% block title %}My datasets{% endblock %}
-
 {% block content %}
 
-    <div class="container mt-5">
-        <h1 class="h3 mb-3">My communities</h1>
-        <p>Here are all the communities:</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Communities</h1>
 
-        {% if communities %}
-            <div class="list-group">
-                {% for community in communities %}
-                    <div class="list-group-item">
-                        <a href="{{ url_for('community.view_community', community_id=community.id) }}" 
-                            class="h5 mb-1 text-primary text-decoration-none"> {{ community.name }}
-                        </a>
-                        <p class="mb-1">{{ community.description[:100] }}...</p>
-                        <small>Created on: {{ community.creationDate.strftime('%B %d, %Y') }}</small>
-                    </div>
-                {% endfor %}
-            </div>
+    {% if current_user.is_authenticated %}
+        <a href="{{ url_for('community.create_community') }}" class="btn btn-primary">
+            <i data-feather="plus-circle"></i> Create community
+        </a>
+    {% endif %}
+</div>
+
+{% if communities|length == 0 %}
+    <div class="alert alert-info">
+        No communities have been created yet.
+    </div>
+{% else %}
+    <div class="row">
+        {% for c in communities %}
+            <div class="col-12 col-sm-6 col-lg-4 mb-4">
+                <div class="card shadow-sm h-100">
+
+                    {% if c.banner_path %}
+                        <img src="{{ c.banner_path }}"
+                             class="card-img-top"
+                             alt="{{ c.name }} banner">
+                    {% endif %}
+
+                    <div class="card-body">
+
+    <div class="d-flex align-items-center mb-3 gap-3">
+        {% if c.logo_path %}
+            <img src="{{ c.logo_path }}"
+                 alt="{{ c.name }} logo"
+                 class="rounded-3 shadow-sm"
+                 style="width: 48px; height: 48px; object-fit: contain;">
         {% else %}
-            <p>No communities found.</p>
+            <div class="bg-light text-primary rounded-3 border d-flex justify-content-center align-items-center"
+                 style="width:48px;height:48px;font-size:20px;">
+                <i data-feather="layers"></i>
+            </div>
         {% endif %}
+
+        <div>
+            <h5 class="mb-1 fw-bold">{{ c.name }}</h5>
+            <small class="text-muted">
+                {{ c.members|length }} members · {{ c.creation_date.strftime('%Y-%m-%d') }}
+            </small>
+        </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <p class="text-muted mt-2 mb-3">
+        {{ c.description[:120] }}{% if c.description|length > 120 %}...{% endif %}
+    </p>
+
+    <div class="text-end">
+        <a
+            href="{{ url_for('community.view_community', community_id=c.id) }}"
+            class="btn btn-outline-primary btn-sm"
+            style="border-radius: 5px">
+            <i data-feather="eye" class="center-button-icon"></i>
+            View
+        </a>
+    </div>
+
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
 {% endblock %}
