@@ -1,35 +1,115 @@
 {% extends "base_template.html" %}
-
-{% block title %}My datasets{% endblock %}
+{% block title %}{{ community.name }} - Community{% endblock %}
 
 {% block content %}
+<div class="container mt-4">
 
-    <div class="container mt-5">
-        <h1>{{ community.name }}</h1>
-        <p><strong>Description:</strong> {{ community.description }}</p>
-        <p><strong>Created On:</strong> {{ community.creationDate.strftime('%B %d, %Y') }}</p>
-        <p><strong>Members:</strong> 
-            {% if community.members %}
-                <ul>
-                    {% for member in community.members %}
-                        <li>{{ member.email }}</li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                No members yet.
-            {% endif %}
-        </p>
-        {% if current_user not in community.members %}
-            <form action="{{ url_for('community.join_community', community_id=community.id) }}" method="POST">
-                <button type="submit" class="btn btn-primary">Join Community</button>
+    {% if community.banner_path %}
+    <div class="mb-4 text-center">
+        <img src="{{ community.banner_path }}"
+             alt="Banner de {{ community.name }}"
+             class="img-fluid rounded">
+    </div>
+    {% endif %}
+
+    {% if current_user.is_authenticated %}
+
+        {% if current_user in community.members %}
+            <form action="{{ url_for('community.leave_community', community_id=community.id) }}" method="POST">
+                <button class="btn btn-outline-danger mb-4">Salir de la comunidad</button>
             </form>
         {% else %}
-            <p>You are already a member of this community.</p>
+            <form action="{{ url_for('community.join_community', community_id=community.id) }}" method="POST">
+                <button class="btn btn-primary mb-4">Unirse a la comunidad</button>
+            </form>
         {% endif %}
-        <a href="{{ url_for('community.list_communities') }}" class="btn btn-primary mt-3">Back to Communities List</a>
+
+    {% endif %}
+
+    <div class="d-flex align-items-center p-3 border rounded bg-light mb-4">
+        {% if community.logo_path %}
+        <img src="{{ community.logo_path }}"
+             alt="Logo"
+             class="rounded-circle me-3 border"
+             style="height: 70px; width: 70px; object-fit: contain;">
+        {% endif %}
+
+        <div>
+            <h2 class="h4 mb-1">{{ community.name }}</h2>
+            <div class="text-muted small">
+                <div><i class="bi bi-people"></i> {{ community.members|length }} Members</div>
+                <div><i class="bi bi-calendar-event"></i> Created on {{ community.creation_date.strftime("%d/%m/%Y") }}</div>
+            </div>
+        </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4>Description</h4>
+            <p>{{ community.description or "This community hasn't got a description yet" }}</p>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4>Curators</h4>
+
+            {% if community.curators %}
+                <ul>
+                {% for curator in community.curators %}
+                    <li>{{ curator.username }} ({{ curator.email }})</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">No hay curadores asignados todavía.</p>
+            {% endif %}
+
+            {% if current_user in community.curators %}
+                <a class="btn btn-primary" href="{{ url_for('community.review_requests', community_id=community.id) }}">
+                    Review Dataset Requests
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4>Datasets</h4>
+
+            {% if community.datasets.count() > 0 %}
+                <ul class="list-group">
+                {% for dataset in community.datasets %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ dataset.ds_meta_data.title }}</strong><br>
+                            <small class="text-muted">Authors: 
+                                {% for author in dataset.ds_meta_data.authors %}
+                                    {{ author.name }}
+                                {% endfor %}
+                            </small>
+                        </div>
+
+                        <a href="{{ dataset.get_pokehub_doi() }}"
+                           class="btn btn-outline-primary btn-sm">
+                            View dataset
+                        </a>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">No datasets yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if current_user.is_authenticated %}
+    <div class="text-center mb-5">
+        <a href="{{ url_for('community.propose_dataset', community_id=community.id) }}" 
+           class="btn btn-primary btn-lg">
+            Propose dataset
+        </a>
+    </div>
+    {% endif %}
+
+</div>
 {% endblock %}

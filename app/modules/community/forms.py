@@ -1,9 +1,15 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SubmitField
-from wtforms.validators import DataRequired, Length
-
+from wtforms import StringField, TextAreaField, FileField, SubmitField, HiddenField
+from wtforms.validators import DataRequired, Length, Optional
 
 class CommunityForm(FlaskForm):
-    name = StringField('Community Name', validators=[DataRequired(), Length(max=100)])
-    description = TextAreaField('Description', validators=[Length(max=500)])
-    submit = SubmitField('Create Community')
+    name = StringField('Name', validators=[DataRequired(), Length(max=64)])
+    description = TextAreaField('Description', validators=[Optional(), Length(max=512)])
+    logo = FileField('Logo (opcional)', validators=[Optional()])
+    banner = FileField('Banner (opcional)', validators=[Optional()])
+    submit = SubmitField('Create')
+
+class ProposeDatasetForm(FlaskForm):
+    dataset_id = HiddenField('dataset_id', validators=[DataRequired()])
+    message = TextAreaField('Message (optional)', validators=[Optional(), Length(max=1024)])
+    submit = SubmitField('Propose to community')
