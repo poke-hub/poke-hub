@@ -8,7 +8,7 @@ from flask.cli import with_appcontext
 )
 @with_appcontext
 def elasticsearch_reset():
-    from app.modules.elasticsearch.services import ElasticsearchService  # <--- aquí dentro
+    from app.modules.elasticsearch.services import ElasticsearchService
 
     search = ElasticsearchService()
 
@@ -41,7 +41,7 @@ def elasticsearch_reset():
 )
 @with_appcontext
 def elasticsearch_delete():
-    from app.modules.elasticsearch.services import ElasticsearchService  # <--- aquí dentro
+    from app.modules.elasticsearch.services import ElasticsearchService
 
     search = ElasticsearchService()
 
