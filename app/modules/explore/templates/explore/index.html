@@ -68,12 +68,12 @@ document.addEventListener('DOMContentLoaded', function() {
         notFoundMessage.style.display = 'none';
         datasets.forEach(dataset => {
             const authorsHtml = Array.isArray(dataset.authors) ? dataset.authors.join(', ') : (dataset.authors || 'Unknown');
-            
+            console.log(dataset);
             const card = `
                 <div class="col-md-4 mb-4">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h5 class="card-title"><a href="/publications/${dataset.id}">${dataset.title}</a></h5>
+                            <h5 class="card-title"><a href="/doi/${dataset.doi}">${dataset.title}</a></h5>
                             <h6 class="card-subtitle mb-2 text-muted">by ${authorsHtml}</h6>
                             <p class="card-text">${(dataset.description || '').substring(0, 100)}...</p>
                         </div>
