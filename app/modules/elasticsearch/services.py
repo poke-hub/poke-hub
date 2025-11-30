@@ -40,7 +40,8 @@ class ElasticsearchService(BaseService):
                             "abilities": {"type": "search_as_you_type"},
                             "moves": {"type": "text"},
                             "max_ev_count": {"type": "integer"},
-                            "max_iv_count": {"type": "integer"}
+                            "max_iv_count": {"type": "integer"},
+                            "doi": {"type": "keyword"}
                         }
                     }
                 },
