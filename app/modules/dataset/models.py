@@ -153,11 +153,11 @@ class DataSet(db.Model):
             "tags": list(self.ds_meta_data.get_all_tags()),
             "authors": [author.name for author in self.ds_meta_data.get_all_authors()],
             "created_at": self.created_at.isoformat(),
-            "pokemons": [], # TODO agregar pokémones cuando suban el modelo
-            "abilities": [], # TODO agregar habilidades cuando suban el modelo
-            "moves": [], # TODO agregar movimientos cuando suban el modelo
-            "max_ev_count": 0, # TODO agregar función para calcular esto cuando suban el modelo
-            "max_iv_count": 0, # TODO agregar función para calcular esto cuando suban el modelo
+            "pokemons": [pm.get_pokemon().name for pm in self.poke_models],
+            "abilities": [pm.get_pokemon().ability for pm in self.poke_models],
+            "moves": [move for pm in self.poke_models for move in pm.get_pokemon().moves],
+            "max_ev_count": max(pm.get_total_evs() for pm in self.poke_models) if self.poke_models else 0,
+            "max_iv_count": max(pm.get_total_ivs() for pm in self.poke_models) if self.poke_models else 0,
         }
 
     def __repr__(self):
