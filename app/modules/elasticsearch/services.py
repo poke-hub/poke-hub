@@ -15,9 +15,9 @@ class ElasticsearchService(BaseService):
         # NOTA: Reemplaza 'tu_contraseña' con la contraseña real del usuario 'elastic'.
         # NOTA: Reemplaza '/ruta/a/tu/elasticsearch/config/certs/http_ca.crt' con la ruta real.
         self.es = Elasticsearch(
-            hosts=["https://localhost:9200"],
-            basic_auth=("elastic", os.environ.get("ELASTICSEARCH_PASSWORD")),
-            ca_certs="elasticsearch_ca.crt"
+            hosts=[os.environ.get("ELASTICSEARCH_HOST")],
+            basic_auth=(os.environ.get("ELASTICSEARCH_USER"), os.environ.get("ELASTICSEARCH_PASSWORD")),
+            ca_certs=os.environ.get("ELASTICSEARCH_CERT_PATH"),
         )
         self.index_name = index_name
         self.create_index_if_not_exists()
@@ -67,7 +67,7 @@ class ElasticsearchService(BaseService):
         must_clauses = []
         if query:
             must_clauses.append(
-                {"multi_match": {"query": query, "fields": ["title", "description", "tags", "authors", "pokemons", "ability", "moves"]}}
+                {"multi_match": {"query": query, "fields": ["title", "description", "tags", "authors", "pokemons", "abilities", "moves"]}}
             )
         else:
             must_clauses.append({"match_all": {}})
