@@ -37,6 +37,14 @@ class PokeModel(db.Model):
         pokemon = parse_poke(file_path)
         return pokemon
 
+    def get_total_ivs(self):
+        pokemon = self.get_pokemon()
+        return sum(pokemon.ivs.values())
+
+    def get_total_evs(self):
+        pokemon = self.get_pokemon()
+        return sum(pokemon.evs.values())
+
 
 def parse_poke(file_path):
 
