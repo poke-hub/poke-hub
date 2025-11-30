@@ -30,7 +30,7 @@ class PokeModel(db.Model):
 
     def get_pokemon(self):
 
-        directory_path = f"uploads/user_{self.data_set.user_id}/dataset_{self.data_set_id}/"
+        directory_path = f"uploads/user_{self.data_set.user_id}/dataset_{self.data_set_id}/{self.files[0].name}"
         parent_directory_path = os.path.dirname(current_app.root_path)
         file_path = os.path.join(parent_directory_path, directory_path)
 
