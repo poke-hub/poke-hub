@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 from flask import Flask, session
+from app.extensions import mail
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -29,10 +30,13 @@ def create_app(config_name="development"):
     # Load configuration according to environment
     config_manager = ConfigManager(app)
     config_manager.load_config(config_name=config_name)
+    app.config.from_object("core.configuration.configuration.Config")  
+
 
     # Initialize SQLAlchemy and Migrate with the app
     db.init_app(app)
     migrate.init_app(app, db)
+    mail.init_app(app)
 
     # Register modules
     module_manager = ModuleManager(app)

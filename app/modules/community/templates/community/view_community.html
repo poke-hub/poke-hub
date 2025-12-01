@@ -87,6 +87,8 @@
                                     {{ author.name }}
                                 {% endfor %}
                             </small>
+                            <small class="text-muted">Description: {{ dataset.ds_meta_data.description }}
+                            </small>
                         </div>
 
                         <a href="{{ dataset.get_pokehub_doi() }}"

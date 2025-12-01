@@ -2,10 +2,12 @@ from flask import render_template, redirect, url_for, flash, request, abort
 from app import db
 from app.modules.community.forms import CommunityForm, ProposeDatasetForm
 from app.modules.community.models import Community, CommunityDatasetRequest
+from app.modules.community.utils.email import send_email
 from app.modules.community import community_bp
 from app.modules.dataset.models import DataSet
 from flask_login import login_required, current_user
 from datetime import datetime
+
 
 @community_bp.route('/list', methods=["GET"])
 @login_required
@@ -164,10 +166,19 @@ def accept_request(req_id):
         return redirect(url_for("community.review_requests", community_id=community.id))
 
     req.status = "accepted"
-
     req.dataset.community_id = community.id
-
     db.session.commit()
+
+    send_email(
+    subject=f"Your dataset was accepted in {req.community.name}",
+    recipients=[req.dataset.user.email],
+    body=(
+        f"Hi {req.dataset.user.profile.name},\n\n"
+        f"Your dataset '{req.dataset.ds_meta_data.title}' has been accepted into the community "
+        f"'{req.community.name}'.\n\n"
+        "Thanks for contributing, and gotta catch 'em all!!"
+    )
+    )
 
     flash("Dataset aceptado e incluido en la comunidad.", "success")
     return redirect(url_for("community.review_requests", community_id=community.id))
