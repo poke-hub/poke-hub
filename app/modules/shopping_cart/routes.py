@@ -92,6 +92,8 @@ def download_cart():
     if not shopping_cart or not shopping_cart.items:
         flash("Your shopping cart is empty.", "warning")
         return redirect(url_for("shopping_cart.index"))
+        flash("Your shopping cart is empty.", "warning")
+        return redirect(url_for("shopping_cart.index"))
 
     temp_dir = tempfile.mkdtemp()
     zip_path = os.path.join(temp_dir, "poke_hub_cart.zip")
