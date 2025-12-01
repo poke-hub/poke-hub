@@ -14,7 +14,6 @@ def shopping_cart_seed(test_client):
     with test_client.application.app_context():
         user = User.query.filter_by(email="test@example.com").first()
 
-        # Create a dataset and pokemodel and hubfile if they don't exist
         ds_meta = DSMetaData(title="Test DS", description="Desc prueba", publication_type=PublicationType.NONE)
         db.session.add(ds_meta)
         db.session.flush()
@@ -41,7 +40,6 @@ def shopping_cart_seed(test_client):
         db.session.add(hubfile)
         db.session.commit()
 
-        # Ensure cart exists for user
         cart_repo = ShoppingCartRepository()
         if not cart_repo.find_by_user_id(user.id):
             cart_repo.create(user_id=user.id)
@@ -83,7 +81,6 @@ def test_remove_from_cart(test_client, shopping_cart_seed):
         hubfile = Hubfile.query.first()
         hubfile_id = hubfile.id
 
-        # Ensure it's in the cart first
         user = User.query.filter_by(email="test@example.com").first()
         svc = ShoppingCartService()
         cart = svc.get_cart_by_user(user)
@@ -118,7 +115,6 @@ def test_download_cart(test_client, shopping_cart_seed):
         svc.add_item_to_cart(cart, hubfile)
         db.session.commit()
 
-        # Ensure file exists on disk for download
         import os
         dataset = DataSet.query.get(hubfile.poke_model.data_set_id)
         file_path = os.path.join(
@@ -132,7 +128,6 @@ def test_download_cart(test_client, shopping_cart_seed):
         with open(file_path, "w") as f:
             f.write("dummy content")
 
-    # Force session cleanup to ensure next request sees committed data
     db.session.remove()
 
     resp = test_client.get("/shopping_cart/download")
@@ -159,7 +154,6 @@ def test_add_and_remove_item_from_cart_service(test_client, shopping_cart_seed):
 
         svc = ShoppingCartService()
 
-        # Ensure clean state
         svc.clear_cart(cart)
 
         new_item = svc.add_item_to_cart(cart, hubfile)

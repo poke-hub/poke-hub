@@ -13,7 +13,6 @@ def shopping_cart_integration_seed(test_client):
     with test_client.application.app_context():
         user = User.query.filter_by(email="test@example.com").first()
 
-        # Create a dataset and pokemodel and hubfile if they don't exist
         ds_meta = DSMetaData(title="Integration Test DS", description="Desc prueba", publication_type=PublicationType.NONE)
         db.session.add(ds_meta)
         db.session.flush()
@@ -40,7 +39,6 @@ def shopping_cart_integration_seed(test_client):
         db.session.add(hubfile)
         db.session.commit()
 
-        # Ensure cart exists for user
         cart_repo = ShoppingCartRepository()
         if not cart_repo.find_by_user_id(user.id):
             cart_repo.create(user_id=user.id)
@@ -68,12 +66,10 @@ def test_shopping_cart_full_flow(test_client, shopping_cart_integration_seed):
     """
     login(test_client, "test@example.com", "test1234")
 
-    # 1. Get Hubfile ID
     with test_client.application.app_context():
         hubfile = Hubfile.query.filter_by(name="integration_file.txt").first()
         hubfile_id = hubfile.id
         
-        # Ensure file exists on disk for download step
         import os
         dataset = DataSet.query.get(hubfile.poke_model.data_set_id)
         file_path = os.path.join(
@@ -87,31 +83,25 @@ def test_shopping_cart_full_flow(test_client, shopping_cart_integration_seed):
         with open(file_path, "w") as f:
             f.write("dummy content")
 
-    # 2. Check empty cart (or at least check access)
     resp = test_client.get("/shopping_cart")
     assert resp.status_code == 200
 
-    # 3. Add item
     resp = test_client.get(f"/add_to_cart/{hubfile_id}", follow_redirects=True)
     assert resp.status_code == 200
     assert "added to your cart" in resp.data.decode("utf-8")
 
-    # 4. Verify item in cart (via UI or DB)
     resp = test_client.get("/shopping_cart")
     assert resp.status_code == 200
     assert "integration_file.txt" in resp.data.decode("utf-8")
 
-    # 5. Download cart
     resp = test_client.get("/shopping_cart/download")
     assert resp.status_code == 200
     assert resp.headers["Content-Type"] == "application/zip"
 
-    # 6. Remove item
     resp = test_client.get(f"/remove_from_cart/{hubfile_id}", follow_redirects=True)
     assert resp.status_code == 200
     assert "removed from your cart" in resp.data.decode("utf-8")
 
-    # 7. Verify empty cart (item not in UI)
     resp = test_client.get("/shopping_cart")
     assert resp.status_code == 200
     assert "integration_file.txt" not in resp.data.decode("utf-8")
@@ -131,14 +121,11 @@ def test_clear_cart_flow(test_client, shopping_cart_integration_seed):
         hubfile = Hubfile.query.filter_by(name="integration_file.txt").first()
         hubfile_id = hubfile.id
 
-    # Add item
     test_client.get(f"/add_to_cart/{hubfile_id}", follow_redirects=True)
 
-    # Clear cart
     resp = test_client.get("/clear_cart", follow_redirects=True)
     assert resp.status_code == 200
     assert "cart has been cleared" in resp.data.decode("utf-8")
 
-    # Verify empty
     resp = test_client.get("/shopping_cart")
     assert "integration_file.txt" not in resp.data.decode("utf-8")
