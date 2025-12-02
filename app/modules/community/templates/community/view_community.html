@@ -6,7 +6,7 @@
 
     {% if community.banner_path %}
     <div class="mb-4 text-center">
-        <img src="{{ url_for('static', filename=community.logo_path) }}" 
+        <img src="{{ url_for('static', filename=community.banner_path) }}" 
              alt="Banner de {{ community.name }}"
              class="img-fluid rounded">
     </div>
@@ -16,7 +16,7 @@
 
         {% if current_user in community.members %}
             <form action="{{ url_for('community.leave_community', community_id=community.id) }}" method="POST">
-                <button class="btn btn-outline-danger mb-4">Disjoin community</button>
+                <button class="btn btn-outline-danger mb-4">Unfollow community</button>
             </form>
         {% else %}
             <form action="{{ url_for('community.join_community', community_id=community.id) }}" method="POST">

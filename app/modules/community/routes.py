@@ -82,10 +82,10 @@ def edit_community(community_id):
         community.description = form.description.data
 
         if form.logo.data:
-            community.logo_path = save_image(form.logo.data, "communities/logos")
+            community.logo_path = save_image(form.logo.data, "logos")
 
         if form.banner.data:
-            community.banner_path = save_image(form.banner.data, "communities/banners")
+            community.banner_path = save_image(form.banner.data, "banners")
 
         db.session.commit()
 

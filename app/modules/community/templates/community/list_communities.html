@@ -22,7 +22,7 @@
                 <div class="card shadow-sm h-100">
 
                     {% if c.banner_path %}
-                        <img src="{{ c.banner_path }}"
+                        <img src="{{ url_for('static', filename=c.banner_path) }}" 
                              class="card-img-top"
                              alt="{{ c.name }} banner">
                     {% endif %}
@@ -31,7 +31,7 @@
 
     <div class="d-flex align-items-center mb-3 gap-3">
         {% if c.logo_path %}
-            <img src="{{ c.logo_path }}"
+            <img src="{{ url_for('static', filename=c.logo_path) }}" 
                  alt="{{ c.name }} logo"
                  class="rounded-3 shadow-sm"
                  style="width: 48px; height: 48px; object-fit: contain;">
