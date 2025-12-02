@@ -1,60 +1,62 @@
-{% extends "layouts/base.html" %}
+{% extends "base_template.html" %}
 {% block title %}Crear Comunidad{% endblock %}
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container py-4">
 
-    <h1 class="mb-4">Crear una nueva comunidad</h1>
+    <h1 class="mb-4 fw-bold">Create new community</h1>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
 
             <form action="" method="POST" enctype="multipart/form-data">
                 {{ form.hidden_tag() }}
 
                 <div class="mb-3">
-                    {{ form.name.label(class="form-label") }}
-                    {{ form.name(class="form-control", placeholder="Ej. ‘Machine Learning Spain’") }}
+                    {{ form.name.label(class="form-label fw-semibold") }}
+                    {{ form.name(class="form-control", placeholder="Ej. ‘Special moves’") }}
                     {% if form.name.errors %}
-                        <div class="text-danger small">{{ form.name.errors[0] }}</div>
+                        <div class="text-danger small mt-1">{{ form.name.errors[0] }}</div>
                     {% endif %}
                 </div>
 
                 <div class="mb-3">
-                    {{ form.description.label(class="form-label") }}
-                    {{ form.description(class="form-control", rows="4", placeholder="Describe el propósito de la comunidad...") }}
+                    {{ form.description.label(class="form-label fw-semibold") }}
+                    {{ form.description(class="form-control", rows=4, placeholder="Describe community's purpose...") }}
                     {% if form.description.errors %}
-                        <div class="text-danger small">{{ form.description.errors[0] }}</div>
+                        <div class="text-danger small mt-1">{{ form.description.errors[0] }}</div>
                     {% endif %}
                 </div>
 
                 {% if form.logo %}
                 <div class="mb-3">
-                    {{ form.logo.label(class="form-label") }}
+                    {{ form.logo.label(class="form-label fw-semibold") }}
                     {{ form.logo(class="form-control") }}
                     {% if form.logo.errors %}
-                        <div class="text-danger small">{{ form.logo.errors[0] }}</div>
+                        <div class="text-danger small mt-1">{{ form.logo.errors[0] }}</div>
                     {% endif %}
                 </div>
                 {% endif %}
 
                 {% if form.banner %}
                 <div class="mb-3">
-                    {{ form.banner.label(class="form-label") }}
+                    {{ form.banner.label(class="form-label fw-semibold") }}
                     {{ form.banner(class="form-control") }}
                     {% if form.banner.errors %}
-                        <div class="text-danger small">{{ form.banner.errors[0] }}</div>
+                        <div class="text-danger small mt-1">{{ form.banner.errors[0] }}</div>
                     {% endif %}
                 </div>
                 {% endif %}
 
-                <hr>
+                <hr class="my-4">
 
-                <button type="submit" class="btn btn-primary">Crear comunidad</button>
-                <a href="{{ url_for('communities.list_communities') }}" class="btn btn-secondary">
-                    Cancelar
-                </a>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4">Creat community</button>
+                    <a href="{{ url_for('community.list_communities') }}" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+                </div>
 
             </form>
 

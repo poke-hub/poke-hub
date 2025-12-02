@@ -1,0 +1,36 @@
+{% extends "base_template.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Edit Community: {{ community.name }}</h2>
+
+    <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control", placeholder="Community name") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control", rows=4, placeholder="Write a short description…") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.logo.label(class="form-label") }}
+            {{ form.logo(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.banner.label(class="form-label") }}
+            {{ form.banner(class="form-control") }}
+        </div>
+
+        <div class="mt-3">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+
+{% endblock %}

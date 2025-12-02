@@ -13,3 +13,10 @@ class ProposeDatasetForm(FlaskForm):
     dataset_id = HiddenField('dataset_id', validators=[DataRequired()])
     message = TextAreaField('Message (optional)', validators=[Optional(), Length(max=1024)])
     submit = SubmitField('Propose to community')
+
+class UpdateCommunityForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired(), Length(max=64)])
+    description = TextAreaField('Description', validators=[Optional(), Length(max=512)])
+    logo = FileField('Logo (optional)')
+    banner = FileField('Banner (optional)')
+    submit = SubmitField('Update community')

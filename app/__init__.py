@@ -105,6 +105,13 @@ def create_app(config_name="development"):
             "APP_VERSION": get_app_version(),
         }
 
+    
+    @app.route("/uploads/<path:filename>")
+    def uploads(filename):
+        upload_folder = os.path.join(app.root_path, "uploads")
+        return send_from_directory(upload_folder, filename)
+
+
     return app
 
 

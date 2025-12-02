@@ -1,12 +1,14 @@
 from flask import render_template, redirect, url_for, flash, request, abort
 from app import db
-from app.modules.community.forms import CommunityForm, ProposeDatasetForm
+from app.modules.community import community_bp
+from app.modules.community.forms import CommunityForm, ProposeDatasetForm, UpdateCommunityForm
 from app.modules.community.models import Community, CommunityDatasetRequest
 from app.modules.community.utils.email import send_email
-from app.modules.community import community_bp
+from app.modules.community.utils.files import save_image
 from app.modules.dataset.models import DataSet
 from flask_login import login_required, current_user
 from datetime import datetime
+
 
 
 @community_bp.route('/list', methods=["GET"])
@@ -19,7 +21,9 @@ def list_communities():
 @login_required
 def create_community():
     form = CommunityForm()
+
     if form.validate_on_submit():
+
         existing = Community.query.filter_by(name=form.name.data).first()
         if existing:
             flash('A community with this name already exists.', 'danger')
@@ -30,6 +34,26 @@ def create_community():
             description=form.description.data,
         )
 
+        if form.logo.data:
+            try:
+                new_community.logo_path = save_image(
+                    form.logo.data,
+                    "communities/logos"
+                )
+            except Exception as e:
+                flash(f"Error uploading logo: {e}", "danger")
+                return redirect(url_for('community.create_community'))
+
+        if form.banner.data:
+            try:
+                new_community.banner_path = save_image(
+                    form.banner.data,
+                    "communities/banners"
+                )
+            except Exception as e:
+                flash(f"Error uploading banner: {e}", "danger")
+                return redirect(url_for('community.create_community'))
+
         new_community.curators.append(current_user)
         new_community.members.append(current_user)
 
@@ -37,8 +61,53 @@ def create_community():
         db.session.commit()
 
         flash('Community created successfully!', 'success')
-        return redirect(url_for('community.view_community', community_id=new_community.id))
-    return render_template("community/create.html", form=form)
+        return redirect(url_for('community.view_community',
+        community_id=new_community.id))
+
+    return render_template("community/create_community.html", form=form)
+
+
+@community_bp.route('/<int:community_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_community(community_id):
+    community = Community.query.get_or_404(community_id)
+
+    if current_user not in community.curators:
+        abort(403)
+
+    form = UpdateCommunityForm(obj=community)
+
+    if form.validate_on_submit():
+        community.name = form.name.data
+        community.description = form.description.data
+
+        if form.logo.data:
+            community.logo_path = save_image(form.logo.data, "communities/logos")
+
+        if form.banner.data:
+            community.banner_path = save_image(form.banner.data, "communities/banners")
+
+        db.session.commit()
+
+        flash("Community updated successfully!", "success")
+        return redirect(url_for('community.view_community', community_id=community.id))
+
+    return render_template("community/edit_community.html", form=form, community=community)
+
+
+@community_bp.route('/<int:community_id>/delete', methods=['POST'])
+@login_required
+def delete_community(community_id):
+    community = Community.query.get_or_404(community_id)
+
+    if current_user not in community.curators:
+        abort(403)
+
+    db.session.delete(community)
+    db.session.commit()
+
+    flash("Community deleted successfully.", "info")
+    return redirect(url_for('community.list_communities'))
 
 
 @community_bp.route('/view/<int:community_id>', methods=["GET"])
@@ -92,7 +161,7 @@ def propose_dataset(community_id):
     available_datasets = [ds for ds in current_user.data_sets if ds.community_id != community.id]
 
     if not available_datasets:
-        flash("No tienes datasets disponibles para proponer.", "warning")
+        flash("You dn't have any dataset to propose.", "warning")
         return redirect(url_for("community.view_community", community_id=community.id))
 
     if form.validate_on_submit():
@@ -101,7 +170,7 @@ def propose_dataset(community_id):
 
         dataset = next((ds for ds in available_datasets if str(ds.id) == str(dataset_id)), None)
         if dataset is None:
-            flash("Dataset inválido o no disponible para proponer.", "danger")
+            flash("Dataset not valid or not unavailable to propose.", "danger")
             return redirect(url_for("community.request_dataset", community_id=community.id))
 
         existing = CommunityDatasetRequest.query.filter_by(
@@ -110,7 +179,7 @@ def propose_dataset(community_id):
             status='pending'
         ).first()
         if existing:
-            flash("Ya existe una solicitud pendiente para este dataset en la comunidad.", "info")
+            flash("This dataset is already requested in this community", "info")
             return redirect(url_for("community.view_community", community_id=community.id))
 
         req = CommunityDatasetRequest(
@@ -124,7 +193,7 @@ def propose_dataset(community_id):
         db.session.add(req)
         db.session.commit()
 
-        flash("Solicitud enviada correctamente. Los curadores la revisarán pronto.", "success")
+        flash("Request sent successfully. Curators will review it soon", "success")
         return redirect(url_for("community.view_community", community_id=community.id))
 
     return render_template(
@@ -141,7 +210,7 @@ def review_requests(community_id):
     community = Community.query.get_or_404(community_id)
 
     if current_user not in community.curators:
-        flash("No tienes permisos para revisar solicitudes.", "danger")
+        flash("You are not allowed to review requests.", "danger")
         return redirect(url_for("community.view_community", community_id=community.id))
 
     requests_list = CommunityDatasetRequest.query.filter_by(
@@ -162,7 +231,7 @@ def accept_request(req_id):
     community = req.community
 
     if current_user not in community.curators:
-        flash("No tienes permisos.", "danger")
+        flash("You are not allowed.", "danger")
         return redirect(url_for("community.review_requests", community_id=community.id))
 
     req.status = "accepted"
@@ -176,11 +245,20 @@ def accept_request(req_id):
         f"Hi {req.dataset.user.profile.name},\n\n"
         f"Your dataset '{req.dataset.ds_meta_data.title}' has been accepted into the community "
         f"'{req.community.name}'.\n\n"
-        "Thanks for contributing, and gotta catch 'em all!!"
-    )
-    )
+        "Thanks for contributing, and gotta catch 'em all!!"))
 
-    flash("Dataset aceptado e incluido en la comunidad.", "success")
+    for member in req.community.members:
+        send_email(
+            subject=f"New dataset added to {req.community.name}",
+            recipients=[member.email],
+            body=(
+                f"Hi {member.profile.name},\n\n"
+                f"A new dataset '{req.dataset.ds_meta_data.title}' has been added to a community you follow: "
+                f"{req.community.name}.\n\n"
+                "You can view it on the platform.\n\n"
+                "Best,\nUVLHub Team"))
+
+    flash("Dataset accepted and included in this community.", "success")
     return redirect(url_for("community.review_requests", community_id=community.id))
 
 
@@ -191,11 +269,11 @@ def reject_request(req_id):
     community = req.community
 
     if current_user not in community.curators:
-        flash("No tienes permisos.", "danger")
+        flash("You are not allowed.", "danger")
         return redirect(url_for("community.review_requests", community_id=community.id))
 
     req.status = "rejected"
     db.session.commit()
 
-    flash("Solicitud rechazada.", "warning")
+    flash("Request rejected.", "warning")
     return redirect(url_for("community.review_requests", community_id=community.id))
