@@ -1,4 +1,5 @@
 import io
+import uuid
 from unittest.mock import Mock, patch
 from zipfile import ZipFile
 
@@ -7,7 +8,7 @@ import pytest
 from app import db
 from app.modules.auth.models import User
 from app.modules.conftest import login, logout
-from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
+from app.modules.dataset.models import Author, DataSet, DSComment, DSMetaData, PublicationType
 from app.modules.dataset.services import DataSetService, SizeService
 from app.modules.pokemodel.models import FMMetaData, PokeModel
 from app.modules.profile.models import UserProfile
@@ -367,3 +368,103 @@ def test_increment_download_count():
 
     svc.repository.get_or_404.assert_called_once_with(dataset_id)
     svc.repository.update.assert_called_once_with(dataset_id, download_count=6)
+
+
+@pytest.fixture
+def feedback_user(test_client):
+    """Crea un usuario único para las pruebas de comentarios."""
+    unique_email = f"feedback_{uuid.uuid4()}@example.com"
+    user = User(email=unique_email, password="password")
+    profile = UserProfile(user=user, surname="Feedback", name="User")
+
+    db.session.add(user)
+    db.session.add(profile)
+    db.session.commit()
+    return user
+
+
+@pytest.fixture
+def feedback_dataset(feedback_user):
+    """Crea un dataset local (unsynchronized) para el usuario de pruebas."""
+    ds_meta = DSMetaData(
+        title=f"Feedback Dataset {uuid.uuid4()}",
+        description="Dataset for testing comments",
+        publication_type=PublicationType.NONE,
+        publication_doi="",
+        dataset_doi="",  # Sin DOI = Local / Unsynchronized
+        tags="test, feedback",
+    )
+    dataset = DataSet(user_id=feedback_user.id, ds_meta_data=ds_meta)
+    db.session.add(dataset)
+    db.session.commit()
+    return dataset
+
+
+@pytest.fixture
+def dataset_with_comment(feedback_user, feedback_dataset):
+    """Añade un comentario preexistente al dataset."""
+    comment = DSComment(content="Initial test comment", user_id=feedback_user.id, dataset_id=feedback_dataset.id)
+    db.session.add(comment)
+    db.session.commit()
+    return comment
+
+
+def test_add_comment_success(test_client, feedback_user, feedback_dataset):
+    """
+    Prueba añadir un comentario interceptando el servicio para que encuentre el dataset.
+    """
+    login(test_client, feedback_user.email, "password")
+
+    with patch("app.modules.dataset.routes.dataset_service.get_or_404") as mock_get:
+        mock_get.return_value = feedback_dataset
+
+        response = test_client.post(
+            f"/dataset/{feedback_dataset.id}/comment",
+            data={"content": "This is a great dataset!", "submit": "Add comment"},
+            follow_redirects=False,
+        )
+    assert response.status_code == 302
+    comment = DSComment.query.filter_by(content="This is a great dataset!", user_id=feedback_user.id).first()
+    assert comment is not None
+    assert comment.dataset_id == feedback_dataset.id
+
+    logout(test_client)
+
+
+def test_delete_comment_by_author(test_client, feedback_user, feedback_dataset, dataset_with_comment):
+    login(test_client, feedback_user.email, "password")
+
+    with patch("app.modules.dataset.routes.dataset_service.get_or_404") as mock_get:
+        mock_get.return_value = feedback_dataset
+
+        response = test_client.post(
+            f"/dataset/{feedback_dataset.id}/comment/{dataset_with_comment.id}/delete", follow_redirects=False
+        )
+
+    assert response.status_code == 302
+    assert DSComment.query.get(dataset_with_comment.id) is None
+    logout(test_client)
+
+
+def test_delete_comment_by_dataset_owner(test_client, feedback_user, feedback_dataset):
+
+    other_email = f"other_{uuid.uuid4()}@example.com"
+    other_user = User(email=other_email, password="password")
+    db.session.add(other_user)
+    db.session.commit()
+    comment = DSComment(content="Spam", user_id=other_user.id, dataset_id=feedback_dataset.id)
+    db.session.add(comment)
+    db.session.commit()
+
+    login(test_client, feedback_user.email, "password")
+
+    with patch("app.modules.dataset.routes.dataset_service.get_or_404") as mock_get:
+        mock_get.return_value = feedback_dataset
+
+        response = test_client.post(
+            f"/dataset/{feedback_dataset.id}/comment/{comment.id}/delete", follow_redirects=False
+        )
+
+    assert response.status_code == 302
+    assert DSComment.query.get(comment.id) is None
+    logout(test_client)
