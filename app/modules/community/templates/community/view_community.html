@@ -92,29 +92,41 @@
 
     <div class="card mb-4">
         <div class="card-body">
-            <h4>Datasets</h4>
+            <h4 class="mb-3">Datasets</h4>
 
             {% if community.datasets.count() > 0 %}
-                <ul class="list-group">
-                {% for dataset in community.datasets %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>{{ dataset.ds_meta_data.title }}</strong><br>
-                            <small class="text-muted">Authors: 
-                                {% for author in dataset.ds_meta_data.authors %}
-                                    {{ author.name }}
-                                {% endfor %}
-                            </small>
-                            <small class="text-muted">Description: {{ dataset.ds_meta_data.description }}
-                            </small>
-                        </div>
+                <ul class="list-group list-group-flush">
+                    {% for dataset in community.datasets %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                        
+                            <div class="me-3">
+                                <h6 class="mb-1">
+                                <strong>{{ dataset.ds_meta_data.title }}</strong>
+                                </h6>
 
-                        <a href="{{ dataset.get_pokehub_doi() }}"
-                           class="btn btn-outline-primary btn-sm">
-                            View dataset
-                        </a>
+                                <p class="mb-1 text-muted small">
+                                <span class="fw-semibold">Authors:</span>
+                                {% for author in dataset.ds_meta_data.authors %}
+                                    {{ author.name }}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                                </p>
+
+                                <p class="mb-0 text-muted small">
+                                <span class="fw-semibold">Description:</span>
+                                {{ dataset.ds_meta_data.description }}
+                                </p>
+                            </div>
+
+                            <a href="{{ dataset.get_pokehub_doi() }}" 
+                               class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1">
+                                <i data-feather="eye"></i>
+                                View dataset
+                            </a>
+
+                        </div>
                     </li>
-                {% endfor %}
+                    {% endfor %}
                 </ul>
             {% else %}
                 <p class="text-muted">No datasets yet.</p>
