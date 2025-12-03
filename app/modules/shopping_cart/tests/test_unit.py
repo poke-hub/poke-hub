@@ -1,12 +1,13 @@
 import pytest
+
 from app import db
 from app.modules.auth.models import User
 from app.modules.dataset.models import DataSet, DSMetaData, PublicationType
 from app.modules.hubfile.models import Hubfile
-from app.modules.pokemodel.models import PokeModel, FMMetaData
+from app.modules.pokemodel.models import FMMetaData, PokeModel
 from app.modules.shopping_cart.models import ShoppingCart
-from app.modules.shopping_cart.services import ShoppingCartService
 from app.modules.shopping_cart.repositories import ShoppingCartRepository
+from app.modules.shopping_cart.services import ShoppingCartService
 
 
 @pytest.fixture(scope="module")
@@ -27,7 +28,7 @@ def shopping_cart_seed(test_client):
             title="Test FM",
             description="Desc FM",
             publication_type=PublicationType.NONE,
-            tags="tag1,tag2"
+            tags="tag1,tag2",
         )
         db.session.add(fm_meta)
         db.session.flush()
@@ -48,14 +49,11 @@ def shopping_cart_seed(test_client):
 
 
 def login(client, email, password):
-    return client.post('/login', data=dict(
-        email=email,
-        password=password
-    ), follow_redirects=True)
+    return client.post("/login", data=dict(email=email, password=password), follow_redirects=True)
 
 
 def logout(client):
-    return client.get('/logout', follow_redirects=True)
+    return client.get("/logout", follow_redirects=True)
 
 
 def test_shopping_cart_index(test_client, shopping_cart_seed):
@@ -116,6 +114,7 @@ def test_download_cart(test_client, shopping_cart_seed):
         db.session.commit()
 
         import os
+
         dataset = DataSet.query.get(hubfile.poke_model.data_set_id)
         file_path = os.path.join(
             os.getenv("WORKING_DIR", ""),

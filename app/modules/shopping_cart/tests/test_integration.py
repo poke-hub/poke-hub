@@ -1,10 +1,10 @@
 import pytest
+
 from app import db
 from app.modules.auth.models import User
 from app.modules.dataset.models import DataSet, DSMetaData, PublicationType
 from app.modules.hubfile.models import Hubfile
-from app.modules.pokemodel.models import PokeModel, FMMetaData
-from app.modules.shopping_cart.models import ShoppingCart
+from app.modules.pokemodel.models import FMMetaData, PokeModel
 from app.modules.shopping_cart.repositories import ShoppingCartRepository
 
 
@@ -13,7 +13,9 @@ def shopping_cart_integration_seed(test_client):
     with test_client.application.app_context():
         user = User.query.filter_by(email="test@example.com").first()
 
-        ds_meta = DSMetaData(title="Integration Test DS", description="Desc prueba", publication_type=PublicationType.NONE)
+        ds_meta = DSMetaData(
+            title="Integration Test DS", description="Desc prueba", publication_type=PublicationType.NONE
+        )
         db.session.add(ds_meta)
         db.session.flush()
 
@@ -26,7 +28,7 @@ def shopping_cart_integration_seed(test_client):
             title="Integration FM",
             description="Desc FM",
             publication_type=PublicationType.NONE,
-            tags="tag1,tag2"
+            tags="tag1,tag2",
         )
         db.session.add(fm_meta)
         db.session.flush()
@@ -47,10 +49,7 @@ def shopping_cart_integration_seed(test_client):
 
 
 def login(client, email, password):
-    return client.post('/login', data=dict(
-        email=email,
-        password=password
-    ), follow_redirects=True)
+    return client.post("/login", data=dict(email=email, password=password), follow_redirects=True)
 
 
 def test_shopping_cart_full_flow(test_client, shopping_cart_integration_seed):
@@ -69,8 +68,9 @@ def test_shopping_cart_full_flow(test_client, shopping_cart_integration_seed):
     with test_client.application.app_context():
         hubfile = Hubfile.query.filter_by(name="integration_file.txt").first()
         hubfile_id = hubfile.id
-        
+
         import os
+
         dataset = DataSet.query.get(hubfile.poke_model.data_set_id)
         file_path = os.path.join(
             os.getenv("WORKING_DIR", ""),
