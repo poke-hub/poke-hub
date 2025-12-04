@@ -1,23 +1,23 @@
-from flask import render_template, redirect, url_for, flash, request, abort
+from flask import abort, flash, redirect, render_template, url_for
+from flask_login import current_user, login_required
+
 from app import db
 from app.modules.community import community_bp
 from app.modules.community.forms import CommunityForm, ProposeDatasetForm, UpdateCommunityForm
 from app.modules.community.models import Community, CommunityDatasetRequest
+from app.modules.community.services import CommunityService
 from app.modules.community.utils.email import send_email
 from app.modules.community.utils.files import save_image
-from app.modules.dataset.models import DataSet
-from flask_login import login_required, current_user
-from datetime import datetime
 
 
-
-@community_bp.route('/list', methods=["GET"])
+@community_bp.route("/list", methods=["GET"])
 @login_required
 def list_communities():
     communities = Community.query.all()
-    return render_template('community/list_communities.html', communities=communities)
+    return render_template("community/list_communities.html", communities=communities)
 
-@community_bp.route('/create', methods=['GET', 'POST'])
+
+@community_bp.route("/create", methods=["GET", "POST"])
 @login_required
 def create_community():
     form = CommunityForm()
@@ -26,8 +26,8 @@ def create_community():
 
         existing = Community.query.filter_by(name=form.name.data).first()
         if existing:
-            flash('A community with this name already exists.', 'danger')
-            return redirect(url_for('community.create_community'))
+            flash("A community with this name already exists.", "danger")
+            return redirect(url_for("community.create_community"))
 
         new_community = Community(
             name=form.name.data,
@@ -36,23 +36,17 @@ def create_community():
 
         if form.logo.data:
             try:
-                new_community.logo_path = save_image(
-                    form.logo.data,
-                    "communities/logos"
-                )
+                new_community.logo_path = save_image(form.logo.data, "communities/logos")
             except Exception as e:
                 flash(f"Error uploading logo: {e}", "danger")
-                return redirect(url_for('community.create_community'))
+                return redirect(url_for("community.create_community"))
 
         if form.banner.data:
             try:
-                new_community.banner_path = save_image(
-                    form.banner.data,
-                    "communities/banners"
-                )
+                new_community.banner_path = save_image(form.banner.data, "communities/banners")
             except Exception as e:
                 flash(f"Error uploading banner: {e}", "danger")
-                return redirect(url_for('community.create_community'))
+                return redirect(url_for("community.create_community"))
 
         new_community.curators.append(current_user)
         new_community.members.append(current_user)
@@ -60,14 +54,13 @@ def create_community():
         db.session.add(new_community)
         db.session.commit()
 
-        flash('Community created successfully!', 'success')
-        return redirect(url_for('community.view_community',
-        community_id=new_community.id))
+        flash("Community created successfully!", "success")
+        return redirect(url_for("community.view_community", community_id=new_community.id))
 
     return render_template("community/create_community.html", form=form)
 
 
-@community_bp.route('/<int:community_id>/edit', methods=['GET', 'POST'])
+@community_bp.route("/<int:community_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_community(community_id):
     community = Community.query.get_or_404(community_id)
@@ -90,12 +83,12 @@ def edit_community(community_id):
         db.session.commit()
 
         flash("Community updated successfully!", "success")
-        return redirect(url_for('community.view_community', community_id=community.id))
+        return redirect(url_for("community.view_community", community_id=community.id))
 
     return render_template("community/edit_community.html", form=form, community=community)
 
 
-@community_bp.route('/<int:community_id>/delete', methods=['POST'])
+@community_bp.route("/<int:community_id>/delete", methods=["POST"])
 @login_required
 def delete_community(community_id):
     community = Community.query.get_or_404(community_id)
@@ -107,34 +100,34 @@ def delete_community(community_id):
     db.session.commit()
 
     flash("Community deleted successfully.", "info")
-    return redirect(url_for('community.list_communities'))
+    return redirect(url_for("community.list_communities"))
 
 
-@community_bp.route('/view/<int:community_id>', methods=["GET"])
+@community_bp.route("/view/<int:community_id>", methods=["GET"])
 @login_required
 def view_community(community_id):
     community = Community.query.get(community_id)
     if not community:
-        flash('Community not found!', 'danger')
-        return redirect(url_for('community.list_communities'))
+        flash("Community not found!", "danger")
+        return redirect(url_for("community.list_communities"))
     propose_form = ProposeDatasetForm()
-    return render_template('community/view_community.html', community=community, propose_form=propose_form)
+    return render_template("community/view_community.html", community=community, propose_form=propose_form)
 
 
-@community_bp.route('/join/<int:community_id>', methods=['POST'])
+@community_bp.route("/join/<int:community_id>", methods=["POST"])
 @login_required
 def join_community(community_id):
     community = Community.query.get(community_id)
     if not community:
-        flash('Community not found!', 'danger')
-        return redirect(url_for('community.list_communities'))
+        flash("Community not found!", "danger")
+        return redirect(url_for("community.list_communities"))
     if community in current_user.communities:
-        flash('You are already a member of this community.', 'info')
-        return redirect(url_for('community.view_community', community_id=community.id))
+        flash("You are already a member of this community.", "info")
+        return redirect(url_for("community.view_community", community_id=community.id))
     current_user.communities.append(community)
     db.session.commit()
-    flash(f'You have successfully joined the community: {community.name}', 'success')
-    return redirect(url_for('community.view_community', community_id=community.id))
+    flash(f"You have successfully joined the community: {community.name}", "success")
+    return redirect(url_for("community.view_community", community_id=community.id))
 
 
 @community_bp.route("/<int:community_id>/leave", methods=["POST"])
@@ -152,55 +145,46 @@ def leave_community(community_id):
     return redirect(url_for("community.view_community", community_id=community.id))
 
 
-@community_bp.route('/propose/<int:community_id>', methods=['GET', 'POST'])
+@community_bp.route("/propose/<int:community_id>", methods=["GET", "POST"])
 @login_required
 def propose_dataset(community_id):
     community = Community.query.get_or_404(community_id)
     form = ProposeDatasetForm()
 
-    available_datasets = [ds for ds in current_user.data_sets if ds.community_id != community.id]
+    available_datasets = CommunityService.get_available_user_datasets_for_proposal(
+        current_user, community
+    )
 
     if not available_datasets:
-        flash("You dn't have any dataset to propose.", "warning")
+        flash("You don't have any dataset available to propose.", "warning")
         return redirect(url_for("community.view_community", community_id=community.id))
 
     if form.validate_on_submit():
         dataset_id = form.dataset_id.data
-        message = form.message.data
-
         dataset = next((ds for ds in available_datasets if str(ds.id) == str(dataset_id)), None)
-        if dataset is None:
-            flash("Dataset not valid or not unavailable to propose.", "danger")
-            return redirect(url_for("community.request_dataset", community_id=community.id))
 
-        existing = CommunityDatasetRequest.query.filter_by(
-            community_id=community.id,
-            dataset_id=dataset.id,
-            status='pending'
-        ).first()
-        if existing:
-            flash("This dataset is already requested in this community", "info")
-            return redirect(url_for("community.view_community", community_id=community.id))
+        if not dataset:
+            flash("Invalid or unavailable dataset.", "danger")
+            return redirect(url_for("community.propose_dataset", community_id=community.id))
 
-        req = CommunityDatasetRequest(
-            community_id=community.id,
-            dataset_id=dataset.id,
-            requester_id=current_user.id,
-            message=message,
-            status='pending'
-        )
+        try:
+            CommunityService.create_proposal(
+                community=community,
+                dataset=dataset,
+                requester=current_user,
+                message=form.message.data
+            )
+            flash("Request sent successfully!", "success")
+        except ValueError as e:
+            flash(str(e), "danger")
 
-        db.session.add(req)
-        db.session.commit()
-
-        flash("Request sent successfully. Curators will review it soon", "success")
         return redirect(url_for("community.view_community", community_id=community.id))
 
     return render_template(
         "community/request_dataset.html",
+        form=form,
         community=community,
-        datasets=available_datasets,
-        form=form
+        datasets=available_datasets
     )
 
 
@@ -213,15 +197,13 @@ def review_requests(community_id):
         flash("You are not allowed to review requests.", "danger")
         return redirect(url_for("community.view_community", community_id=community.id))
 
-    requests_list = CommunityDatasetRequest.query.filter_by(
-        community_id=community.id
-    ).order_by(CommunityDatasetRequest.created_at.desc()).all()
-
-    return render_template(
-        "community/review_requests.html",
-        community=community,
-        requests=requests_list
+    requests_list = (
+        CommunityDatasetRequest.query.filter_by(community_id=community.id)
+        .order_by(CommunityDatasetRequest.created_at.desc())
+        .all()
     )
+
+    return render_template("community/review_requests.html", community=community, requests=requests_list)
 
 
 @community_bp.route("/request/<int:req_id>/accept", methods=["POST"])
@@ -239,13 +221,15 @@ def accept_request(req_id):
     db.session.commit()
 
     send_email(
-    subject=f"Your dataset was accepted in {req.community.name}",
-    recipients=[req.dataset.user.email],
-    body=(
-        f"Hi {req.dataset.user.profile.name},\n\n"
-        f"Your dataset '{req.dataset.ds_meta_data.title}' has been accepted into the community "
-        f"'{req.community.name}'.\n\n"
-        "Thanks for contributing, and gotta catch 'em all!!"))
+        subject=f"Your dataset was accepted in {req.community.name}",
+        recipients=[req.dataset.user.email],
+        body=(
+            f"Hi {req.dataset.user.profile.name},\n\n"
+            f"Your dataset '{req.dataset.ds_meta_data.title}' has been accepted into the community "
+            f"'{req.community.name}'.\n\n"
+            "Thanks for contributing, and gotta catch 'em all!!"
+        ),
+    )
 
     for member in req.community.members:
         send_email(
@@ -256,7 +240,9 @@ def accept_request(req_id):
                 f"A new dataset '{req.dataset.ds_meta_data.title}' has been added to a community you follow: "
                 f"{req.community.name}.\n\n"
                 "You can view it on the platform.\n\n"
-                "Best,\nUVLHub Team"))
+                "Best,\nUVLHub Team"
+            ),
+        )
 
     flash("Dataset accepted and included in this community.", "success")
     return redirect(url_for("community.review_requests", community_id=community.id))

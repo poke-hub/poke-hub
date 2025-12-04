@@ -18,7 +18,11 @@
     <tbody>
     {% for req in requests %}
         <tr>
-            <td>{{ req.dataset.ds_meta_data.title }}</td>
+            <td>
+                <a href="{{ req.dataset.get_pokehub_doi() }}">
+                    {{ req.dataset.ds_meta_data.title }}
+                </a>
+            </td>
             <td>{{ req.requester.email }}</td>
             <td>{{ req.message or "-" }}</td>
             <td>

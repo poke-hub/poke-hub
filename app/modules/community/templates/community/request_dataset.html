@@ -3,15 +3,31 @@
 
 <div class="container mt-4">
 
-    <h2 class="fw-bold mb-2">Proponer dataset a "{{ community.name }}"</h2>
-    <p class="text-muted mb-4">Selecciona uno de tus datasets disponibles y añade un mensaje opcional.</p>
+    <h2 class="fw-bold mb-2">Propose dataset to "{{ community.name }}"</h2>
+    <p class="text-muted mb-4">Select one of your datasets and propose it to the community. 
+        If your dataset is already in another community and is accepted in this community, it will be moved here</p>
 
     <div class="list-group mb-4">
         {% for ds in datasets %}
             <button class="list-group-item list-group-item-action"
                     onclick="selectDataset('{{ ds.id }}', '{{ ds.name()|escape }}')">
-                <div class="fw-semibold">{{ ds.name() }}</div>
-                <small class="text-muted">ID: {{ ds.id }}</small>
+                    <div class="me-3">
+                    <h6 class="mb-1">
+                    <strong>{{ ds.ds_meta_data.title }}</strong>
+                    </h6>
+
+                    <p class="mb-1 text-muted small">
+                    <span class="fw-semibold">Authors:</span>
+                    {% for author in ds.ds_meta_data.authors %}
+                        {{ author.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                    </p>
+
+                    <p class="mb-0 text-muted small">
+                    <span class="fw-semibold">Description:</span>
+                    {{ ds.ds_meta_data.description }}
+                    </p>
+                </div>
             </button>
         {% endfor %}
     </div>
@@ -19,7 +35,7 @@
     <div class="card shadow-sm d-none" id="proposalFormCard">
         <div class="card-body">
 
-            <h5 class="fw-semibold mb-3">Confirmar propuesta</h5>
+            <h5 class="fw-semibold mb-3">Confirm</h5>
 
             <form method="POST" action="">
                 {{ form.hidden_tag() }}
@@ -27,7 +43,7 @@
                 {{ form.dataset_id() }}
 
                 <p class="mb-3">
-                    <strong>Dataset seleccionado: </strong>
+                    <strong>Dataset selected </strong>
                     <span id="selectedDatasetName" class="text-primary"></span>
                 </p>
 
