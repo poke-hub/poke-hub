@@ -2,12 +2,12 @@ import os
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
-from flask import Flask, session
-from app.extensions import mail
+from flask import Flask, send_from_directory, session
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+from app.extensions import mail
 from core.configuration.configuration import get_app_version
 from core.managers.config_manager import ConfigManager
 from core.managers.error_handler_manager import ErrorHandlerManager
@@ -30,8 +30,7 @@ def create_app(config_name="development"):
     # Load configuration according to environment
     config_manager = ConfigManager(app)
     config_manager.load_config(config_name=config_name)
-    app.config.from_object("core.configuration.configuration.Config")  
-
+    app.config.from_object("core.configuration.configuration.Config")
 
     # Initialize SQLAlchemy and Migrate with the app
     db.init_app(app)
@@ -105,12 +104,10 @@ def create_app(config_name="development"):
             "APP_VERSION": get_app_version(),
         }
 
-    
     @app.route("/uploads/<path:filename>")
     def uploads(filename):
         upload_folder = os.path.join(app.root_path, "uploads")
         return send_from_directory(upload_folder, filename)
-
 
     return app
 

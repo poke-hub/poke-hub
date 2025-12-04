@@ -1,15 +1,14 @@
 import os
 import uuid
-from werkzeug.utils import secure_filename
+
 from flask import current_app
+from werkzeug.utils import secure_filename
 
 ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
+
 def allowed_file(filename):
-    return (
-        "." in filename
-        and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
-    )
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
 
 
 def save_image(file, folder):
@@ -23,9 +22,7 @@ def save_image(file, folder):
     ext = file.filename.rsplit(".", 1)[1].lower()
     filename = secure_filename(f"{uuid.uuid4().hex}.{ext}")
 
-    upload_folder = os.path.join(
-        current_app.static_folder, "img", folder
-    )
+    upload_folder = os.path.join(current_app.static_folder, "img", folder)
     os.makedirs(upload_folder, exist_ok=True)
     print("STATIC FOLDER:", current_app.static_folder)
 

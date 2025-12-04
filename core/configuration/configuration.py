@@ -29,6 +29,7 @@ def is_production():
 def fakenodo_url():
     return os.getenv("FAKENODO_URL")
 
+
 class Config:
     MAIL_SERVER = os.getenv("MAIL_SERVER")
     MAIL_PORT = int(os.getenv("MAIL_PORT", 587))

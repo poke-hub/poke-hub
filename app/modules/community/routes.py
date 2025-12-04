@@ -151,9 +151,7 @@ def propose_dataset(community_id):
     community = Community.query.get_or_404(community_id)
     form = ProposeDatasetForm()
 
-    available_datasets = CommunityService.get_available_user_datasets_for_proposal(
-        current_user, community
-    )
+    available_datasets = CommunityService.get_available_user_datasets_for_proposal(current_user, community)
 
     if not available_datasets:
         flash("You don't have any dataset available to propose.", "warning")
@@ -169,10 +167,7 @@ def propose_dataset(community_id):
 
         try:
             CommunityService.create_proposal(
-                community=community,
-                dataset=dataset,
-                requester=current_user,
-                message=form.message.data
+                community=community, dataset=dataset, requester=current_user, message=form.message.data
             )
             flash("Request sent successfully!", "success")
         except ValueError as e:
@@ -181,10 +176,7 @@ def propose_dataset(community_id):
         return redirect(url_for("community.view_community", community_id=community.id))
 
     return render_template(
-        "community/request_dataset.html",
-        form=form,
-        community=community,
-        datasets=available_datasets
+        "community/request_dataset.html", form=form, community=community, datasets=available_datasets
     )
 
 
