@@ -4,16 +4,15 @@ import os
 from elasticsearch import Elasticsearch
 
 from app.modules.elasticsearch.repositories import ElasticsearchRepository
-from app.modules.explore.services import ExploreService # Para acceder a los datos de la BD
+from app.modules.explore.services import ExploreService
 from core.services.BaseService import BaseService
 
 index_name = "search_index"
 
+
 class ElasticsearchService(BaseService):
     def __init__(self):
         super().__init__(ElasticsearchRepository())
-        # NOTA: Reemplaza 'tu_contraseña' con la contraseña real del usuario 'elastic'.
-        # NOTA: Reemplaza '/ruta/a/tu/elasticsearch/config/certs/http_ca.crt' con la ruta real.
         self.es = Elasticsearch(
             hosts=[os.environ.get("ELASTICSEARCH_HOST")],
             basic_auth=(os.environ.get("ELASTICSEARCH_USER"), os.environ.get("ELASTICSEARCH_PASSWORD")),
@@ -22,7 +21,6 @@ class ElasticsearchService(BaseService):
         self.index_name = index_name
         self.create_index_if_not_exists()
         self.seed_index_from_db_if_empty()
-        
 
     def create_index_if_not_exists(self):
         if not self.es.indices.exists(index=self.index_name):
@@ -67,7 +65,9 @@ class ElasticsearchService(BaseService):
         must_clauses = []
         if query:
             must_clauses.append(
-                {"multi_match": {"query": query, "fields": ["title", "description", "tags", "authors", "pokemons", "abilities", "moves"]}}
+                {"multi_match": {
+                    "query": query,
+                    "fields": ["title", "description", "tags", "authors", "pokemons", "abilities", "moves"]}}
             )
         else:
             must_clauses.append({"match_all": {}})

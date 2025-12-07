@@ -147,7 +147,7 @@ class DataSet(db.Model):
         }
 
     def to_indexed(self):
-        return{
+        return {
             "title": self.ds_meta_data.title,
             "description": self.ds_meta_data.description,
             "tags": list(self.ds_meta_data.get_all_tags()),

@@ -20,7 +20,7 @@ def index():
 
     if request.method == "POST":
         criteria = request.get_json()
-        
+
         query = criteria.get("query", "")
         sorting = criteria.get("sorting", "created_at")
         desc_str = criteria.get("desc", "true")
