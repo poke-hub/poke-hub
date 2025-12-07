@@ -102,6 +102,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify(criteria)
             });
 
+            // Handle Elasticsearch service unavailable (HTTP 503) with a friendly UI
+            if (response.status === 503) {
+                resultsContainer.innerHTML = `
+                    <div class="alert alert-warning text-center w-100" role="alert">
+                        <strong>ElasticSearch temporarily unavailable.</strong>
+                        <div class="mt-2">The ElasticSearch service is down. Please contact your project manager if you need the service.</div>
+                        <button id="retry-btn" class="btn btn-sm btn-primary mt-3">Retry</button>
+                    </div>
+                `;
+                const retryBtn = document.getElementById('retry-btn');
+                if (retryBtn) retryBtn.addEventListener('click', fetchResults);
+                return;
+            }
+
             if (!response.ok) throw new Error('Network response was not ok');
 
             const datasets = await response.json();
