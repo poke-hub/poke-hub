@@ -1,9 +1,9 @@
+from elasticsearch.exceptions import NotFoundError as ElasticsearchConnectionError
 from flask import jsonify, render_template, request
 
+from app.modules.elasticsearch.services import ElasticsearchService
 from app.modules.explore import explore_bp
 from app.modules.explore.services import ExploreService
-from app.modules.elasticsearch.services import ElasticsearchService
-from elasticsearch.exceptions import NotFoundError as ElasticsearchConnectionError
 
 
 @explore_bp.route("/explore", methods=["GET", "POST"])
@@ -32,8 +32,8 @@ def index():
             es_results = es_service.search(query=query, sorting=sorting, desc=desc)
         except ElasticsearchConnectionError:
             return jsonify({"error": "Elasticsearch service is unavailable."}), 503
-        except ValueError as ve:
+        except ValueError:
             return jsonify({"error": "Elasticsearch service is unavailable."}), 503
 
-        hits = [hit['_source'] for hit in es_results['hits']['hits']]
+        hits = [hit["_source"] for hit in es_results["hits"]["hits"]]
         return jsonify(hits)

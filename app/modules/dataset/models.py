@@ -158,7 +158,7 @@ class DataSet(db.Model):
             "moves": [move for pm in self.poke_models for move in pm.get_pokemon().moves],
             "max_ev_count": max(pm.get_total_evs() for pm in self.poke_models) if self.poke_models else 0,
             "max_iv_count": max(pm.get_total_ivs() for pm in self.poke_models) if self.poke_models else 0,
-            "doi": self.ds_meta_data.publication_doi
+            "doi": self.ds_meta_data.publication_doi,
         }
 
     def __repr__(self):

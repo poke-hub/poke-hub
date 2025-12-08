@@ -1,6 +1,7 @@
 # from datetime import datetime
 
 import os
+
 from elasticsearch import Elasticsearch
 
 from app.modules.elasticsearch.repositories import ElasticsearchRepository
@@ -19,7 +20,7 @@ class ElasticsearchService(BaseService):
                 basic_auth=(os.environ.get("ELASTICSEARCH_USER"), os.environ.get("ELASTICSEARCH_PASSWORD")),
                 ca_certs=os.environ.get("ELASTICSEARCH_CERT_PATH"),
             )
-        
+
             self.index_name = index_name
             self.create_index_if_not_exists()
             self.seed_index_from_db_if_empty()
@@ -43,7 +44,7 @@ class ElasticsearchService(BaseService):
                             "moves": {"type": "text"},
                             "max_ev_count": {"type": "integer"},
                             "max_iv_count": {"type": "integer"},
-                            "doi": {"type": "keyword"}
+                            "doi": {"type": "keyword"},
                         }
                     }
                 },
@@ -55,7 +56,7 @@ class ElasticsearchService(BaseService):
         documentos de la base de datos.
         """
         count_response = self.es.count(index=self.index_name)
-        if count_response['count'] == 0:
+        if count_response["count"] == 0:
             print(f"Index '{self.index_name}' is empty. Seeding from database...")
             datasets = ExploreService().get_all_datasets()
             for dataset in datasets:
@@ -69,21 +70,16 @@ class ElasticsearchService(BaseService):
         must_clauses = []
         if query:
             must_clauses.append(
-                {"multi_match": {
-                    "query": query,
-                    "fields": ["title", "description", "tags", "authors", "pokemons", "abilities", "moves"]}}
+                {
+                    "multi_match": {
+                        "query": query,
+                        "fields": ["title", "description", "tags", "authors", "pokemons", "abilities", "moves"],
+                    }
+                }
             )
         else:
             must_clauses.append({"match_all": {}})
-        body = {
-            "query": {
-                "bool": {"must": must_clauses}
-            },
-            "sort": [
-                {sorting: {"order": "desc" if desc else "asc"}}
-            ]
-
-        }
+        body = {"query": {"bool": {"must": must_clauses}}, "sort": [{sorting: {"order": "desc" if desc else "asc"}}]}
         response = self.es.search(index=self.index_name, body=body)
         return response
 
