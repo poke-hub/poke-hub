@@ -13,14 +13,18 @@ index_name = "search_index"
 class ElasticsearchService(BaseService):
     def __init__(self):
         super().__init__(ElasticsearchRepository())
-        self.es = Elasticsearch(
-            hosts=[os.environ.get("ELASTICSEARCH_HOST")],
-            basic_auth=(os.environ.get("ELASTICSEARCH_USER"), os.environ.get("ELASTICSEARCH_PASSWORD")),
-            ca_certs=os.environ.get("ELASTICSEARCH_CERT_PATH"),
-        )
-        self.index_name = index_name
-        self.create_index_if_not_exists()
-        self.seed_index_from_db_if_empty()
+        try:
+            self.es = Elasticsearch(
+                hosts=[os.environ.get("ELASTICSEARCH_HOST")],
+                basic_auth=(os.environ.get("ELASTICSEARCH_USER"), os.environ.get("ELASTICSEARCH_PASSWORD")),
+                ca_certs=os.environ.get("ELASTICSEARCH_CERT_PATH"),
+            )
+        
+            self.index_name = index_name
+            self.create_index_if_not_exists()
+            self.seed_index_from_db_if_empty()
+        except ValueError as ve:
+            raise ve
 
     def create_index_if_not_exists(self):
         if not self.es.indices.exists(index=self.index_name):

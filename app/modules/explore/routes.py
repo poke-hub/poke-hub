@@ -32,6 +32,8 @@ def index():
             es_results = es_service.search(query=query, sorting=sorting, desc=desc)
         except ElasticsearchConnectionError:
             return jsonify({"error": "Elasticsearch service is unavailable."}), 503
+        except ValueError as ve:
+            return jsonify({"error": "Elasticsearch service is unavailable."}), 503
 
         hits = [hit['_source'] for hit in es_results['hits']['hits']]
         return jsonify(hits)
