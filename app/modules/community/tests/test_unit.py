@@ -1,12 +1,11 @@
 import pytest
-
-from app import db
 from sqlalchemy import text
 
+from app import db
 from app.modules.auth.models import User
-from app.modules.conftest import login, logout
 from app.modules.community.models import Community, CommunityDatasetRequest
 from app.modules.community.services import CommunityService
+from app.modules.conftest import login, logout
 from app.modules.dataset.models import DataSet, DSMetaData, PublicationType
 
 
@@ -31,7 +30,8 @@ def community_setup(test_client):
     db.session.query(DataSet).delete()
     db.session.query(DSMetaData).delete()
     db.session.query(Community).delete()
-    db.session.query(User).filter(User.email.in_(["owner@example.com", "joiner@example.com", "other@example.com"])).delete()
+    db.session.query(User).filter(
+        User.email.in_(["owner@example.com", "joiner@example.com", "other@example.com"])).delete()
     db.session.commit()
 
     owner = User(email="owner@example.com", password="password")
