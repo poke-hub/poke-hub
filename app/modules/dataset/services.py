@@ -135,7 +135,7 @@ class DataSetService(BaseService):
         return self.repository.count_synchronized_datasets()
 
     def count_poke_models(self):
-        return self.poke_model_service.count_poke_models()
+        return self.poke_model_repository.count_poke_models()
 
     def count_authors(self) -> int:
         return self.author_repository.count()
@@ -214,41 +214,48 @@ class DataSetService(BaseService):
     def append_feature_models_from_form(self, dataset: DataSet, form, current_user):
 
         try:
-            for feature_model in getattr(form, "feature_models", []):
+            new_fms = []
+            for poke_model_form in getattr(form, "poke_models", []):
                 # WTForms: FileField/StringField -> usa .data
-                poke_filename = getattr(feature_model.poke_filename, "data", None)
+                poke_filename = getattr(poke_model_form.poke_filename, "data", None)
                 if not poke_filename:
                     continue  # nada que añadir
 
                 # Crear FMMetaData
-                fmmetadata = self.fmmetadata_repository.create(commit=False, **feature_model.get_fmmetadata())
+                fmmetadata = self.fmmetadata_repository.create(commit=False, **poke_model_form.get_fmmetadata())
 
                 # Autores del FM
-                for author_data in feature_model.get_authors():
+                for author_data in poke_model_form.get_authors():
                     author = self.author_repository.create(commit=False, fm_meta_data_id=fmmetadata.id, **author_data)
                     fmmetadata.authors.append(author)
 
                 # Crear FeatureModel asociado al dataset
-                fm = self.feature_model_repository.create(
-                    commit=False, data_set_id=dataset.id, fm_meta_data_id=fmmetadata.id
-                )
+                fm = self.poke_model_repository.create(commit=False, data_set_id=dataset.id,
+                                                       fm_meta_data_id=fmmetadata.id)
+                dataset.poke_models.append(fm)
+                new_fms.append(fm)
 
                 # Archivo asociado
                 file_path = os.path.join(current_user.temp_folder(), poke_filename)
                 checksum, size = calculate_checksum_and_size(file_path)
 
                 file = self.hubfilerepository.create(
-                    commit=False, name=poke_filename, checksum=checksum, size=size, feature_model_id=fm.id
+                    commit=False, name=poke_filename, checksum=checksum, size=size, poke_model_id=fm.id
                 )
                 fm.files.append(file)
 
             # persistimos todo lo creado
             self.repository.session.commit()
+            return new_fms
 
         except Exception as exc:
             logger.info(f"Exception creating dataset from form...: {exc}")
             self.repository.session.rollback()
             raise
+
+    # Alias mantenido para compatibilidad con rutas antiguas
+    def move_feature_models(self, dataset: DataSet):
+        self.move_poke_models(dataset)
 
     def update_dsmetadata(self, id, **kwargs):
         if "publication_type" in kwargs:

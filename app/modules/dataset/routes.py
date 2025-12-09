@@ -227,7 +227,7 @@ def edit_dataset(dataset_id):
             dataset_service.update(dataset.id, draft_mode=save_as_draft)
 
             if not save_as_draft:
-                dataset_service.move_feature_models(dataset)
+                dataset_service.move_poke_models(dataset)
 
             msg = "Draft updated successfully!"
             logger.info(msg)
