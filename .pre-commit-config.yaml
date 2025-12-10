@@ -1,0 +1,27 @@
+repos:
+  # Hook para validar Conventional Commits en el mensaje
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.2.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        # args: ["docs", "doc", "feat", "fix", "style", "revert", "test", "tests", "chore", "refactor"] No vamos a forzar tipos específicos
+
+  - repo: https://github.com/psf/black
+    rev: 24.2.0
+    hooks:
+      - id: black
+        stages: [pre-push]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        stages: [pre-push]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        stages: [pre-push]
+        additional_dependencies: [flake8-pyproject]
