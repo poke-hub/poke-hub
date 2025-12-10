@@ -6,8 +6,8 @@ from flask import url_for
 from app import db
 from app.modules.auth.models import User, UserSession
 from app.modules.conftest import login, logout
-from app.modules.profile.models import UserProfile
 from app.modules.dataset.models import DataSet
+from app.modules.profile.models import UserProfile
 
 
 @pytest.fixture(scope="module")
@@ -175,12 +175,13 @@ def test_view_profile_unit(test_client):
     mock_dataset_pagination.iter_pages.return_value = [1]
 
     with patch("app.modules.profile.routes.db") as mock_db:
+
         def query_side_effect(model):
             query_mock = MagicMock()
             if model == User:
                 query_mock.get.return_value = mock_user
             elif model == DataSet:
-             
+
                 filter_mock = query_mock.filter.return_value
                 order_by_mock = filter_mock.order_by.return_value
                 order_by_mock.paginate.return_value = mock_dataset_pagination
@@ -204,4 +205,3 @@ def test_view_profile_404_unit(test_client):
 
         response = test_client.get("/profile/999")
         assert response.status_code == 404
-
