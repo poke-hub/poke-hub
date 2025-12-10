@@ -1,8 +1,8 @@
-"""creacion de comunidades
+"""creacion modulo community
 
-Revision ID: 6e57c3a55acd
-Revises: 7ed375c559ec
-Create Date: 2025-12-02 07:32:01.955591
+Revision ID: d08875b4ed5a
+Revises: dba0718b3afb
+Create Date: 2025-12-10 01:27:27.515757
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '6e57c3a55acd'
-down_revision = '7ed375c559ec'
+revision = 'd08875b4ed5a'
+down_revision = 'dba0718b3afb'
 branch_labels = None
 depends_on = None
 
