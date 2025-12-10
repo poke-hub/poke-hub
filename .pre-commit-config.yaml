@@ -1,11 +1,17 @@
 repos:
   # Hook para validar Conventional Commits en el mensaje
-  - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v3.2.0
+  # - repo: https://github.com/compilerla/conventional-pre-commit
+  #   rev: v3.2.0
+  #   hooks:
+  #     - id: conventional-pre-commit
+  #       stages: [commit-msg]
+  #       # args: ["docs", "doc", "feat", "fix", "style", "revert", "test", "tests", "chore", "refactor"] No vamos a forzar tipos específicos
+
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.13.0
     hooks:
-      - id: conventional-pre-commit
+      - id: commitizen
         stages: [commit-msg]
-        # args: ["docs", "doc", "feat", "fix", "style", "revert", "test", "tests", "chore", "refactor"] No vamos a forzar tipos específicos
 
   - repo: https://github.com/psf/black
     rev: 24.2.0
