@@ -111,6 +111,26 @@ chico sundermann">
                     </li>
 
                     <li class="sidebar-header">
+                        Communities
+                    </li>
+
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ community_list_url }}">
+                            <i class="align-middle" data-feather="layers"></i>
+                            <span class="align-middle">All communities</span>
+                        </a>
+                    </li>
+
+                    {% if current_user.is_authenticated %}
+                        <li class="sidebar-item">
+                            <a class="sidebar-link" href="{{ community_create_url }}">
+                                <i class="align-middle" data-feather="plus-circle"></i>
+                                <span class="align-middle">Create community</span>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    <li class="sidebar-header">
                         Options
                     </li>
 

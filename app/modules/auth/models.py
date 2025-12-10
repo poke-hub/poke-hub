@@ -4,6 +4,7 @@ from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db
+from app.modules.community.models import community_curators, community_members
 from app.modules.shopping_cart.models import ShoppingCart
 
 
@@ -29,6 +30,8 @@ class User(db.Model, UserMixin):
     data_sets = db.relationship("DataSet", backref="user", lazy=True)
     profile = db.relationship("UserProfile", backref="user", uselist=False)
     shopping_cart = db.relationship(ShoppingCart, backref="user", uselist=False)
+    communities = db.relationship("Community", secondary=community_members, back_populates="members")
+    curated_communities = db.relationship("Community", secondary=community_curators, back_populates="curators")
 
     # Relación para acceder a las sesiones del usuario
     sessions = db.relationship("UserSession", backref="user", lazy="dynamic", cascade="all, delete-orphan")

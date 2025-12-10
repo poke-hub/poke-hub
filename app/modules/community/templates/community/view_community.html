@@ -1,0 +1,147 @@
+{% extends "base_template.html" %}
+{% block title %}{{ community.name }} - Community{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    {% if community.banner_path %}
+    <div class="mb-4 text-center">
+        <img src="{{ url_for('static', filename=community.banner_path) }}" 
+             alt="Banner de {{ community.name }}"
+             class="img-fluid rounded">
+    </div>
+    {% endif %}
+
+    {% if current_user.is_authenticated %}
+
+        {% if current_user in community.members %}
+            <form action="{{ url_for('community.leave_community', community_id=community.id) }}" method="POST">
+                <button class="btn btn-outline-danger mb-4">Unfollow community</button>
+            </form>
+        {% else %}
+            <form action="{{ url_for('community.join_community', community_id=community.id) }}" method="POST">
+                <button class="btn btn-primary mb-4">Join community</button>
+            </form>
+        {% endif %}
+
+    {% endif %}
+
+    <div class="d-flex align-items-center p-3 border rounded bg-light mb-4">
+        {% if community.logo_path %}
+        <img src="{{ url_for('static', filename=community.logo_path) }}" 
+             alt="Logo"
+             class="rounded-circle me-3 border"
+             style="height: 70px; width: 70px; object-fit: contain;">
+        {% endif %}
+
+        <div>
+            <h2 class="h4 mb-1">{{ community.name }}</h2>
+            <div class="text-muted small">
+                <div><i class="bi bi-people"></i> {{ community.members|length }} Members</div>
+                <div><i class="bi bi-calendar-event"></i> Created on {{ community.creation_date.strftime("%d/%m/%Y") }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4>Description</h4>
+            <p>{{ community.description or "This community hasn't got a description yet" }}</p>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4>Curators</h4>
+
+            {% if community.curators %}
+                <ul>
+                {% for curator in community.curators %}
+                    <li>{{ curator.username }} ({{ curator.email }})</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">No curators asigned yet.</p>
+            {% endif %}
+
+            {% if current_user in community.curators %}
+                <div class="d-flex gap-2 align-items-center">
+
+                    <a class="btn btn-primary"
+                    href="{{ url_for('community.review_requests', community_id=community.id) }}">
+                        Review Dataset Requests
+                    </a>
+
+                    <a class="btn btn-secondary"
+                    href="{{ url_for('community.edit_community', community_id=community.id) }}">
+                        Edit Community
+                    </a>
+
+                    <form action="{{ url_for('community.delete_community', community_id=community.id) }}"
+                    method="POST"
+                    onsubmit="return confirm('Are you sure you want to delete this community?');"
+                    class="m-0">
+                        <button type="submit" class="btn btn-danger">
+                            Delete Community
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="mb-3">Datasets</h4>
+
+            {% if community.datasets.count() > 0 %}
+                <ul class="list-group list-group-flush">
+                    {% for dataset in community.datasets %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                        
+                            <div class="me-3">
+                                <h6 class="mb-1">
+                                <strong>{{ dataset.ds_meta_data.title }}</strong>
+                                </h6>
+
+                                <p class="mb-1 text-muted small">
+                                <span class="fw-semibold">Authors:</span>
+                                {% for author in dataset.ds_meta_data.authors %}
+                                    {{ author.name }}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                                </p>
+
+                                <p class="mb-0 text-muted small">
+                                <span class="fw-semibold">Description:</span>
+                                {{ dataset.ds_meta_data.description }}
+                                </p>
+                            </div>
+
+                            <a href="{{ dataset.get_pokehub_doi() }}" 
+                               class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1">
+                                <i data-feather="eye"></i>
+                                View dataset
+                            </a>
+
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">No datasets yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if current_user.is_authenticated %}
+    <div class="text-center mb-5">
+        <a href="{{ url_for('community.propose_dataset', community_id=community.id) }}" 
+           class="btn btn-primary btn-lg">
+            Propose dataset
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
