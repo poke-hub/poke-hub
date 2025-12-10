@@ -60,8 +60,15 @@ def selenium(module, driver):
             click.echo(click.style(f"🚀 Running Selenium tests in {env_label}...", fg="cyan"))
             click.echo(f"→ Command: {' '.join(cmd)}")
 
+            # Ensure imports like `import app` work when invoking python on a file path
+            env_vars = os.environ.copy()
+            repo_root = working_dir or os.getcwd()
+            existing_path = env_vars.get("PYTHONPATH", "")
+            if repo_root not in existing_path.split(os.pathsep):
+                env_vars["PYTHONPATH"] = os.pathsep.join([p for p in [repo_root, existing_path] if p])
+
             try:
-                subprocess.run(cmd, check=True)
+                subprocess.run(cmd, check=True, env=env_vars)
                 click.echo(click.style("✅ Selenium tests completed successfully.", fg="green"))
             except subprocess.CalledProcessError:
                 click.echo(click.style("❌ Selenium tests failed.", fg="red"))
