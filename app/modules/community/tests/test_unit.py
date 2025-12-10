@@ -31,7 +31,8 @@ def community_setup(test_client):
     db.session.query(DSMetaData).delete()
     db.session.query(Community).delete()
     db.session.query(User).filter(
-        User.email.in_(["owner@example.com", "joiner@example.com", "other@example.com"])).delete()
+        User.email.in_(["owner@example.com", "joiner@example.com", "other@example.com"])
+    ).delete()
     db.session.commit()
 
     owner = User(email="owner@example.com", password="password")
