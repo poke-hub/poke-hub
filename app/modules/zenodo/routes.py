@@ -55,11 +55,15 @@ def publish_dataset(dataset_id):
         es_service.index_document(dataset_id, updated_dataset.to_indexed())
 
     except ElasticsearchConnectionError:
-        flash("Elasticsearch service is unavailable. Please contact with your project manager if you need the service."
-            , "warning")
+        flash(
+            "Elasticsearch service is unavailable. Please contact with your project manager if you need the service.",
+            "warning",
+        )
     except ValueError:
-        flash("Elasticsearch service is unavailable. Please contact with your project manager if you need the service."
-            , "warning")
+        flash(
+            "Elasticsearch service is unavailable. Please contact with your project manager if you need the service.",
+            "warning",
+        )
     except Exception as e:
         flash(f"Error al publicar en Zenodo/Fakenodo: {str(e)}", "danger")
 
