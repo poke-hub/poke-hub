@@ -230,8 +230,9 @@ class DataSetService(BaseService):
                     fmmetadata.authors.append(author)
 
                 # Crear FeatureModel asociado al dataset
-                fm = self.poke_model_repository.create(commit=False, data_set_id=dataset.id,
-                                                       fm_meta_data_id=fmmetadata.id)
+                fm = self.poke_model_repository.create(
+                    commit=False, data_set_id=dataset.id, fm_meta_data_id=fmmetadata.id
+                )
                 dataset.poke_models.append(fm)
                 new_fms.append(fm)
 
