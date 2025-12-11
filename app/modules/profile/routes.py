@@ -14,9 +14,7 @@ from app.modules.profile.services import UserProfileService
 @login_required
 def edit_profile():
     auth_service = AuthenticationService()
-    profile = (
-        auth_service.get_authenticated_user_profile()
-    )  # <-- OJO: Añadí paréntesis () que faltaban en tu código original
+    profile = auth_service.get_authenticated_user_profile()
     if not profile:
         return redirect(url_for("public.index"))
 

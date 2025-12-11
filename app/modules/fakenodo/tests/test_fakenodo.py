@@ -27,7 +27,6 @@ def client(app):
 def test_create_deposition(client):
     """
     Prueba que la creación de una deposición devuelva un 201.
-    ***ADAPTACIÓN***: Solo se comprueba el campo 'id' ya que la route original solo lo devuelve.
     """
     metadata = {"title": "Mi primer dataset de prueba"}
 
@@ -42,7 +41,6 @@ def test_create_deposition(client):
 def test_upload_file(app):
     """
     Prueba la subida de un archivo.
-    ***ADAPTACIÓN***: Llamamos a la función directamente para simular los argumentos que espera.
     """
     dep_id = 987654
 
@@ -80,7 +78,6 @@ def test_upload_file_no_file_attached(app):
 def test_publish_deposition_flow(client):
     """
     Prueba el flujo completo de creación y publicación.
-    ***ADAPTACIÓN***: El test de subida de archivo se salta la llamada HTTP para evitar el error.
     """
     rv_create = client.post("/api/deposit/depositions", json={"metadata": {"title": "Test"}})
     assert rv_create.status_code == 201
