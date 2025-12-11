@@ -2,12 +2,13 @@ import io
 import os
 import shutil
 import zipfile
+
 import pytest
 
 from app import db
 from app.modules.auth.models import User
-from app.modules.dataset.models import DataSet, DSMetaData, PublicationType, DSComment
 from app.modules.auth.services import AuthenticationService
+from app.modules.dataset.models import DataSet, DSMetaData, PublicationType
 
 
 @pytest.fixture(scope="module")
@@ -143,7 +144,7 @@ def test_integration_upload_zip_and_github(test_client, monkeypatch):
     resp2 = test_client.post("/dataset/github/import", json=payload)
     assert resp2.status_code == 200
     body2 = resp2.get_json()
-    assert "saved" in body2 and any(s.endswith("gh.poke") for s in body2["saved"]) 
+    assert "saved" in body2 and any(s.endswith("gh.poke") for s in body2["saved"])
 
     # verify files written to temp folder for the test user
     with test_client.application.app_context():
@@ -152,7 +153,7 @@ def test_integration_upload_zip_and_github(test_client, monkeypatch):
         temp_folder = AuthenticationService().temp_folder_by_user(user)
 
     try:
-        for saved in (body.get("saved", []) + body2.get("saved", [])):
+        for saved in body.get("saved", []) + body2.get("saved", []):
             assert os.path.exists(os.path.join(temp_folder, saved))
     finally:
         if os.path.exists(temp_folder):

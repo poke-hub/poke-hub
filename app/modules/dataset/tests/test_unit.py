@@ -1,8 +1,8 @@
 import io
 import os
 import shutil
-import zipfile
 import uuid
+import zipfile
 from unittest.mock import Mock, patch
 from zipfile import ZipFile
 
@@ -10,13 +10,13 @@ import pytest
 
 from app import db
 from app.modules.auth.models import User
+from app.modules.auth.repositories import UserRepository
+from app.modules.auth.services import AuthenticationService
 from app.modules.conftest import login, logout
 from app.modules.dataset.models import Author, DataSet, DSComment, DSMetaData, PublicationType
 from app.modules.dataset.services import DataSetService, SizeService
 from app.modules.pokemodel.models import FMMetaData, PokeModel
 from app.modules.profile.models import UserProfile
-from app.modules.auth.services import AuthenticationService
-from app.modules.auth.repositories import UserRepository
 
 
 class DummyDS:
@@ -443,12 +443,12 @@ def test_upload_zip_saves_and_ignores(test_client):
     assert "saved" in body and "ignored" in body
 
     # saved should contain only the two poke files (case-insensitive)
-    assert any(s.lower().endswith("good1.poke") for s in body["saved"]) 
-    assert any(s.lower().endswith("good2.poke") for s in body["saved"]) 
+    assert any(s.lower().endswith("good1.poke") for s in body["saved"])
+    assert any(s.lower().endswith("good2.poke") for s in body["saved"])
 
     # ignored should include ignore.txt and the traversal entry
-    assert any("ignore.txt" in ig for ig in body["ignored"]) 
-    assert any(".." in ig or ig.startswith("/") for ig in body["ignored"]) 
+    assert any("ignore.txt" in ig for ig in body["ignored"])
+    assert any(".." in ig or ig.startswith("/") for ig in body["ignored"])
 
     # Check files exist in uploads/temp/<user.id>
     # derive path via AuthenticationService
@@ -498,7 +498,7 @@ def test_import_from_github_with_mocked_zip(monkeypatch, test_client):
     body = resp.get_json()
     assert "saved" in body and "ignored" in body
     # only good.poke should be saved
-    assert any(s.endswith("good.poke") for s in body["saved"]) 
+    assert any(s.endswith("good.poke") for s in body["saved"])
 
     # cleanup temp folder
     user = UserRepository().get_by_email("test@example.com")
