@@ -10,7 +10,7 @@ La división del trabajo en dos troncales (`1-poke-hub/trunk` y `2-poke-hub/trun
 
 > **El Equipo:** Un equipo se define como un "pequeño número de personas con habilidades complementarias que están comprometidos con un propósito común, un conjunto de objetivos de rendimiento, y un enfoque que los hace mutuamente responsables".
 
-**Gestión de Tareas (Work Items):** El uso de backlogs (GitHub Projects 4 y 6) para listar los Work Items modela el proceso de petición de cambios (**CR**). Cada Work Item representa un Work Package (paquete de trabajo) priorizado, derivado de un Change Request (petición de cambio) que fue investigado y aprobado.
+**Gestión de Tareas (Work Items):** El uso de backlogs para listar los Work Items modela el proceso de petición de cambios. Cada Work Item representa un paquete de trabajo.
 
 ### 1.2. Gestión del Código Fuente y Ramificación
 El control de versiones es crucial para gestionar la convergencia de los dos equipos. El sistema utiliza **Git** como Repositorio de Código y adhiere a una política de ramificación estricta mediante EGC Flow.
@@ -41,82 +41,78 @@ La existencia de pruebas unitarias y de integración robustas es un requisito de
 * **Pruebas Unitarias:** Verificación de la lógica de negocio en módulos aislados.
 * **Pruebas de Integración:** Uso de fakenodo y la base de datos para simular flujos de usuario completos.
 * **Pruebas de Selenium:** Validan que la aplicación funciona correctamente desde el punto de vista del usuario.
+* **Pruebas de carga:** Validan la estabilidad y rendimiento del sistema bajo una carga de usuarios controlada.
 
-## 3. Work Items Funcionales: La Especialización de PokeHub
-Los siguientes Work Items representan las funcionalidades específicas que han transformado el sistema, agrupados por su impacto en la Arquitectura, la Calidad y la Experiencia del Usuario, utilizando el título de la Issue original.
+## 3. Cambios Desarrollados y Arquitectura del Sistema
+Esta sección detalla explícitamente los cambios funcionales y arquitectónicos implementados en el proyecto (Work Items). El sistema ha evolucionado desde un repositorio genérico a una plataforma especializada (**PokeHub**), integrando nuevos subsistemas de búsqueda, gestión social y seguridad.
 
-### 3.1. Work Item: Mock Server Fakenodo (#103)
-**Contexto (Mandatory):** Este Work Item fue declarado *Mandatory* para el proyecto.
+A continuación, se enumeran los componentes desarrollados y su impacto en el sistema global:
 
-**Funcionalidad:** Fakenodo es una solución avanzada de Gestión de la Configuración enfocada en la robustez de las pruebas.
+### 3.1. Evolución del Núcleo y Arquitectura de Datos
+El cambio fundamental del sistema reside en la redefinición de su modelo de datos y su integración con servicios externos simulados.
 
-**Justificación de CI:** La implementación de fakenodo (un mock del servicio Zenodo) es un pilar de la Integración Continua. Al simular el entorno externo de Zenodo, se permite la ejecución de **Builds** y **Pruebas de Integración** repetibles, rápidas y fiables, sin depender de la red o credenciales de terceros.
+*   **Transformación a PokeHub (Especialización del Dominio):**
+    *   *Descripción:* Se ha reestructurado la lógica central de `uvlhub` para abandonar el enfoque genérico en conjuntos de datos UVL y centrarse en modelos de variabilidad "Poke".
+    *   *Impacto Técnico:* Esto implicó la modificación de los modelos de base de datos (ORM), las validaciones de entrada y la interfaz de usuario para reflejar la nueva terminología y estructura de datos específica del dominio Poke, evitando la duplicidad de la plataforma para diferentes dominios.
 
-### 3.2. Work Item: Evolving uvlhub into pokehub (#104)
-**Contexto (Mandatory):** Este Work Item fue declarado *Mandatory* para el proyecto.
+*   **Integración de Mock Server (Fakenodo):**
+    *   *Descripción:* Desarrollo e integración de un servicio contenedorizado que simula la API de Zenodo.
+    *   *Impacto Arquitectónico:* Este componente es crítico para la arquitectura de pruebas. Desacopla el entorno de desarrollo y CI de la disponibilidad de servicios externos, permitiendo la ejecución de pruebas de integración deterministas y rápidas sin necesidad de credenciales reales ni conexión a internet.
 
-**Funcionalidad:** Reestructurar uvlhub para que ya no se centre en conjuntos de datos UVL, sino en otro tipo de datos específicos.
+*   **Motor de Búsqueda Avanzada (ElasticSearch):**
+    *   *Descripción:* Integración de un clúster de ElasticSearch para reemplazar o aumentar las capacidades de búsqueda nativas de la base de datos relacional.
+    *   *Impacto Funcional:* Permite la indexación y búsqueda eficiente de conjuntos de datos, modelos y usuarios, ofreciendo resultados más relevantes y rápidos que las consultas SQL tradicionales, escalando mejor con el volumen de datos.
 
-**Justificación:** El objetivo es transformarlo en un pokehub, donde diferentes dominios de dpatos puedan tener su propia lógica sin duplicar la plataforma.
+### 3.2. Subsistema de Gestión de Datasets y Flujos de Trabajo
+Se han desarrollado nuevas vías para la ingestión, gestión y descarga de información, flexibilizando cómo los usuarios interactúan con los datos.
 
-### 3.3. Work Item: Trending datasets (#100)
-**Funcionalidad:** Ver una clasificación de los conjuntos de datos más vistos o descargados recientemente.
+*   **Carga desde Fuentes Externas (GitHub / Zip):**
+    *   *Funcionalidad:* Se implementaron adaptadores para permitir la ingesta de datasets directamente desde archivos `.zip` o mediante la vinculación de repositorios de GitHub.
+    *   *Beneficio:* Facilita la migración de datos existentes y la integración con flujos de trabajo de desarrollo de software externos.
 
-**Justificación:** Descubrir qué es popular en la plataforma.
+*   **Sistema de Borradores (Draft Dataset):**
+    *   *Funcionalidad:* Implementación de un estado intermedio en el ciclo de vida del dataset. Los usuarios pueden guardar su progreso sin publicar, permitiendo la edición asíncrona y la revisión antes de hacer públicos los datos.
 
-### 3.4. Work Item: ElasticSearch (#93)
-**Funcionalidad:** Integrar ElasticSearch en la búsqueda
+*   **Creación y Descarga de Datasets Personalizados:**
+    *   *Funcionalidad:* Se ha desarrollado una lógica de "carrito de compras" para modelos.
+        *   *Build my own dataset:* Permite seleccionar modelos individuales de diferentes fuentes para componer un nuevo dataset derivado.
+        *   *Download Own Dataset:* Permite la descarga empaquetada de esta selección personalizada.
+    *   *Impacto:* Transforma la plataforma de un repositorio de lectura a una herramienta de composición de datos.
 
-**Justificación:** La búsqueda original es limitada. Queremos usar **Elasticsearch** para indexar conjuntos de datos, modelos y usuarios.
+### 3.3. Subsistema Social y de Comunidad
+Para fomentar la colaboración, se han añadido capas sociales sobre la gestión de datos pura.
 
-### 3.5. Work Item: Dataset Feedback (#79)
-**Funcionalidad:** Posibilidad del usuario para poder comentar un conjunto de datos, dar feedback o resolver preguntas.
+*   **Gestión de Comunidades:**
+    *   *Descripción:* Creación de espacios temáticos o institucionales con identidad visual propia, descripción y roles de administración (curadores).
+    *   *Flujo:* Los usuarios pueden proponer datasets para su inclusión en comunidades, y los curadores actúan como filtro de calidad, aceptando o rechazando las propuestas. Esto introduce un flujo de moderación distribuida.
+    *   *Funcionalidades Adicionales:*
+        *   **Notificaciones de Comunidad:** El sistema notifica por correo electrónico al usuario cuando su dataset ha sido aceptado en una comunidad, manteniéndolo informado sobre el estado de su contribución.
+        *   **Revisión de Solicitudes:** Los curadores disponen de herramientas para revisar y moderar las peticiones de inclusión de datasets, asegurando la consistencia y calidad del contenido de la comunidad.
+        *   **Seguir Comunidades:** Los usuarios pueden seguir comunidades específicas para recibir notificaciones por correo electrónico cada vez que se añade un nuevo dataset a ellas, facilitando el seguimiento de la actividad sin revisiones manuales constantes.
 
-### 3.6. Work Item: Create communities (#74)
-**Funcionalidad:** Poder crear comunidades. Cada comunidad tiene un nombre, una descripción, curadores y una identidad visual, lo que permite a usuarios e instituciones organizar y dar visibilidad a sus contribuciones. Se pueden proponer conjuntos de datos para su incorporación a una comunidad, y su inclusión está sujeta a la aceptación de los curadores, lo que garantiza la coherencia y la calidad del contenido compartido.
+*   **Feedback (Dataset Feedback):**
+    *   *Descripción:* Sistema de comentarios asociado a cada dataset.
+    *   *Beneficio:* Habilita la comunicación bidireccional entre autores y consumidores, facilitando la resolución de dudas y la mejora continua de los modelos.
 
-**Justificación:** En el contexto de uvlhub, una comunidad es un espacio temático o institucional que agrupa conjuntos de datos relacionados bajo el mismo paraguas, similar a Zenodo.
+*   **Métricas de Popularidad (Trending & Counters):**
+    *   *Descripción:* Implementación de contadores de descargas atómicos y algoritmos para clasificar los datasets "Trending" (tendencia).
+    *   *Impacto:* Proporciona heurísticas de calidad y relevancia a los usuarios, destacando el contenido más valioso de la plataforma.
 
-### 3.7. Work Item: Download Own Dataset (#72)
-**Funcionalidad:** Poder crear mi propio “carrito de compras” para descargar mi propio conjunto de datos.
+*   **Perfiles de Usuario Públicos (View user profile):**
+    *   *Descripción:* Vistas dedicadas para visualizar todas las contribuciones de un usuario específico, fomentando la reputación dentro de la plataforma.
 
-**Justificación:** Poder seleccionar los modelos que me interesan en la plataforma y añadirlos al carrito para, cuando llegue el momento, poder descargar mi propio conjunto de datos haciendo clic en el botón "Descargar modelos".
+### 3.4. Subsistema de Seguridad y Sesión
+Se ha robustecido la capa de autenticación y autorización para cumplir con estándares de seguridad modernos.
 
-### 3.8. Work Item: Upload from GitHub / Zip (#70)
-**Funcionalidad:** Subir datasets desde un archivo `.zip` o desde un enlace a un repositorio de GitHub.
+*   **Autenticación de Doble Factor (2FA):**
+    *   *Descripción:* Integración de un segundo paso de verificación en el proceso de login, aumentando significativamente la seguridad de las cuentas de usuario frente a compromisos de contraseñas.
 
-**Justificación:** Tener varias opciones para subir archivos `.poke` a la plataforma de pokehub.
-
-### 3.9. Work Item: Draft dataset (#68)
-**Funcionalidad:** Implementación de la lógica necesaria para que un usuario pueda guardar un dataset como borrador.
-
-**Justificación:** Tener la posibilidad de dejar un dataset como borrador y seguir trabajando en él sin tener que publicarlo en tus datasets.
-
-### 3.10. Work Item: Add download counter for datasets (#105)
-**Funcionalidad:** Permite realizar un seguimiento de cuántas veces se ha descargado un conjunto de datos incrementando un contador cada vez que se solicita una descarga.
-
-**Justificación:** Esto ofrece a los autores y usuarios una forma sencilla de medir la popularidad del conjunto de datos.
-
-### 3.11. Work Item: Active session management (#91)
-**Funcionalidad:** Poder ver y cerrar sesiones abiertas en otros dispositivos.
-
-**Justificación:** Que el usuario pueda mantener el control sobre la seguridad con respecto a su cuenta.
-
-### 3.12. Work Item: Build my own dataset (#71)
-**Funcionalidad:** Implementación de la lógica que permite a un usuario crear su propio conjunto de datos.
-
-**Justificación:** Poder seleccionar los modelos que me interesan en la plataforma y añadirlos al carrito para, cuando llegue el momento, poder crear mi propio conjunto de datos haciendo clic en el botón "Crear mi propio conjunto de datos".
-
-### 3.13. Work Item: View user profile (#69)
-**Funcionalidad:** Poder hacer clic en el perfil de un usuario para ver sus conjuntos de datos subidos.
-
-### 3.14. Work Item: Two-factor-authentication (#89)
-**Funcionalidad:** Poder habilitar un doble factor de autenticación.
-
-**Justificación:** Ofrecer al usuario una opción para proteger mejor su cuenta.
+*   **Gestión Activa de Sesiones:**
+    *   *Descripción:* Panel de control que permite al usuario visualizar todas las sesiones activas en diferentes dispositivos y revocar el acceso remotamente.
+    *   *Impacto:* Otorga al usuario control total sobre la seguridad de su acceso, fundamental en entornos distribuidos.
 
 ## 4. Conclusión
-El proyecto PokeHub demuestra una aplicación sólida de los principios de Evolución y Gestión de la Configuración. Cada Work Item aporta valor concreto y está alineado con un marco metodológico de madurez, garantizando un desarrollo escalable y confiable.
+El proyecto PokeHub demuestra una aplicación sólida de los principios de Evolución y Gestión de la Configuración. Cada cambio desarrollado aporta valor concreto y está alineado con un marco metodológico de madurez, garantizando un desarrollo escalable y confiable.
 
 La migración desde uvlhub.io a PokeHub no solo amplía la funcionalidad, sino que transforma la arquitectura en un **ecosistema activo de servicios** con validación, análisis, autenticación avanzada y flujos centrados en el usuario. La coordinación de los equipos, el uso de ramas sandbox y la integración continua aseguran que cada feature se integre de manera coherente y controlada.
 
