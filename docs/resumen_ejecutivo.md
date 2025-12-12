@@ -42,3 +42,23 @@ Los modelos se agrupan en **DataSets**. Cada dataset posee metadatos ricos que i
 El modelo de datos contempla la gestión de autores con afiliación y **ORCID**, vinculando la propiedad intelectual a los datasets. Además, se registran métricas de uso como descargas y vistas, asociando estos eventos a cookies y usuarios para evitar duplicidades y garantizar estadísticas fiables.
 
 ---
+
+## 3. Integración con Repositorios Externos
+
+Una característica distintiva es su integración con **Zenodo**, un repositorio de investigación generalista.
+
+El servicio **ZenodoService** está diseñado para depositar datasets y archivos automáticamente, obteniendo DOIs reales.
+
+Sin embargo, el sistema implementa una capa de abstracción o simulación llamada **Fakenodo** (visible en las variables de entorno y rutas), lo que permite realizar pruebas de integración completas del ciclo de vida de publicación científica sin generar residuos en el servidor real de Zenodo durante el desarrollo o las pruebas.
+
+---
+
+## 4. Ingeniería de Software y Herramientas DevOps
+
+El proyecto destaca por un alto nivel de madurez en ingeniería de software, evidenciado por la creación de una herramienta CLI propia llamada **Rosemary**.
+
+### Rosemary CLI
+Ubicada en `rosemary/cli.py`, esta herramienta de línea de comandos facilita tareas de desarrollo y mantenimiento. Permite a los desarrolladores limpiar cachés, resetear la base de datos, sembrar datos de prueba, ejecutar *linters*, *tests* y generar estructuras de nuevos módulos mediante plantillas **Jinja2**. Esto estandariza el desarrollo y acelera la incorporación de nuevos colaboradores.
+
+### Testing Automatizado
+El proyecto incluye una suite de pruebas exhaustiva. Se utilizan **Pytest** para pruebas unitarias y de integración, **Selenium** para pruebas *end-to-end* simulando la interacción del usuario en el navegador, y **Locust** para pruebas de carga y rendimiento, asegurando que la plataforma escale adecuadamente bajo demanda.
