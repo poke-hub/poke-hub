@@ -324,6 +324,7 @@ def test_ds_meta_data_has_author():
     assert metadata.has_author(2) is True, "The author 'author2' should be found."
     assert metadata.has_author(4) is False, "The author 'author4' should not be found."
 
+
 def test_dataset_to_indexed():
     author1 = Author(id=1, name="author1")
     author2 = Author(id=2, name="author2")
@@ -357,10 +358,10 @@ def test_dataset_to_indexed():
         description="A dataset for testing.",
         tags="tag2,tag3",
         authors=[author2, author3],
-        dataset_doi="doi_de_prueba"
+        dataset_doi="doi_de_prueba",
     )
-    dataset = DataSet(created_at= datetime.fromisoformat('2025-11-30T16:15:23'), ds_meta_data=metadata)
-    dataset.__dict__['poke_models'] = [fm1, fm2]
+    dataset = DataSet(created_at=datetime.fromisoformat("2025-11-30T16:15:23"), ds_meta_data=metadata)
+    dataset.__dict__["poke_models"] = [fm1, fm2]
 
     with patch.object(PokeModel, "get_pokemon", return_value=[pokemon1, pokemon2]):
         indexed = dataset.to_indexed()
@@ -368,13 +369,24 @@ def test_dataset_to_indexed():
     assert indexed["title"] == "Test Dataset", "Title does not match."
     assert indexed["description"] == "A dataset for testing.", "Description does not match."
     assert "tag1" in indexed["tags"] and "tag2" in indexed["tags"] and "tag3" in indexed["tags"], "Tags do not match."
-    assert "author1" in indexed["authors"] and "author2" in indexed["authors"] and "author3" in indexed["authors"], "Authors do not match."
+    assert (
+        "author1" in indexed["authors"] and "author2" in indexed["authors"] and "author3" in indexed["authors"]
+    ), "Authors do not match."
     assert indexed["created_at"] == "2025-11-30T16:15:23", "Creation date does not match."
     assert "Pikachu" in indexed["pokemons"] and "Charizard" in indexed["pokemons"], "Pokemons do not match."
     assert "Lanzar rayos" in indexed["abilities"] and "Mar Llamas" in indexed["abilities"], "Abilities do not match."
     assert indexed["max_ev_count"] == 40, "Max EV count does not match."
     assert indexed["max_iv_count"] == 9, "Max IV count does not match."
-    assert set(indexed["moves"]) == {"Impactrueno", "Llamarada", "Ascuas", "Trueno", "Rayo", "Vuelo", "Giga Impacto", "Chispa"}, "Moves do not match."
+    assert set(indexed["moves"]) == {
+        "Impactrueno",
+        "Llamarada",
+        "Ascuas",
+        "Trueno",
+        "Rayo",
+        "Vuelo",
+        "Giga Impacto",
+        "Chispa",
+    }, "Moves do not match."
     assert indexed["doi"] == "doi_de_prueba", "DOI does not match."
 
 

@@ -15,12 +15,11 @@ class ElasticsearchBehavior(TaskSet):
             print(f"Elasticsearch index succeededed with status code: {response.status_code}")
         elif response.status_code == 503:
             print(
-                f"Elasticsearch not connected, but test succeeded. If you need "+
-                "the Elasticsearch service please contact your project manager"
-                )
+                "Elasticsearch not connected, but test succeeded. If you need "
+                + "the Elasticsearch service please contact your project manager"
+            )
         else:
             print(f"Elasticsearch index failed with status code: {response.status_code}")
-
 
 
 class ElasticsearchUser(HttpUser):

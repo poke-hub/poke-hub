@@ -1,10 +1,9 @@
 import json
-from datetime import datetime
 
 import pytest
 
-from app import db
 from app.modules.elasticsearch.services import ElasticsearchService
+
 
 # Test Get
 def test_get_explore_page(test_client):
@@ -98,7 +97,7 @@ def test_post_explore_filter(test_client, post_data, expected_status, expected_l
     if response.status_code == 503:
         pytest.skip("Elasticsearch no está disponible (Error 503). Saltando test.")
 
-    0# VERIFY INDEX IS READY FOR TESTING
+    0  # VERIFY INDEX IS READY FOR TESTING
     try:
         es_service = ElasticsearchService()
         if es_service.count_documents() == 0:
