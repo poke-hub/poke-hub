@@ -31,43 +31,29 @@ def clean_user_state(test_client):
         db.session.remove()
 
 
-# --- Tests Corregidos ---
-
-
 def test_full_2fa_activation_flow(test_client):
     """
     Test de integración para el flujo completo de activación de 2FA.
     """
     clean_user_state(test_client)
 
-    # 1. Login inicial
     login(test_client, "test@example.com", "test1234")
 
-    # 2. Setup inicial
     response = test_client.post("/profile/2fa/setup")
     assert response.status_code == 200
     data = response.get_json()
     assert "secret" in data
     secret = data["secret"]
 
-    # CORRECCIÓN CRÍTICA:
-    # El servicio 'verify_2fa_token' lee 'user.two_factor_secret' de la BBDD.
-    # Si el endpoint /setup guarda el secreto en session (lo habitual antes de confirmar),
-    # la verificación fallará porque la BBDD tiene None.
-    # Forzamos el guardado del secreto en la BBDD para asegurar que verify_2fa_token funcione.
     with test_client.application.app_context():
         user = User.query.filter_by(email="test@example.com").first()
         auth_service = AuthenticationService()
-        # Guardamos el secreto encriptado en el usuario para que el servicio lo encuentre
         auth_service.set_user_2fa_secret(user, secret)
         db.session.commit()
 
-    # 3. Generar token válido con el mismo secreto
     totp = pyotp.TOTP(secret)
     valid_token = totp.now()
 
-    # 4. Enable (POST)
-    # Al ser válido, redirige y EVITA renderizar el template que causa el error de CSRF.
     response = test_client.post("/profile/2fa/enable", data={"token": valid_token}, follow_redirects=True)
 
     assert response.status_code == 200
@@ -84,18 +70,15 @@ def test_login_with_2fa_enabled(test_client):
 
     secret = "5JEIF3ANYS7UJKZEN7PZJFG5RHTNRPR2"
 
-    # Configuración del estado del usuario
     with test_client.application.app_context():
         auth_service = AuthenticationService()
         user = User.query.filter_by(email="test@example.com").first()
 
-        # Configuramos todo el entorno de 2FA manualmente
         auth_service.set_user_2fa_secret(user, secret)
         _, hashed_codes = auth_service.generate_recovery_codes()
         auth_service.set_user_2fa_recovery_codes(user, hashed_codes)
         auth_service.set_user_2fa_enabled(user, True)
 
-        # CORRECCIÓN: Asegurar commit explícito y expiración para evitar cachés
         db.session.commit()
         db.session.expire_all()
 
