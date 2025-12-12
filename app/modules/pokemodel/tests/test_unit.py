@@ -1,5 +1,6 @@
 import os
 import tempfile
+from unittest.mock import Mock
 
 import pytest
 
@@ -27,6 +28,24 @@ def test_sample_assertion(test_client):
     """
     greeting = "Hello, World!"
     assert greeting == "Hello, World!", "The greeting does not coincide with 'Hello, World!'"
+
+def test_pm_get_total_ivs(test_client):
+    pm = PokeModel()
+    pm.get_pokemon = Mock(
+        return_value=Mock(ivs={"HP": 31, "Atk": 31, "Def": 31, "SpA": 31, "SpD": 31, "Spe": 31})
+    )
+
+    total_ivs = pm.get_total_ivs()
+    assert total_ivs == 186, f"The total IVs should be 186, but got {total_ivs}."
+
+def test_pm_get_total_evs(test_client):
+    pm = PokeModel()
+    pm.get_pokemon = Mock(
+        return_value=Mock(evs={"HP": 252, "Atk": 252, "Def": 4, "SpA": 0, "SpD": 0, "Spe": 0})
+    )
+
+    total_evs = pm.get_total_evs()
+    assert total_evs == 508, f"The total EVs should be 508, but got {total_evs}."
 
 
 def test_fm_meta_data_get_all_tags():
