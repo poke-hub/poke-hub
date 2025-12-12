@@ -105,33 +105,50 @@ def test_clear_cart(test_client, shopping_cart_seed):
 
 def test_download_cart(test_client, shopping_cart_seed):
     login(test_client, "test@example.com", "test1234")
-    with test_client.application.app_context():
-        hubfile = Hubfile.query.first()
-        user = User.query.filter_by(email="test@example.com").first()
-        svc = ShoppingCartService()
-        cart = svc.get_cart_by_user(user)
-        svc.add_item_to_cart(cart, hubfile)
-        db.session.commit()
 
-        import os
+    import os
+    import tempfile
+    import shutil
 
-        dataset = DataSet.query.get(hubfile.poke_model.data_set_id)
-        file_path = os.path.join(
-            os.getenv("WORKING_DIR", ""),
-            "uploads",
-            f"user_{dataset.user_id}",
-            f"dataset_{dataset.id}",
-            hubfile.name,
-        )
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, "w") as f:
-            f.write("dummy content")
+    # Usamos un directorio temporal para evitar problemas de permisos con la carpeta 'uploads' local
+    temp_dir = tempfile.mkdtemp()
+    old_wd = os.environ.get("WORKING_DIR")
+    os.environ["WORKING_DIR"] = temp_dir
 
-    db.session.remove()
+    try:
+        with test_client.application.app_context():
+            hubfile = Hubfile.query.first()
+            user = User.query.filter_by(email="test@example.com").first()
+            svc = ShoppingCartService()
+            cart = svc.get_cart_by_user(user)
+            svc.add_item_to_cart(cart, hubfile)
+            db.session.commit()
 
-    resp = test_client.get("/shopping_cart/download")
-    assert resp.status_code == 200
-    assert resp.headers["Content-Type"] == "application/zip"
+            dataset = DataSet.query.get(hubfile.poke_model.data_set_id)
+            file_path = os.path.join(
+                temp_dir,
+                "uploads",
+                f"user_{dataset.user_id}",
+                f"dataset_{dataset.id}",
+                hubfile.name,
+            )
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, "w") as f:
+                f.write("dummy content")
+
+        db.session.remove()
+
+        resp = test_client.get("/shopping_cart/download")
+        assert resp.status_code == 200
+        assert resp.headers["Content-Type"] == "application/zip"
+
+    finally:
+        # Restauramos el entorno y limpiamos el directorio temporal
+        if old_wd:
+            os.environ["WORKING_DIR"] = old_wd
+        else:
+            os.environ.pop("WORKING_DIR", None)
+        shutil.rmtree(temp_dir)
 
 
 def test_get_cart_by_user(test_client, shopping_cart_seed):
