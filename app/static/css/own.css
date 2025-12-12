@@ -185,3 +185,13 @@
     padding: 5px;
     border-radius: 3px;
 }
+
+.main {
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)),
+        url('../img/items/background.png') !important;
+    
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}

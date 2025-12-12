@@ -7,23 +7,17 @@ endblock %} {% block content %}
   <div class="col-12">
     {% if shopping_cart and shopping_cart.items %}
     <div class="card">
-      <div class="card-header">
-        <a
-          href="{{ url_for('shopping_cart.download_cart') }}"
-          class="btn btn-primary float-end me-2"
-          style="border-radius: 5px"
-        >
-          <i data-feather="download"></i> Descargar Todo
-        </a>
+      <div class="card-header d-flex justify-content-end gap-2">
         <a
           href="{{ url_for('shopping_cart.clear_cart') }}"
-          class="btn btn-danger float-end"
+          class="btn btn-danger"
         >
           <i data-feather="trash"></i> Clear Cart
         </a>
+        
         <button
           type="button"
-          class="btn btn-success float-end me-2"
+          class="btn btn-success"
           data-bs-toggle="modal"
           data-bs-target="#createDatasetModal"
         >
@@ -33,6 +27,14 @@ endblock %} {% block content %}
           style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"
         >
         Build DataSet
+        </button>
+
+        <a
+          href="{{ url_for('shopping_cart.download_cart') }}"
+          class="btn btn-primary"
+          style="border-radius: 5px"
+        >
+          <i data-feather="download"></i> Descargar Todo
         </a>
       </div>
       <div class="card-body">

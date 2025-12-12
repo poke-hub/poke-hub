@@ -6,10 +6,17 @@
 
 <div class="row mb-3">
     <div class="col-12">
+        {% if dataset.ds_meta_data.dataset_doi %}
         <a href="{{ url_for('dataset.subdomain_index', doi=dataset.ds_meta_data.dataset_doi) }}" class="btn btn-outline-secondary btn-sm" style="border-radius: 5px;">
             <i data-feather="arrow-left"></i>
             Back to dataset
         </a>
+        {% else %}
+        <a href="{{ url_for('dataset.get_unsynchronized_dataset', dataset_id=dataset.id) }}" class="btn btn-outline-secondary btn-sm" style="border-radius: 5px;">
+            <i data-feather="arrow-left"></i>
+            Back to dataset
+        </a>
+        {% endif %}
     </div>
 </div>
 
