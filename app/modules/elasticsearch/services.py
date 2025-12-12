@@ -95,3 +95,11 @@ class ElasticsearchService(BaseService):
             print(f"Index {self.index_name} deleted.")
         else:
             print(f"Index {self.index_name} does not exist.")
+
+    def count_documents(self):
+        if self.es.indices.exists(index=self.index_name):
+            count_response = self.es.count(index=self.index_name)
+            return count_response["count"]
+        else:
+            print(f"Index {self.index_name} does not exist.")
+            return 0
