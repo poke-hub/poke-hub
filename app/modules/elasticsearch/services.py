@@ -8,7 +8,7 @@ from app.modules.elasticsearch.repositories import ElasticsearchRepository
 from app.modules.explore.services import ExploreService
 from core.services.BaseService import BaseService
 
-index_name = "search_index"
+index_name = os.environ.get("ELASTICSEARCH_INDEX_NAME", "search_index")
 
 
 class ElasticsearchService(BaseService):
