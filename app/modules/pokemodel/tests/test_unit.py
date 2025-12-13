@@ -1,6 +1,6 @@
 import os
 import tempfile
-from unittest.mock import Mock
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -223,7 +223,7 @@ IVs: 31SpA/31 Spe
         os.remove(path)
 
 
-def test_get_pokemon_delegates_to_parse_poke(monkeypatch, test_client):
+def test_get_pokemon_delegates_to_parse_poke(test_client):
     pm = PokeModel()
 
     class DS:
@@ -231,22 +231,34 @@ def test_get_pokemon_delegates_to_parse_poke(monkeypatch, test_client):
 
     ds = DS()
     ds.user_id = 11
+
+    hubfile_mock = MagicMock()
+    hubfile_mock.name = "dummy.poke"
+
     pm.__dict__["data_set"] = ds
     pm.data_set_id = 5
+    pm.__dict__["files"] = [hubfile_mock]
 
-    called = {}
+    with (
+        patch("app.modules.pokemodel.models.os.listdir") as mock_listdir,
+        patch("app.modules.pokemodel.models.parse_poke") as mock_parse,
+    ):
 
-    def fake_parse(path):
-        called["path"] = path
-        return "parsed"
+        mock_listdir.return_value = ["dummy.poke"]
+        mock_parse.return_value = "parsed_result"
 
-    monkeypatch.setattr("app.modules.pokemodel.models.parse_poke", fake_parse)
+        with test_client.application.app_context():
+            test_client.application.root_path = "/srv/app/myapp"
 
-    with test_client.application.app_context():
-        test_client.application.root_path = "/srv/app/myapp"
-        res = pm.get_pokemon()
+            res = pm.get_pokemon()
 
+    # Verificaciones
+    assert res == "parsed_result"
+
+    # Reconstruimos la ruta esperada para verificar la llamada
     parent = os.path.dirname("/srv/app/myapp")
-    expected = os.path.join(parent, f"uploads/user_{ds.user_id}/dataset_{pm.data_set_id}/")
-    assert called.get("path") == expected
-    assert res == "parsed"
+    expected_dir = os.path.join(parent, f"uploads/user_{ds.user_id}/dataset_{pm.data_set_id}/")
+    expected_full_path = os.path.join(expected_dir, "dummy.poke")
+
+    # Verificamos que parse_poke fue llamado con la ruta correcta
+    mock_parse.assert_called_once_with(expected_full_path)
