@@ -1,4 +1,5 @@
 from elasticsearch.exceptions import NotFoundError as ElasticsearchConnectionError
+from elasticsearch.exceptions import ApiError as ElasticsearchNewConnectionError
 from flask import jsonify, render_template, request
 
 from app.modules.elasticsearch.services import ElasticsearchService
@@ -33,6 +34,8 @@ def index():
         except ElasticsearchConnectionError:
             return jsonify({"error": "Elasticsearch service is unavailable."}), 503
         except ValueError:
+            return jsonify({"error": "Elasticsearch service is unavailable."}), 503
+        except ElasticsearchNewConnectionError:
             return jsonify({"error": "Elasticsearch service is unavailable."}), 503
 
         hits = [hit["_source"] for hit in es_results["hits"]["hits"]]

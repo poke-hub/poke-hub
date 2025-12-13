@@ -1,4 +1,5 @@
 from elasticsearch.exceptions import NotFoundError as ElasticsearchConnectionError
+from elasticsearch.exceptions import ApiError as ElasticsearchNewConnectionError
 from flask import flash, redirect, render_template
 
 from app import db
@@ -60,6 +61,11 @@ def publish_dataset(dataset_id):
             "warning",
         )
     except ValueError:
+        flash(
+            "Elasticsearch service is unavailable. Please contact with your project manager if you need the service.",
+            "warning",
+        )
+    except ElasticsearchNewConnectionError:
         flash(
             "Elasticsearch service is unavailable. Please contact with your project manager if you need the service.",
             "warning",
