@@ -39,7 +39,7 @@ def test_view_and_revoke_sessions(driver, test_client):
             db.session.add(user)
             db.session.commit()
 
-    driver.get("http://localhost:5000/login")
+    driver.get("http://127.0.0.1:5000/login")
 
     email_field = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "email")))
     email_field.send_keys(user_email)
@@ -70,7 +70,7 @@ def test_view_and_revoke_sessions(driver, test_client):
     # -----------------------------------------------------------------------
     # 3. IR A SECURITY SETTINGS Y VERIFICAR
     # -----------------------------------------------------------------------
-    driver.get("http://localhost:5000/profile/security")
+    driver.get("http://127.0.0.1:5000/profile/security")
 
     # Verificar que existe la sesión remota en la tabla
     WebDriverWait(driver, 10).until(EC.text_to_be_present_in_element((By.TAG_NAME, "body"), fake_device_name))

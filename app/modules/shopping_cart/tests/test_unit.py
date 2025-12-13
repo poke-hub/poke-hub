@@ -107,8 +107,8 @@ def test_download_cart(test_client, shopping_cart_seed):
     login(test_client, "test@example.com", "test1234")
 
     import os
-    import tempfile
     import shutil
+    import tempfile
 
     # Usamos un directorio temporal para evitar problemas de permisos con la carpeta 'uploads' local
     temp_dir = tempfile.mkdtemp()
