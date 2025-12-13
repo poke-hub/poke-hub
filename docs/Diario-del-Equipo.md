@@ -11,11 +11,11 @@
 * [Zurita Fernández, Manuel](https://github.com/manzurfer)
 
 # Resumen de total de reuniones empleadas en el equipo
-* Total de reuniones: 4
+* Total de reuniones: 5
 * Total de reuniones presenciales: 0
-* Total de reuniones virtuales: 4
+* Total de reuniones virtuales: 5
 * Total de tiempo empleado en reuniones presenciales: 0h
-* Total de tiempo empleado en reuniones virtuales: 2,5h
+* Total de tiempo empleado en reuniones virtuales: 3,5h
 
 # Actas de acuerdos de las reuniones en las que se tomaron decisiones importantes
 
@@ -44,6 +44,12 @@ En esta reunión los dos jefes de proyecto acordaron matices del egc flow.
 Asistentes: Carlos, Hector, Manuel
 
 Se repartieron los WI que faltaban y los documentos que hay que son obligatorios.
+
+## Reunión 13/12/25
+
+Asistentes: Carlos, Hector, Manuel, Marco, Pablo
+
+Probamos las funcionalidades añadidas para detectar posibles errores, hablamos tambien de como hacer el ejercicio de cambio, tambien revisamos la hoja del profesor para estar seguros de lo que tenemos y no hecho.
 
 ## Extra
 
