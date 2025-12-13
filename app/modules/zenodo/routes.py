@@ -1,5 +1,5 @@
-from elasticsearch.exceptions import NotFoundError as ElasticsearchConnectionError
 from elasticsearch.exceptions import ApiError as ElasticsearchNewConnectionError
+from elasticsearch.exceptions import NotFoundError as ElasticsearchConnectionError
 from flask import flash, redirect, render_template
 
 from app import db
