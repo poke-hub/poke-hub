@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 
 from app import db
@@ -11,20 +9,7 @@ from app.modules.pokemodel.services import PokeModelService
 
 @pytest.fixture(scope="module")
 def pokemodel_seed(test_client):
-    """Prepare a template for the pokemodel index and create minimal dataset/fm/pm if needed."""
-    template_dir = Path.cwd() / "app" / "modules" / "pokemodel" / "templates" / "poke_model"
-    template_dir.mkdir(parents=True, exist_ok=True)
-    tpl_file = template_dir / "index.html"
-    created_tpl = False
-    if not tpl_file.exists():
-        tpl_file.write_text(
-            """{% extends 'base_template.html' %}
-{% block title %}PokeModel index{% endblock %}
-{% block content %}PokeModel index page{% endblock %}
-"""
-        )
-        created_tpl = True
-
+    """Create minimal dataset/fm/pm if needed."""
     with test_client.application.app_context():
         dataset = DataSet.query.get(8)
         if dataset is None:
@@ -66,17 +51,11 @@ def pokemodel_seed(test_client):
 
     yield
 
-    if created_tpl:
-        try:
-            tpl_file.unlink()
-        except Exception:
-            pass
-
 
 def test_pokemodel_index_returns_200(test_client, monkeypatch):
     import app.modules.pokemodel.routes as routes
 
-    monkeypatch.setattr(routes, "render_template", lambda name: "PokeModel index page")
+    monkeypatch.setattr(routes, "render_template", lambda *args, **kwargs: "PokeModel index page")
 
     resp = test_client.get("/poke_model")
     assert resp.status_code == 200

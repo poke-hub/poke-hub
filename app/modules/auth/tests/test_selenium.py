@@ -1,3 +1,5 @@
+import os
+import sys
 import time
 
 from selenium.common.exceptions import NoSuchElementException
@@ -6,6 +8,8 @@ from selenium.webdriver.common.keys import Keys
 
 from core.environment.host import get_host_for_selenium_testing
 from core.selenium.common import close_driver, initialize_driver
+
+sys.path.append(os.getcwd())
 
 
 def test_login_and_check_element():
