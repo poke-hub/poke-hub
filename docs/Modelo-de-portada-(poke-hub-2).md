@@ -6,12 +6,12 @@
 
 | Miembro | Implicación |
 | ------------- | ------------- |
-| [Amador Calzadilla, Kevin](https://github.com/kevamacal)|-|
-| [Bermúdez Imaz, Pablo](https://github.com/Pablobi)|-|
-| [Cruz Ramírez, Carlos Javier](https://github.com/carcruram)|-|
-| [Guerra Prada, Héctor](https://github.com/HectorGuePra)|-|
-| [Padilla Gómez, Marco](https://github.com/maarcoopg)|-|
-| [Zurita Fernández, Manuel](https://github.com/manzurfer)|-|
+| [Amador Calzadilla, Kevin](https://github.com/kevamacal)|7|
+| [Bermúdez Imaz, Pablo](https://github.com/Pablobi)|8|
+| [Cruz Ramírez, Carlos Javier](https://github.com/carcruram)|8|
+| [Guerra Prada, Héctor](https://github.com/HectorGuePra)|9|
+| [Padilla Gómez, Marco](https://github.com/maarcoopg)|8|
+| [Zurita Fernández, Manuel](https://github.com/manzurfer)|8|
 
 ## Enlaces de interés:
 * [repositorio de código](https://github.com/poke-hub/poke-hub)
