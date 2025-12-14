@@ -21,4 +21,4 @@
 
 ## Enlace a la documentación
 
-* [Enlace a la documentación principal](https://github.com/poke-hub/poke-hub/tree/main/docs)
+* [Enlace a la documentación principal](https://github.com/poke-hub/poke-hub/tree/main/docs/pokehub2)
