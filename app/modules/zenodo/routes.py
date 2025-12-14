@@ -1,7 +1,10 @@
+from elasticsearch.exceptions import ApiError as ElasticsearchNewConnectionError
+from elasticsearch.exceptions import NotFoundError as ElasticsearchConnectionError
 from flask import flash, redirect, render_template
 
 from app import db
 from app.modules.dataset.models import DataSet
+from app.modules.elasticsearch.services import ElasticsearchService
 from app.modules.zenodo import zenodo_bp
 from app.modules.zenodo.services import ZenodoService
 
@@ -47,6 +50,26 @@ def publish_dataset(dataset_id):
 
         flash(f"¡Publicado/Actualizado con éxito en Zenodo/Fakenodo! DOI: {publish_data.get('doi')}", "success")
 
+        updated_dataset = DataSet.query.get(dataset_id)
+
+        es_service = ElasticsearchService()
+        es_service.index_document(dataset_id, updated_dataset.to_indexed())
+
+    except ElasticsearchConnectionError:
+        flash(
+            "Elasticsearch service is unavailable. Please contact with your project manager if you need the service.",
+            "warning",
+        )
+    except ValueError:
+        flash(
+            "Elasticsearch service is unavailable. Please contact with your project manager if you need the service.",
+            "warning",
+        )
+    except ElasticsearchNewConnectionError:
+        flash(
+            "Elasticsearch service is unavailable. Please contact with your project manager if you need the service.",
+            "warning",
+        )
     except Exception as e:
         flash(f"Error al publicar en Zenodo/Fakenodo: {str(e)}", "danger")
 

@@ -4,6 +4,7 @@ import logging
 import os
 import shutil
 import uuid
+from datetime import datetime
 from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 from zipfile import BadZipFile, ZipFile
@@ -21,11 +22,13 @@ from app.modules.dataset.repositories import (
     DSMetaDataRepository,
     DSViewRecordRepository,
 )
+from app.modules.hubfile.models import Hubfile
 from app.modules.hubfile.repositories import (
     HubfileDownloadRecordRepository,
     HubfileRepository,
     HubfileViewRecordRepository,
 )
+from app.modules.pokemodel.models import FMMetaData, PokeModel
 from app.modules.pokemodel.repositories import FMMetaDataRepository, PokeModelRepository
 from core.services.BaseService import BaseService
 
@@ -394,6 +397,81 @@ class DataSetService(BaseService):
             saved.append(candidate)
 
         return saved, ignored
+
+    def create_from_cart(self, user_id, form_data, shopping_cart) -> DataSet:
+        """
+        Crea un dataset y sus pokemodels a partir de los items del carrito.
+        Maneja la transacción completa.
+        """
+        try:
+            # DSMetaData
+            ds_metadata = DSMetaData(
+                title=form_data.get("title"),
+                description=form_data.get("desc"),
+                publication_type=_normalize_publication_type(form_data.get("publication_type")),
+                publication_doi=form_data.get("publication_doi"),
+                tags=form_data.get("tags"),
+            )
+
+            # DataSet
+            new_dataset = DataSet(
+                user_id=user_id,
+                created_at=datetime.utcnow(),
+                draft_mode=False,
+                download_count=0,
+                ds_meta_data=ds_metadata,
+            )
+
+            self.repository.session.add(new_dataset)
+            self.repository.session.flush()
+
+            working_dir = os.getenv("WORKING_DIR", "")
+            dest_dir = os.path.join(working_dir, "uploads", f"user_{user_id}", f"dataset_{new_dataset.id}")
+            os.makedirs(dest_dir, exist_ok=True)
+
+            for cart_item in shopping_cart.items:
+                hubfile = cart_item.file
+
+                # Copiamos el hubfile al nuevo dataset para que asi el original no lo pierda
+                new_hubfile = Hubfile(name=hubfile.name, checksum=hubfile.checksum, size=hubfile.size)
+
+                source_path = hubfile.get_path()
+
+                dest_path = os.path.join(dest_dir, new_hubfile.name)
+
+                if os.path.exists(source_path):
+                    shutil.copy2(source_path, dest_path)
+                else:
+                    logger.warning(f"Source file not found: {source_path}")
+
+                # FMMetaData, por defecto igual al dataset padre
+                fm_metadata = FMMetaData(
+                    poke_filename=new_hubfile.name,
+                    title=new_hubfile.name,
+                    description=form_data.get("desc"),
+                    publication_type=_normalize_publication_type(form_data.get("publication_type")),
+                    publication_doi=form_data.get("publication_doi"),
+                    tags=form_data.get("tags"),
+                )
+
+                new_poke_model = PokeModel(fm_meta_data=fm_metadata)
+
+                new_poke_model.files.append(new_hubfile)
+
+                new_dataset.poke_models.append(new_poke_model)
+
+                # Borramos el item del carrito
+                self.repository.session.delete(cart_item)
+
+            self.repository.session.commit()
+
+            logger.info(f"Dataset {new_dataset.id} created from cart by user {user_id}")
+            return new_dataset
+
+        except Exception as e:
+            self.repository.session.rollback()
+            logger.error(f"Error creating dataset from cart: {str(e)}")
+            raise e
 
 
 class AuthorService(BaseService):

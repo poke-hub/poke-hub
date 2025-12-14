@@ -154,6 +154,21 @@ class DataSet(db.Model):
             "total_size_in_human_format": self.get_file_total_size_for_human(),
         }
 
+    def to_indexed(self):
+        return {
+            "title": self.ds_meta_data.title,
+            "description": self.ds_meta_data.description,
+            "tags": list(self.ds_meta_data.get_all_tags()),
+            "authors": [author.name for author in self.ds_meta_data.get_all_authors()],
+            "created_at": self.created_at.isoformat(),
+            "pokemons": [pm.get_pokemon().name for pm in self.poke_models],
+            "abilities": [pm.get_pokemon().ability for pm in self.poke_models],
+            "moves": [move for pm in self.poke_models for move in pm.get_pokemon().moves],
+            "max_ev_count": max(pm.get_total_evs() for pm in self.poke_models) if self.poke_models else 0,
+            "max_iv_count": max(pm.get_total_ivs() for pm in self.poke_models) if self.poke_models else 0,
+            "doi": self.ds_meta_data.dataset_doi,
+        }
+
     def __repr__(self):
         return f"DataSet<{self.id}>"
 

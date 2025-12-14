@@ -53,7 +53,6 @@ def login():
             return render_template("auth/login_form.html", form=form, error="Invalid credentials")
 
         else:
-            # Es un objeto usuario, requiere 2FA
             user = login_result
             session["2fa_user_id"] = user.id
             return redirect(url_for("auth.verify_2fa"))

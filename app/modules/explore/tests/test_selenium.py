@@ -1,0 +1,82 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+
+
+class TestElasticsearch:
+    def setup_method(self, method):
+        self.driver = webdriver.Firefox()
+        self.vars = {}
+
+    def teardown_method(self, method):
+        self.driver.quit()
+
+    def test_elasticsearch(self):
+        self.driver.get("http://localhost:5000/")
+        self.driver.find_element(By.CSS_SELECTOR, ".sidebar-item:nth-child(3) .align-middle:nth-child(2)").click()
+        current_url = self.driver.current_url
+        status_code = self.driver.execute_script(
+            """
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', arguments[0], false);
+      xhr.send(null);
+      return xhr.status;
+      """,
+            current_url,
+        )
+        if status_code == 200:
+            self.driver.find_element(By.ID, "query").click()
+            self.driver.find_element(By.ID, "query").send_keys("5")
+            self.driver.find_element(By.CSS_SELECTOR, ".content").click()
+            self.driver.find_element(By.LINK_TEXT, "Sample dataset 1").click()
+            self.driver.find_element(By.ID, "search").click()
+            self.driver.find_element(By.ID, "sorting").click()
+            dropdown = self.driver.find_element(By.ID, "sorting")
+            dropdown.find_element(By.XPATH, "//option[. = 'Sort by EV count']").click()
+            self.driver.find_element(By.CSS_SELECTOR, "#sorting > option:nth-child(2)").click()
+            self.driver.find_element(By.ID, "sorting").click()
+            self.driver.find_element(By.CSS_SELECTOR, ".g-3").click()
+            self.driver.find_element(By.ID, "desc").click()
+            dropdown = self.driver.find_element(By.ID, "desc")
+            dropdown.find_element(By.XPATH, "//option[. = 'Descending']").click()
+            self.driver.find_element(By.CSS_SELECTOR, "#desc > option:nth-child(2)").click()
+            self.driver.find_element(By.ID, "sorting").click()
+            dropdown = self.driver.find_element(By.ID, "sorting")
+            dropdown.find_element(By.XPATH, "//option[. = 'Sort by IV count']").click()
+            self.driver.find_element(By.CSS_SELECTOR, "option:nth-child(3)").click()
+            self.driver.find_element(By.ID, "desc").click()
+            dropdown = self.driver.find_element(By.ID, "desc")
+            dropdown.find_element(By.XPATH, "//option[. = 'Ascending']").click()
+            self.driver.find_element(By.CSS_SELECTOR, "#desc > option:nth-child(1)").click()
+            self.driver.find_element(By.ID, "clear-filters-btn").click()
+            self.driver.find_element(By.ID, "query").click()
+            self.driver.find_element(By.ID, "query").send_keys("alcachofa")
+            self.driver.find_element(By.ID, "clear-filters-btn").click()
+            self.driver.find_element(By.ID, "query").click()
+            self.driver.find_element(By.ID, "query").send_keys("tag1")
+            self.driver.find_element(By.CSS_SELECTOR, ".g-3").click()
+            self.driver.find_element(By.ID, "clear-filters-btn").click()
+            self.driver.find_element(By.ID, "query").click()
+            self.driver.find_element(By.ID, "query").send_keys("3")
+            self.driver.find_element(By.ID, "clear-filters-btn").click()
+        elif status_code == 503:
+            self.driver.find_element(By.ID, "retry-btn").click()
+            self.driver.find_element(By.ID, "retry-btn").click()
+            self.driver.find_element(By.ID, "query").click()
+            self.driver.find_element(By.ID, "query").send_keys("1")
+            self.driver.find_element(By.CSS_SELECTOR, ".mt-2").click()
+            self.driver.find_element(By.ID, "retry-btn").click()
+            self.driver.find_element(By.ID, "sorting").click()
+            dropdown = self.driver.find_element(By.ID, "sorting")
+            dropdown.find_element(By.XPATH, "//option[. = 'Sort by EV count']").click()
+            self.driver.find_element(By.CSS_SELECTOR, "#sorting > option:nth-child(2)").click()
+            self.driver.find_element(By.ID, "sorting").click()
+            dropdown = self.driver.find_element(By.ID, "sorting")
+            dropdown.find_element(By.XPATH, "//option[. = 'Sort by IV count']").click()
+            self.driver.find_element(By.CSS_SELECTOR, "option:nth-child(3)").click()
+            dropdown = self.driver.find_element(By.ID, "desc")
+            dropdown.find_element(By.XPATH, "//option[. = 'Descending']").click()
+            self.driver.find_element(By.CSS_SELECTOR, "#desc > option:nth-child(2)").click()
+            self.driver.find_element(By.ID, "clear-filters-btn").click()
+            self.driver.find_element(By.ID, "retry-btn").click()
+        else:
+            raise Exception(f"Unexpected status code: {status_code}")

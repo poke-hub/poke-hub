@@ -132,9 +132,6 @@ def setup_2fa():
     uri = auth_service.get_2fa_provisioning_uri(current_user.email, secret)
     qr_base64 = auth_service.generate_qr_code_base64(uri)
 
-    # Guardamos el secreto temporalmente en sesión o BBDD (aquí usas BBDD directa según tu código)
-    # Nota: Idealmente deberías usar una sesión temporal (ver código anterior),
-    # pero mantengo tu lógica de guardarlo en set_user_2fa_secret para que funcione con tu flujo actual.
     auth_service.set_user_2fa_secret(current_user, secret)
 
     return jsonify({"secret": secret, "qr_base64": qr_base64})

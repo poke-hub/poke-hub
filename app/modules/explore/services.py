@@ -16,3 +16,6 @@ class ExploreService(BaseService):
 
     def get_all_tags(self):
         return self.repository.get_all_tags()
+
+    def get_all_datasets(self):
+        return self.repository.get_all_datasets()

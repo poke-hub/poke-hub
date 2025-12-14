@@ -3,7 +3,8 @@ import os
 import shutil
 import uuid
 import zipfile
-from unittest.mock import Mock, patch
+from datetime import datetime
+from unittest.mock import MagicMock, Mock, patch
 from zipfile import ZipFile
 
 import pytest
@@ -15,7 +16,7 @@ from app.modules.auth.services import AuthenticationService
 from app.modules.conftest import login, logout
 from app.modules.dataset.models import Author, DataSet, DSComment, DSMetaData, PublicationType
 from app.modules.dataset.services import DataSetService, SizeService
-from app.modules.pokemodel.models import FMMetaData, PokeModel
+from app.modules.pokemodel.models import FMMetaData, PokeModel, Pokemon
 from app.modules.profile.models import UserProfile
 
 
@@ -328,6 +329,71 @@ def test_ds_meta_data_has_author():
     assert metadata.has_author(1) is True, "The author 'author1' should be found."
     assert metadata.has_author(2) is True, "The author 'author2' should be found."
     assert metadata.has_author(4) is False, "The author 'author4' should not be found."
+
+
+def test_dataset_to_indexed():
+    author1 = Author(id=1, name="author1")
+    author2 = Author(id=2, name="author2")
+    author3 = Author(id=3, name="author3")
+    fm_meta_data = FMMetaData(tags="tag1,tag2", authors=[author1, author3])
+    fm_meta_data2 = FMMetaData()
+    pokemon1 = Pokemon()
+    pokemon1.name = "Pikachu"
+    pokemon1.ability = "Lanzar rayos"
+    pokemon1.evs = {"Fernando Alonso": 33, "Antony": 7}
+    pokemon1.ivs = {"Uva": 3}
+    pokemon1.moves = ["Impactrueno", "Rayo", "Trueno", "Chispa"]
+    pokemon2 = Pokemon()
+    pokemon2.name = "Charizard"
+    pokemon2.ability = "Mar Llamas"
+    pokemon2.evs = {"Purple": 6}
+    pokemon2.ivs = {"Tesla": 9}
+    pokemon2.moves = ["Llamarada", "Vuelo", "Giga Impacto", "Ascuas"]
+    fm1 = MagicMock(spec=PokeModel)
+    fm1.fm_meta_data = fm_meta_data
+    fm1.get_pokemon = MagicMock(return_value=pokemon1)
+    fm1.get_total_evs = MagicMock(return_value=40)
+    fm1.get_total_ivs = MagicMock(return_value=3)
+    fm2 = MagicMock(spec=PokeModel)
+    fm2.fm_meta_data = fm_meta_data2
+    fm2.get_pokemon = MagicMock(return_value=pokemon2)
+    fm2.get_total_evs = MagicMock(return_value=6)
+    fm2.get_total_ivs = MagicMock(return_value=9)
+    metadata = DSMetaData(
+        title="Test Dataset",
+        description="A dataset for testing.",
+        tags="tag2,tag3",
+        authors=[author2, author3],
+        dataset_doi="doi_de_prueba",
+    )
+    dataset = DataSet(created_at=datetime.fromisoformat("2025-11-30T16:15:23"), ds_meta_data=metadata)
+    dataset.__dict__["poke_models"] = [fm1, fm2]
+
+    with patch.object(PokeModel, "get_pokemon", return_value=[pokemon1, pokemon2]):
+        indexed = dataset.to_indexed()
+
+    assert indexed["title"] == "Test Dataset", "Title does not match."
+    assert indexed["description"] == "A dataset for testing.", "Description does not match."
+    assert "tag1" in indexed["tags"] and "tag2" in indexed["tags"] and "tag3" in indexed["tags"], "Tags do not match."
+    assert (
+        "author1" in indexed["authors"] and "author2" in indexed["authors"] and "author3" in indexed["authors"]
+    ), "Authors do not match."
+    assert indexed["created_at"] == "2025-11-30T16:15:23", "Creation date does not match."
+    assert "Pikachu" in indexed["pokemons"] and "Charizard" in indexed["pokemons"], "Pokemons do not match."
+    assert "Lanzar rayos" in indexed["abilities"] and "Mar Llamas" in indexed["abilities"], "Abilities do not match."
+    assert indexed["max_ev_count"] == 40, "Max EV count does not match."
+    assert indexed["max_iv_count"] == 9, "Max IV count does not match."
+    assert set(indexed["moves"]) == {
+        "Impactrueno",
+        "Llamarada",
+        "Ascuas",
+        "Trueno",
+        "Rayo",
+        "Vuelo",
+        "Giga Impacto",
+        "Chispa",
+    }, "Moves do not match."
+    assert indexed["doi"] == "doi_de_prueba", "DOI does not match."
 
 
 @pytest.fixture
