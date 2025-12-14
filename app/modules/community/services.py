@@ -11,7 +11,11 @@ class CommunityService(BaseService):
             for req in CommunityDatasetRequest.query.filter_by(community_id=community.id, status="pending").all()
         }
 
-        return [ds for ds in user.data_sets if ds.community_id != community.id and ds.id not in requested_ids]
+        return [
+            ds
+            for ds in user.data_sets
+            if ds.community_id != community.id and ds.id not in requested_ids and not ds.draft_mode
+        ]
 
     def create_proposal(community, dataset, requester, message=None):
         existing = CommunityDatasetRequest.query.filter_by(
