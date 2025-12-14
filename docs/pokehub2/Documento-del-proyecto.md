@@ -1,14 +1,87 @@
+# Índice
+
+1. [Indicadores del proyecto](#indicadores-del-proyecto-poke-hub-2)
+2. [Integración con otros equipos](#integración-con-otros-equipos)
+3. [Resumen Ejecutivo](#resumen-ejecutivo-pokehubio)
+
+4. [Arquitectura del Sistema y Tecnologías Clave](#1-arquitectura-del-sistema-y-tecnologías-clave)
+   - 4.1. [Backend y Frameworks](#backend-y-frameworks)
+   - 4.2. [Base de Datos](#base-de-datos)
+   - 4.3. [Contenedorización](#contenedorización)
+   - 4.4. [Búsqueda y Análisis](#búsqueda-y-análisis)
+
+5. [Modelo de Dominio y Gestión de Datos](#2-modelo-de-dominio-y-gestión-de-datos)
+   - 5.1. [La Entidad PokeModel y el Formato `.poke`](#la-entidad-pokemodel-y-el-formato-poke)
+   - 5.2. [Datasets y Metadatos](#datasets-y-metadatos)
+   - 5.3. [Autoría y Métricas](#autoría-y-métricas)
+
+6. [Integración con Repositorios Externos](#3-integración-con-repositorios-externos)
+
+7. [Ingeniería de Software y Herramientas DevOps](#4-ingeniería-de-software-y-herramientas-devops)
+   - 7.1. [Rosemary CLI](#rosemary-cli)
+   - 7.2. [Testing Automatizado](#testing-automatizado)
+
+8. [Descripción del Sistema](#descripción-del-sistema-1500-palábras-aproximadamente)
+   - 8.1. [Introducción y Justificación Metodológica](#1-introducción-y-justificación-metodológica)
+     - 8.1.1. [Gestión de Equipos y Estructura Organizativa](#11-gestión-de-equipos-y-estructura-organizativa)
+     - 8.1.2. [Gestión del Código Fuente y Ramificación](#12-gestión-del-código-fuente-y-ramificación)
+   - 8.2. [Infraestructura e Integración Continua](#2-infraestructura-aislamiento-reproducibilidad-e-integración-continua)
+     - 8.2.1. [Infraestructura Aislada](#21-infraestructura-aislada-docker--reproducibilidad)
+     - 8.2.2. [Automatización de Pruebas](#22-automatización-de-pruebas)
+   - 8.3. [Cambios Desarrollados y Arquitectura del Sistema](#3-cambios-desarrollados-y-arquitectura-del-sistema)
+     - 8.3.1. [Evolución del Núcleo y Arquitectura de Datos](#31-evolución-del-núcleo-y-arquitectura-de-datos)
+     - 8.3.2. [Gestión de Datasets y Flujos de Trabajo](#32-subsistema-de-gestión-de-datasets-y-flujos-de-trabajo)
+     - 8.3.3. [Subsistema Social y de Comunidad](#33-subsistema-social-y-de-comunidad)
+     - 8.3.4. [Subsistema de Seguridad y Sesión](#34-subsistema-de-seguridad-y-sesión)
+   - 8.4. [Conclusión](#4-conclusión)
+
+9. [Visión Global del Proceso de Desarrollo](#visión-global-del-proceso-de-desarrollo)
+   - 9.1. [Planificación y Gestión de Tareas](#1-planificación-y-gestión-de-tareas)
+   - 9.2. [Estrategia de Ramificación: EGC Flow](#2-estrategia-de-ramificación-egc-flow)
+   - 9.3. [Ciclo de Vida de una Funcionalidad](#3-ciclo-de-vida-de-una-funcionalidad-trabajo-en-parejas)
+     - 9.3.1. [Desarrollo Colaborativo](#31-desarrollo-colaborativo-pair-programming)
+     - 9.3.2. [Integración Continua](#32-integración-continua-ci)
+     - 9.3.3. [Integración en Trunk](#33-integración-en-trunk-sin-pull-request)
+   - 9.4. [Integración Global y Despliegue a Producción](#4-integración-global-y-despliegue-a-producción)
+     - 9.4.1. [Sincronización hacia `main`](#41-sincronización-coordinada-hacia-main)
+     - 9.4.2. [Despliegue Continuo](#42-despliegue-continuo-cd)
+   - 9.5. [Caso Práctico: Cambio Trending Datasets](#5-caso-práctico-flujo-completo-de-un-cambio)
+
+10. [Entorno de Desarrollo](#entorno-de-desarrollo-pokehub)
+    - 10.1. [Stack Tecnológico y Versiones](#stack-tecnológico-y-versiones)
+    - 10.2. [Arquitectura de Servicios](#arquitectura-de-servicios)
+    - 10.3. [Herramienta de Gestión: Rosemary](#herramienta-de-gestión-rosemary)
+    - 10.4. [Estrategia de Calidad](#estrategia-de-calidad-testing)
+    - 10.5. [Guía de Instalación y Despliegue](#guía-de-instalación-y-despliegue)
+    - 10.6. [Consideraciones Técnicas Adicionales](#consideraciones-técnicas-adicionales)
+
+11. [Ejercicio: Cambio Trending Datasets](#ejercicio-cambio-trending-datasets-3-a-5-poke-hub-2)
+    - 11.1. [Flujo de Trabajo Paso a Paso](#flujo-de-trabajo-paso-a-paso)
+
+12. [Conclusiones y Trabajo Futuro](#conclusiones-y-trabajo-futuro)
+
 ## Indicadores del proyecto (poke-hub-2)
 
 Miembro del equipo  | Horas | Commits | LoC | Test | Issues | Work Item| Dificultad
 ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |  ------------- |  ------------- | 
-[Amador Calzadilla, Kevin](https://github.com/kevamacal) | HH | XX | YY | ZZ | II | Descripción breve | H/M/L |
-[Bermúdez Imaz, Pablo](https://github.com/Pablobi) | HH | XX | YY | ZZ | II | Descripción breve | H/M/L |
-[Cruz Ramírez, Carlos Javier](https://github.com/carcruram) | HH | XX | YY | ZZ | II | Descripción breve | H/M/L |
-[Guerra Prada, Héctor](https://github.com/HectorGuePra) | HH | XX | YY | ZZ | II | Descripción breve | H/M/L |
-[Padilla Gómez, Marcos](https://github.com/maarcoopg) | HH | XX | YY | ZZ | II | Descripción breve | H/M/L |
-[Zurita Fernández, Manuel](https://github.com/manzurfer) | HH | XX | YY | ZZ | II | Descripción breve | H/M/L |
-**TOTAL** | tHH  | tXX | tYY | tZZ | tII | Descripción breve | H (X)/M(Y)/L(Z) |
+[Amador Calzadilla, Kevin](https://github.com/kevamacal) | 26 | 8 | 717 | 15 | 7 | Trending Datasets, Active session management | M, H |
+[Bermúdez Imaz, Pablo](https://github.com/Pablobi) | 28 | 17 | 1469 | 5 | 8 | Draft dataset, Communities | M, L |
+[Cruz Ramírez, Carlos Javier](https://github.com/carcruram) | 26 | 17 | 1196 | 5 | 9 | Download Zip/Github, Comments | H, L |
+[Guerra Prada, Héctor](https://github.com/HectorGuePra) | 40 | 42 | 843 | 6 | 11 | Fakenodo, Trending Datasets, Active session management | Mandatory, M, H |
+[Padilla Gómez, Marcos](https://github.com/maarcoopg) | 21 | 34 | 1037 | 7 | 11 | Draft dataset, Communities | M, L |
+[Zurita Fernández, Manuel](https://github.com/manzurfer) | 26 | 19 | 471 | 5 | 8 | Download Zip/Github, Comments | H, L |
+**TOTAL** | 167  | 137 | 5505 | 43 | 54 | Trending Datasets, Active session, Draft dataset, Communities,Download Zip/Github, Comments  | H (2)/M(2)/L(2) |
+
+La tabla contiene la información de cada miembro del proyecto y el total de la siguiente forma:
+
+- Horas: número de horas empleadas en el proyecto
+- Commits: solo contar los commits hechos por miembros del equipo, no lo commits previos
+- LoC (líneas de código): solo contar las líneas producidas por el equipo y no las que ya existían o las que se producen al incluir código de terceros
+- Test: solo contar los test realizados por el equipo nuevos
+- Issues: solo contar las issues gestionadas dentro del proyecto y que hayan sido gestionadas por el equipo
+- Work Item: principal WI del que se ha hecho cargo el miembro del proyecto
+- Dificultad: señalar el grado de dificultad en cada caso. Además, en los totales, poner cuántos se han hecho de cada grado de dificultad entre paréntesis.
+
 
 ## Integración con otros equipos
 Equipos con los que se ha integrado y los motivos por lo que lo ha hecho y lugar en el que se ha dado la integración: 

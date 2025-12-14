@@ -6,7 +6,7 @@
 
 | Miembro | Implicación |
 | ------------- | ------------- |
-| [Amador Calzadilla, Kevin](https://github.com/kevamacal)|7|
+| [Amador Calzadilla, Kevin](https://github.com/kevamacal)|8|
 | [Bermúdez Imaz, Pablo](https://github.com/Pablobi)|8|
 | [Cruz Ramírez, Carlos Javier](https://github.com/carcruram)|8|
 | [Guerra Prada, Héctor](https://github.com/HectorGuePra)|9|
