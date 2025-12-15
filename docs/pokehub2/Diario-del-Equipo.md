@@ -1,4 +1,4 @@
-# poké-hub-2
+# Poke-hub-2
 * Grupo 2
 * Curso escolar: 2025/2026
 * Asignatura: Evolución y Gestión de la Configuración

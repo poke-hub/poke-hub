@@ -9,7 +9,7 @@
 | [Amador Calzadilla, Kevin](https://github.com/kevamacal)|8|
 | [Bermúdez Imaz, Pablo](https://github.com/Pablobi)|8|
 | [Cruz Ramírez, Carlos Javier](https://github.com/carcruram)|8|
-| [Guerra Prada, Héctor](https://github.com/HectorGuePra)|9|
+| [Guerra Prada, Héctor](https://github.com/HectorGuePra)|10|
 | [Padilla Gómez, Marco](https://github.com/maarcoopg)|8|
 | [Zurita Fernández, Manuel](https://github.com/manzurfer)|8|
 
