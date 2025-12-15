@@ -1,6 +1,6 @@
 # poke-hub
 
-- grupo 2
+- Grupo 2
 - Curso escolar: 2025/2026
 - Asignatura: Evolución y gestión de la configuración
 
@@ -17,10 +17,10 @@
 
 ## Enlaces de interés:
 
-- [repositorio de código](https://github.com/poke-hub/poke-hub)
-- [sistema desplegado en render con rama main](https://poke-hub.onrender.com/)
-- [sistema desplegado en render con rama 1-poke-hub/trunk](https://poke-hub-1.onrender.com/)
-- [sistema desplegado en servidor propio con rama main](https://poke-hub.jesuspons.dev/)
+- [Repositorio de código](https://github.com/poke-hub/poke-hub)
+- [Sistema desplegado en render con rama main](https://poke-hub.onrender.com/)
+- [Sistema desplegado en render con rama 1-poke-hub/trunk](https://poke-hub-1.onrender.com/)
+- [Sistema desplegado en servidor propio con rama main](https://poke-hub.jesuspons.dev/)
 
 ## Enlace a la documentación
 
