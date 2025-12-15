@@ -44,9 +44,9 @@ Tenga en cuenta los siguientes aspectos:
 
 | Miembro del equipo                                         | Horas | Commits | LoC  | Test | Issues | Work Item                                                 | Dificultad      |
 | ---------------------------------------------------------- | ----- | ------- | ---- | ---- | ------ | --------------------------------------------------------- | --------------- |
-| [Borja León, Joaquín](https://github.com/JoaquinBorjaLeon) | 19    | 10      | 866  | 43   | 2      | Ver en perfil de usuario sus datasets subidos             | L               |
+| [Borja León, Joaquín](https://github.com/JoaquinBorjaLeon) | 26    | 10      | 866  | 43   | 2      | Ver en perfil de usuario sus datasets subidos             | L               |
 | [Diáz Vázquez, Adrián](https://github.com/adrdiavaz)       | 15    | 9       | 822  | 9    | 4      | Contar las descargas que tiene un dataset                 | L               |
-| [Escobar Capilla, Ariel](https://github.com/ArielEC)       | 18    | 10      | 1448 | 14   | 5      | Añadir 2fauth                                             | H               |
+| [Escobar Capilla, Ariel](https://github.com/ArielEC)       | 19    | 10      | 1448 | 19   | 5      | Añadir 2fauth                                             | H               |
 | [López Pérez, Esteban](https://github.com/estlopper)       | 34    | 19      | 1791 | 15   | 6      | Crear dataset en base a carrito y de uvlhub a pokehub     | M               |
 | [Pons Moris, Jesús](https://github.com/Jesus-Pons)         | 38    | 23      | 1752 | 15   | 4      | Descargar dataset en base a carrito y de uvlhub a pokehub | M               |
 | [Rodríguez Durán, Jose Ángel](https://github.com/DLJ7666)  | 33    | 66      | 1590 | 17   | 7      | Busqueda con elasticsearch                                | H               |
