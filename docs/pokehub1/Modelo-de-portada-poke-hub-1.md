@@ -8,7 +8,7 @@
 
 | Miembro                                                    | Implicación |
 | ---------------------------------------------------------- | ----------- |
-| [Borja León, Joaquín](https://github.com/JoaquinBorjaLeon) | [8]         |
+| [Borja León, Joaquín](https://github.com/JoaquinBorjaLeon) | [9]         |
 | [Díaz Vázquez, Adrián](https://github.com/adrdiavaz)       | [7]         |
 | [Escobar Capilla, Ariel](https://github.com/ArielEC)       | [8]         |
 | [López Pérez, Esteban](https://github.com/estlopper)       | [9]         |
