@@ -28,8 +28,8 @@ def index():
     total_poke_model_views = poke_model_service.total_poke_model_views()
 
     metric = request.args.get("metric", "views")
-    trending_views = dataset_service.trending_by_views(limit=3, days=30)
-    trending_downloads = dataset_service.trending_by_downloads(limit=3, days=30)
+    trending_views = dataset_service.trending_by_views(limit=5, days=30)
+    trending_downloads = dataset_service.trending_by_downloads(limit=5, days=30)
     selected_metric = "downloads" if metric == "downloads" else "views"
 
     return render_template(
