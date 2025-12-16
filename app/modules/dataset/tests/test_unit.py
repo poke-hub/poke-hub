@@ -1,4 +1,8 @@
 import io
+import os
+import shutil
+import uuid
+import zipfile
 from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch
 from zipfile import ZipFile
@@ -7,8 +11,10 @@ import pytest
 
 from app import db
 from app.modules.auth.models import User
+from app.modules.auth.repositories import UserRepository
+from app.modules.auth.services import AuthenticationService
 from app.modules.conftest import login, logout
-from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
+from app.modules.dataset.models import Author, DataSet, DSComment, DSMetaData, PublicationType
 from app.modules.dataset.services import DataSetService, SizeService
 from app.modules.pokemodel.models import FMMetaData, PokeModel, Pokemon
 from app.modules.profile.models import UserProfile
@@ -433,3 +439,207 @@ def test_increment_download_count():
 
     svc.repository.get_or_404.assert_called_once_with(dataset_id)
     svc.repository.update.assert_called_once_with(dataset_id, download_count=6)
+
+
+@pytest.fixture
+def feedback_user(test_client):
+    """Crea un usuario único para las pruebas de comentarios."""
+    unique_email = f"feedback_{uuid.uuid4()}@example.com"
+    user = User(email=unique_email, password="password")
+    profile = UserProfile(user=user, surname="Feedback", name="User")
+
+    db.session.add(user)
+    db.session.add(profile)
+    db.session.commit()
+    return user
+
+
+@pytest.fixture
+def feedback_dataset(feedback_user):
+    """Crea un dataset local (unsynchronized) para el usuario de pruebas."""
+    ds_meta = DSMetaData(
+        title=f"Feedback Dataset {uuid.uuid4()}",
+        description="Dataset for testing comments",
+        publication_type=PublicationType.NONE,
+        publication_doi="",
+        dataset_doi="",  # Sin DOI = Local / Unsynchronized
+        tags="test, feedback",
+    )
+    dataset = DataSet(user_id=feedback_user.id, ds_meta_data=ds_meta)
+    db.session.add(dataset)
+    db.session.commit()
+    return dataset
+
+
+def _make_zip_bytes(files: dict, root_prefix: str = "") -> bytes:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        for name, content in files.items():
+            path = os.path.join(root_prefix, name) if root_prefix else name
+            zf.writestr(path, content)
+    buf.seek(0)
+    return buf.read()
+
+
+def test_upload_zip_saves_and_ignores(test_client):
+    # login user created in conftest (test@example.com / test1234)
+    rv = test_client.post(
+        "/login",
+        data={"email": "test@example.com", "password": "test1234"},
+        follow_redirects=True,
+    )
+    assert rv.status_code in (200, 302)
+
+    files = {
+        "good1.poke": "content1",
+        "good2.POKE": "content2",
+        "ignore.txt": "nope",
+        "../escape.poke": "bad",
+    }
+
+    zip_bytes = _make_zip_bytes(files)
+
+    data = {
+        "file": (io.BytesIO(zip_bytes), "test.zip"),
+    }
+
+    resp = test_client.post("/dataset/zip/upload", data=data, content_type="multipart/form-data")
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert "saved" in body and "ignored" in body
+
+    # saved should contain only the two poke files (case-insensitive)
+    assert any(s.lower().endswith("good1.poke") for s in body["saved"])
+    assert any(s.lower().endswith("good2.poke") for s in body["saved"])
+
+    # ignored should include ignore.txt and the traversal entry
+    assert any("ignore.txt" in ig for ig in body["ignored"])
+    assert any(".." in ig or ig.startswith("/") for ig in body["ignored"])
+
+    # Check files exist in uploads/temp/<user.id>
+    # derive path via AuthenticationService
+    user = UserRepository().get_by_email("test@example.com")
+    temp_folder = AuthenticationService().temp_folder_by_user(user)
+
+    try:
+        for saved_name in body["saved"]:
+            assert os.path.exists(os.path.join(temp_folder, saved_name))
+    finally:
+        # cleanup
+        if os.path.exists(temp_folder):
+            shutil.rmtree(temp_folder)
+
+
+def test_import_from_github_with_mocked_zip(monkeypatch, test_client):
+    # login
+    rv = test_client.post(
+        "/login",
+        data={"email": "test@example.com", "password": "test1234"},
+        follow_redirects=True,
+    )
+    assert rv.status_code in (200, 302)
+
+    # Create a fake repo zip with a root folder and a subdir
+    files = {
+        "rootdir/path/good.poke": "ok",
+        "rootdir/path/readme.md": "md",
+        "rootdir/other/ignored.txt": "no",
+    }
+    zip_bytes = _make_zip_bytes(files)
+
+    class DummyResp:
+        status_code = 200
+
+        def __init__(self, content):
+            self.content = content
+
+    def fake_get(url, timeout=60):
+        return DummyResp(zip_bytes)
+
+    monkeypatch.setattr("requests.get", fake_get)
+
+    payload = {"repo_url": "https://github.com/owner/repo", "branch": "main", "subdir": "path"}
+    resp = test_client.post("/dataset/github/import", json=payload)
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert "saved" in body and "ignored" in body
+    # only good.poke should be saved
+    assert any(s.endswith("good.poke") for s in body["saved"])
+
+    # cleanup temp folder
+    user = UserRepository().get_by_email("test@example.com")
+    temp_folder = AuthenticationService().temp_folder_by_user(user)
+    if os.path.exists(temp_folder):
+        shutil.rmtree(temp_folder)
+
+
+@pytest.fixture
+def dataset_with_comment(feedback_user, feedback_dataset):
+    """Añade un comentario preexistente al dataset."""
+    comment = DSComment(content="Initial test comment", user_id=feedback_user.id, dataset_id=feedback_dataset.id)
+    db.session.add(comment)
+    db.session.commit()
+    return comment
+
+
+def test_add_comment_success(test_client, feedback_user, feedback_dataset):
+    """
+    Prueba añadir un comentario interceptando el servicio para que encuentre el dataset.
+    """
+    login(test_client, feedback_user.email, "password")
+
+    with patch("app.modules.dataset.routes.dataset_service.get_or_404") as mock_get:
+        mock_get.return_value = feedback_dataset
+
+        response = test_client.post(
+            f"/dataset/{feedback_dataset.id}/comment",
+            data={"content": "This is a great dataset!", "submit": "Add comment"},
+            follow_redirects=False,
+        )
+    assert response.status_code == 302
+    comment = DSComment.query.filter_by(content="This is a great dataset!").first()
+    assert comment is not None
+    assert comment.dataset_id == feedback_dataset.id
+
+    logout(test_client)
+
+
+def test_delete_comment_by_author(test_client, feedback_user, feedback_dataset, dataset_with_comment):
+    login(test_client, feedback_user.email, "password")
+
+    with patch("app.modules.dataset.routes.dataset_service.get_or_404") as mock_get:
+        mock_get.return_value = feedback_dataset
+
+        response = test_client.post(
+            f"/dataset/{feedback_dataset.id}/comment/{dataset_with_comment.id}/delete", follow_redirects=False
+        )
+
+    assert response.status_code == 302
+    after = DSComment.query.get(dataset_with_comment.id)
+    assert after is None
+    logout(test_client)
+
+
+def test_delete_comment_by_dataset_owner(test_client, feedback_user, feedback_dataset):
+
+    other_email = f"other_{uuid.uuid4()}@example.com"
+    other_user = User(email=other_email, password="password")
+    db.session.add(other_user)
+    db.session.commit()
+    comment = DSComment(content="Spam", user_id=other_user.id, dataset_id=feedback_dataset.id)
+    db.session.add(comment)
+    db.session.commit()
+
+    login(test_client, feedback_user.email, "password")
+
+    with patch("app.modules.dataset.routes.dataset_service.get_or_404") as mock_get:
+        mock_get.return_value = feedback_dataset
+
+        response = test_client.post(
+            f"/dataset/{feedback_dataset.id}/comment/{comment.id}/delete", follow_redirects=False
+        )
+
+    assert response.status_code == 302
+    after = DSComment.query.get(comment.id)
+    assert after is None
+    logout(test_client)

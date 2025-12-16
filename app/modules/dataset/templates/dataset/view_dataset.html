@@ -274,6 +274,79 @@
         </button>
       </div>
     </div>
+    <!-- 🔻 Comments list -->
+    <div class="card mt-4">
+      <div class="card-header">
+        <h5>Comments ({{ comments|length }})</h5>
+      </div>
+
+      <ul class="list-group list-group-flush">
+        {% for comment in comments %}
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div>
+                  <strong>{{ comment.user.profile.surname }}, {{ comment.user.profile.name }}</strong>
+                  <small class="text-muted">
+                    — {{ comment.created_at.strftime("%Y-%m-%d %H:%M") }}
+                  </small>
+                </div>
+                <div class="mt-2">
+                  {{ comment.content }}
+                </div>
+              </div>
+              {% if not current_user.is_anonymous and (comment.user_id == current_user.id or dataset.user_id == current_user.id) %}
+              <div class="ms-2">
+                <form method="POST" action="{{ url_for('dataset.delete_dataset_comment', dataset_id=dataset.id, comment_id=comment.id) }}" 
+                      onsubmit="return confirm('Are you sure you want to delete this comment?');">
+                  <button type="submit" class="btn btn-outline-danger btn-sm" style="border-radius: 5px;">
+                    <i data-feather="trash-2"></i>
+                  </button>
+                </form>
+              </div>
+              {% endif %}
+            </div>
+          </li>
+        {% else %}
+          <li class="list-group-item text-muted">
+            No comments yet. Be the first to comment!
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <!-- 🔻 Add comment form -->
+    {% if not current_user.is_anonymous %}
+    <div class="card mt-3">
+      <div class="card-header">
+        <h5>Add a comment</h5>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('dataset.add_dataset_comment', dataset_id=dataset.id) }}">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            {{ form.content.label(class="form-label") }}
+            {{ form.content(class="form-control", rows="3") }}
+            {% for error in form.content.errors %}
+              <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-sm">
+            {{ form.submit.label }}
+          </button>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="card mt-3">
+      <div class="card-body">
+        <p class="text-muted mb-0">
+          You must be logged in to comment on this dataset.
+        </p>
+      </div>
+    </div>
+    {% endif %}
   </div>
 
   <div class="col-xl-4 col-lg-12 col-md-12 col-sm-12">

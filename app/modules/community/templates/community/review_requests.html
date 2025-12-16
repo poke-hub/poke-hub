@@ -1,0 +1,60 @@
+{% extends "base_template.html" %}
+{% block content %}
+
+<h2>Review Dataset Requests for {{ community.name }}</h2>
+
+{% if requests %}
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Dataset</th>
+            <th>Requester</th>
+            <th>Message</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for req in requests %}
+        <tr>
+            <td>
+                <a href="{{ req.dataset.get_pokehub_doi() }}">
+                    {{ req.dataset.ds_meta_data.title }}
+                </a>
+            </td>
+            <td>{{ req.requester.email }}</td>
+            <td>{{ req.message or "-" }}</td>
+            <td>
+                {% if req.status == 'pending' %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                {% elif req.status == 'accepted' %}
+                    <span class="badge bg-success">Accepted</span>
+                {% else %}
+                    <span class="badge bg-danger">Rejected</span>
+                {% endif %}
+            </td>
+
+            <td>
+                {% if req.status == 'pending' %}
+                    <form method="POST" action="{{ url_for('community.accept_request', req_id=req.id) }}" style="display:inline">
+                        <button class="btn btn-success btn-sm">Accept</button>
+                    </form>
+
+                    <form method="POST" action="{{ url_for('community.reject_request', req_id=req.id) }}" style="display:inline">
+                        <button class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                {% else %}
+                    <em>No actions</em>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% else %}
+<p>No pending requests.</p>
+{% endif %}
+
+{% endblock %}

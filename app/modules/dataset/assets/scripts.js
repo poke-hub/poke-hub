@@ -120,9 +120,31 @@ function write_upload_error(error_message) {
   let alert = document.createElement("p");
   alert.style.margin = "0";
   alert.style.padding = "0";
-  alert.textContent = "Upload error: " + error_message;
+  // Use innerText so newlines in error_message are preserved in rendering
+  alert.innerText = "Upload error: " + error_message;
   upload_error.appendChild(alert);
   upload_error.style.display = "block";
+}
+
+// Helper to stringify nested error structures (WTForms returns nested dicts/arrays)
+function formatError(err) {
+  if (err === null || err === undefined) return "";
+  if (typeof err === "string") return err;
+  if (typeof err === "number" || typeof err === "boolean") return String(err);
+  if (Array.isArray(err)) return err.map((v) => formatError(v)).join("; ");
+  if (typeof err === "object") {
+    try {
+      return Object.entries(err)
+        .map(([k, v]) => {
+          const formatted = formatError(v);
+          return formatted ? `${k}: ${formatted}` : `${k}`;
+        })
+        .join("\n");
+    } catch (e) {
+      return JSON.stringify(err);
+    }
+  }
+  return String(err);
 }
 
 function showToast(type, message) {
@@ -216,25 +238,25 @@ function appendUploadedModel(filename) {
 
   formContainer.innerHTML = `
         <div class="row">
-            <input type="hidden" value="${filename}" name="feature_models-${formUniqueId}-poke_filename">
+            <input type="hidden" value="${filename}" name="poke_models-${formUniqueId}-poke_filename">
             <div class="col-12">
                 <div class="row">
                     <div class="col-12">
                         <div class="mb-3">
                             <label class="form-label">Title</label>
-                            <input type="text" class="form-control" name="feature_models-${formUniqueId}-title">
+                            <input type="text" class="form-control" name="poke_models-${formUniqueId}-title">
                         </div>
                     </div>
                     <div class="col-12">
                         <div class="mb-3">
                             <label class="form-label">Description</label>
-                            <textarea rows="4" class="form-control" name="feature_models-${formUniqueId}-desc"></textarea>
+                            <textarea rows="4" class="form-control" name="poke_models-${formUniqueId}-desc"></textarea>
                         </div>
                     </div>
                     <div class="col-lg-6 col-12">
                         <div class="mb-3">
                             <label class="form-label" for="publication_type">Publication type</label>
-                            <select class="form-control" name="feature_models-${formUniqueId}-publication_type">
+                            <select class="form-control" name="poke_models-${formUniqueId}-publication_type">
                                 <option value="none">None</option>
                                 <option value="annotationcollection">Annotation Collection</option>
                                 <option value="book">Book</option>
@@ -260,19 +282,19 @@ function appendUploadedModel(filename) {
                     <div class="col-lg-6 col-6">
                         <div class="mb-3">
                             <label class="form-label" for="publication_doi">Publication DOI</label>
-                            <input class="form-control" name="feature_models-${formUniqueId}-publication_doi" type="text" value="">
+                            <input class="form-control" name="poke_models-${formUniqueId}-publication_doi" type="text" value="">
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="mb-3">
                             <label class="form-label">Tags (separated by commas)</label>
-                            <input type="text" class="form-control" name="feature_models-${formUniqueId}-tags">
+                            <input type="text" class="form-control" name="poke_models-${formUniqueId}-tags">
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="mb-3">
                             <label class="form-label">Poke version</label>
-                            <input type="text" class="form-control" name="feature_models-${formUniqueId}-poke_version">
+                            <input type="text" class="form-control" name="poke_models-${formUniqueId}-poke_version">
                         </div>
                     </div>
                     <div class="col-12">
@@ -565,10 +587,24 @@ window.onload = function () {
               if (!response.ok) {
                 try {
                   const data = await response.json();
-                  console.error(
-                    "Error: " + (data.message || JSON.stringify(data))
-                  );
-                  write_upload_error(data.message || "Unexpected error");
+                  console.error("Error: " + (data.message || JSON.stringify(data)));
+
+                  // Si el servidor devuelve un objeto con errores en la raíz
+                  // (por ejemplo { poke_models: {...} }) usamos formatError
+                  // para convertirlo a texto legible.
+                  let errorMsg = "Unexpected error";
+
+                  if (data) {
+                    if (data.message) {
+                      // message puede ser string u objeto
+                      errorMsg = typeof data.message === "object" ? formatError(data.message) : String(data.message);
+                    } else {
+                      // Si no hay 'message', formateamos todo el objeto devuelto
+                      errorMsg = formatError(data);
+                    }
+                  }
+
+                  write_upload_error(errorMsg || "Unexpected error");
                 } catch (e) {
                   console.error("Error no-JSON", e);
                   write_upload_error("Unexpected error uploading dataset");

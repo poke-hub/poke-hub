@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import FieldList, FormField, SelectField, StringField, SubmitField, TextAreaField
-from wtforms.validators import URL, DataRequired, Optional
+from wtforms.validators import URL, DataRequired, Length, Optional
 
 from app.modules.dataset.models import PublicationType
 
@@ -118,3 +118,14 @@ class DataSetForm(FlaskForm):
             "github_branch": self.github_branch.data or "main",
             "github_subdir": (self.github_subdir.data or "").strip("/"),
         }
+
+
+class DataSetCommentForm(FlaskForm):
+    content = TextAreaField(
+        "Comment",
+        validators=[
+            DataRequired(message="The comment cannot be empty."),
+            Length(min=3, message="The comment is too short."),
+        ],
+    )
+    submit = SubmitField("Add comment")

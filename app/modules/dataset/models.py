@@ -85,13 +85,21 @@ class DataSet(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     ds_meta_data_id = db.Column(db.Integer, db.ForeignKey("ds_meta_data.id"), nullable=False)
+    community_id = db.Column(db.Integer, db.ForeignKey("community.id"), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     draft_mode = db.Column(db.Boolean, nullable=False, default=False)
 
     download_count = db.Column(db.Integer, nullable=False, default=0)
 
     ds_meta_data = db.relationship("DSMetaData", backref=db.backref("data_set", uselist=False))
+    community = db.relationship("Community", back_populates="datasets")
     poke_models = db.relationship("PokeModel", backref="data_set", lazy=True, cascade="all, delete")
+    community_requests = db.relationship(
+        "CommunityDatasetRequest", back_populates="dataset", cascade="all, delete-orphan"
+    )
+    comments = db.relationship(
+        "DSComment", backref="data_set", lazy=True, cascade="all, delete-orphan", order_by="DSComment.created_at.desc()"
+    )
 
     def name(self):
         return self.ds_meta_data.title
@@ -179,6 +187,36 @@ class DSDownloadRecord(db.Model):
             f"date={self.download_date} "
             f"cookie={self.download_cookie}>"
         )
+
+
+class DSComment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dataset_id = db.Column(db.Integer, db.ForeignKey("data_set.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    content = db.Column(db.Text, nullable=False)
+
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
+    user = db.relationship("User", backref=db.backref("ds_comments", lazy=True))
+
+    def __repr__(self):
+        return f"<DSComment id={self.id} dataset_id={self.dataset_id} user_id={self.user_id}>"
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "dataset_id": self.dataset_id,
+            "user_id": self.user_id,
+            "content": self.content,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
 
 
 class DSViewRecord(db.Model):
