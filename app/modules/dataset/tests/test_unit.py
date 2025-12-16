@@ -41,13 +41,13 @@ class DummyDS:
 def test_trending_by_views_delegates_to_repository():
     svc = DataSetService()
     # mock repository.trending_by_views
-    expected = [(DummyDS(1, "T1", Mock()), 10), (DummyDS(2, "T2", Mock()), 7)]
+    expected = [(DummyDS(1, "T1", Mock()), 10), (DummyDS(2, "T2", Mock()), 7),(DummyDS(3, "T3", Mock()), 7),(DummyDS(4, "T4", Mock()), 8),(DummyDS(5, "T5", Mock()), 9)]
     svc.repository = Mock()
     svc.repository.trending_by_views.return_value = expected
 
-    res = svc.trending_by_views(limit=3, days=30)
+    res = svc.trending_by_views(limit=5, days=30)
 
-    svc.repository.trending_by_views.assert_called_once_with(limit=3, days=30)
+    svc.repository.trending_by_views.assert_called_once_with(limit=5, days=30)
     assert res == expected
 
 
